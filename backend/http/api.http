@@ -1,0 +1,404 @@
+### =============================================================
+### INGELOP_EIRL — Colección de peticiones de la API
+### Uso: extensión "REST Client" de VS Code (humao.rest-client) o JetBrains HTTP Client.
+### 1) Ejecuta "Login ADMIN" y luego el resto: el token se captura automáticamente.
+### Los IDs de ejemplo cambian cada vez que se ejecuta el seed: consulta primero GET /proyectos y ajústalos.
+### =============================================================
+
+@baseUrl = http://localhost:4000/api/v1
+@token = {{loginAdmin.response.body.token}}
+@tokenUsuario = {{loginUsuario.response.body.token}}
+
+### Healthcheck (público)
+GET http://localhost:4000/health
+
+### ---------------- AUTH ----------------
+
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "email": "admin@ingelop.com", "password": "Admin123!" }
+
+###
+# @name loginUsuario
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "email": "residente@ingelop.com", "password": "Usuario123!" }
+
+### Credenciales incorrectas -> 401
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "email": "admin@ingelop.com", "password": "incorrecta" }
+
+### Usuario autenticado
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### ---------------- USUARIOS (ADMIN) ----------------
+
+GET {{baseUrl}}/usuarios?activo=true
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/usuarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "nombre": "Ana Asistente", "email": "ana@ingelop.com", "password": "Clave12345", "rol": "USUARIO" }
+
+###
+PUT {{baseUrl}}/usuarios/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "nombre": "Carlos Residente (editado)" }
+
+### Baja lógica (activo = false)
+DELETE {{baseUrl}}/usuarios/4
+Authorization: Bearer {{token}}
+
+### ---------------- CLIENTES (ADMIN) ----------------
+
+GET {{baseUrl}}/clientes?activo=true
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "tipo": "ENTIDAD_PUBLICA", "nombre": "Municipalidad Distrital de Monsefú", "documento": "20600000011", "contacto": "Sub Gerencia de Obras" }
+
+###
+PUT {{baseUrl}}/clientes/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "telefono": "01 581 0000" }
+
+### ---------------- PROYECTOS ----------------
+
+### ADMIN: todos | USUARIO: solo asignados. Filtros: ?estado=EN_EJECUCION&q=aulas
+GET {{baseUrl}}/proyectos
+Authorization: Bearer {{token}}
+
+### Vista del USUARIO (solo sus obras)
+GET {{baseUrl}}/proyectos
+Authorization: Bearer {{tokenUsuario}}
+
+###
+GET {{baseUrl}}/proyectos/1
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/proyectos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Expediente técnico: Losa deportiva multiusos",
+  "clienteId": 1,
+  "tipoServicio": "EXPEDIENTE_TECNICO",
+  "ubicacion": "Lambayeque",
+  "fechaInicio": "2026-11-01",
+  "fechaFin": "2027-01-31",
+  "montoContrato": 38000,
+  "estado": "PLANIFICADA",
+  "responsableId": 1
+}
+
+###
+PUT {{baseUrl}}/proyectos/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "EN_EJECUCION" }
+
+###
+DELETE {{baseUrl}}/proyectos/3
+Authorization: Bearer {{token}}
+
+### Usuarios asignados a la obra
+GET {{baseUrl}}/proyectos/1/usuarios
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/proyectos/1/usuarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "usuarioId": 3 }
+
+###
+DELETE {{baseUrl}}/proyectos/1/usuarios/3
+Authorization: Bearer {{token}}
+
+### ---------------- SPRINTS ----------------
+
+GET {{baseUrl}}/proyectos/1/sprints
+Authorization: Bearer {{token}}
+
+### "numero" es opcional (se asigna el siguiente)
+POST {{baseUrl}}/proyectos/1/sprints
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "fechaInicio": "2026-10-16", "fechaFin": "2026-11-15", "objetivo": "Acabados: tarrajeo y pisos" }
+
+###
+PUT {{baseUrl}}/sprints/3
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "objetivo": "Albañilería, losa aligerada e instalaciones empotradas" }
+
+### ---------------- ACTIVIDADES (Kanban) ----------------
+
+GET {{baseUrl}}/sprints/3/actividades
+Authorization: Bearer {{token}}
+
+### Vista tablero: columnas BACKLOG -> POR_HACER -> EN_PROCESO -> EN_REVISION -> COMPLETADA
+GET {{baseUrl}}/sprints/3/actividades?vista=kanban
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/sprints/3/actividades
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "nombre": "Colocación de puntales para losa", "responsableId": 2 }
+
+### Mover en el tablero (si estado = COMPLETADA y no se envía avance, avance = 100)
+PATCH {{baseUrl}}/actividades/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "EN_REVISION", "avance": 90 }
+
+### ---------------- PLANOS ----------------
+
+GET {{baseUrl}}/proyectos/1/planos?especialidad=ARQUITECTURA
+Authorization: Bearer {{token}}
+
+### Registrar plano con su primera revisión (multipart). Cambia la ruta por un archivo real.
+POST {{baseUrl}}/proyectos/1/planos
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: multipart/form-data; boundary=----IngelopBoundary
+
+------IngelopBoundary
+Content-Disposition: form-data; name="codigo"
+
+A-04
+------IngelopBoundary
+Content-Disposition: form-data; name="titulo"
+
+Detalles de escaleras
+------IngelopBoundary
+Content-Disposition: form-data; name="especialidad"
+
+ARQUITECTURA
+------IngelopBoundary
+Content-Disposition: form-data; name="archivo"; filename="A-04.pdf"
+Content-Type: application/pdf
+
+< ./plano.pdf
+------IngelopBoundary--
+
+### Historial de revisiones
+GET {{baseUrl}}/planos/1
+Authorization: Bearer {{token}}
+
+### Observar (ADMIN)
+PATCH {{baseUrl}}/planos/3
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "OBSERVADO", "observacion": "Falta el nivel de piso terminado en el corte B-B" }
+
+### Aprobar (ADMIN)
+PATCH {{baseUrl}}/planos/4
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "APROBADO" }
+
+### Descargar una revisión (?ver=true para verla en el navegador)
+GET {{baseUrl}}/planos/versiones/1/archivo
+Authorization: Bearer {{token}}
+
+### ---------------- PRESUPUESTOS ----------------
+
+GET {{baseUrl}}/proyectos/1/presupuestos
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/proyectos/1/presupuestos
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "nombre": "Presupuesto de obra – Cerco perimétrico" }
+
+### Detalle con partidas y totales
+GET {{baseUrl}}/presupuestos/1
+Authorization: Bearer {{token}}
+
+### Guardar partidas (reemplaza todas). Los títulos no llevan metrado.
+PUT {{baseUrl}}/presupuestos/1/partidas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "partidas": [
+    { "item": "01", "descripcion": "OBRAS PROVISIONALES", "esTitulo": true },
+    { "item": "01.01", "descripcion": "Cartel de obra 3.60 x 2.40 m", "unidad": "und", "metrado": 1, "precioUnitario": 1850 },
+    { "item": "02", "descripcion": "CONCRETO ARMADO", "esTitulo": true },
+    { "item": "02.01", "descripcion": "Concreto f'c = 210 kg/cm2", "unidad": "m3", "metrado": 42.6, "precioUnitario": 412.3 }
+  ]
+}
+
+### Cambiar porcentajes o enviar a revisión
+PUT {{baseUrl}}/presupuestos/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "gastosGeneralesPct": 12, "utilidadPct": 8, "estado": "EN_REVISION" }
+
+### Nueva versión (copia en borrador)
+POST {{baseUrl}}/presupuestos/1/duplicar
+Authorization: Bearer {{token}}
+
+### ---------------- ENTREGABLES ----------------
+
+GET {{baseUrl}}/proyectos/1/entregables
+Authorization: Bearer {{tokenUsuario}}
+
+### Cargar la plantilla del expediente técnico
+POST {{baseUrl}}/proyectos/2/entregables/plantilla
+Authorization: Bearer {{token}}
+
+###
+PATCH {{baseUrl}}/entregables/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "APROBADO" }
+
+### ---------------- EQUIPO TÉCNICO Y HORAS ----------------
+
+GET {{baseUrl}}/trabajadores?activo=true
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/trabajadores
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "dni": "46789012", "nombre": "Arq. Raúl Mendoza Chávez", "cargo": "Arquitecto proyectista", "costoHora": 42 }
+
+###
+POST {{baseUrl}}/proyectos/1/asignaciones
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "trabajadorId": 5, "fechaInicio": "2026-09-21" }
+
+###
+GET {{baseUrl}}/proyectos/1/asignaciones
+Authorization: Bearer {{token}}
+
+### Cerrar una asignación
+PATCH {{baseUrl}}/asignaciones/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "fechaFin": "2026-12-20" }
+
+### Registrar horas de un profesional (debe estar asignado al proyecto)
+POST {{baseUrl}}/proyectos/1/registros-horas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "trabajadorId": 1, "fecha": "2026-09-22", "horas": 6, "descripcion": "Levantamiento de observaciones de arquitectura" }
+
+###
+GET {{baseUrl}}/proyectos/1/registros-horas?desde=2026-09-01&hasta=2026-09-30
+Authorization: Bearer {{token}}
+
+### Horas-hombre y costo por profesional
+GET {{baseUrl}}/proyectos/1/horas?desde=2026-09-01&hasta=2026-09-30
+Authorization: Bearer {{token}}
+
+### ---------------- GASTOS ----------------
+
+GET {{baseUrl}}/proyectos/1/gastos?categoria=MANO_DE_OBRA&desde=2026-07-01
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/proyectos/1/gastos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "categoria": "MATERIALES", "descripcion": "Ladrillo pandereta", "monto": 5840.5, "fecha": "2026-09-20" }
+
+###
+GET {{baseUrl}}/proyectos/1/gastos/resumen
+Authorization: Bearer {{token}}
+
+### ---------------- DOCUMENTOS (evidencias) ----------------
+
+GET {{baseUrl}}/proyectos/1/evidencias
+Authorization: Bearer {{tokenUsuario}}
+
+### Subida con archivo (USUARIO asignado). Cambia la ruta por una imagen real.
+POST {{baseUrl}}/proyectos/1/evidencias
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: multipart/form-data; boundary=----IngelopBoundary
+
+------IngelopBoundary
+Content-Disposition: form-data; name="tipo"
+
+FOTO
+------IngelopBoundary
+Content-Disposition: form-data; name="titulo"
+
+Avance de muros eje C
+------IngelopBoundary
+Content-Disposition: form-data; name="actividadId"
+
+6
+------IngelopBoundary
+Content-Disposition: form-data; name="archivo"; filename="foto.jpg"
+Content-Type: image/jpeg
+
+< ./foto.jpg
+------IngelopBoundary--
+
+### Observación sin archivo (JSON)
+POST {{baseUrl}}/proyectos/1/evidencias
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "tipo": "OBSERVACION", "titulo": "Falta curado de columnas", "descripcion": "Regar columnas del eje B" }
+
+### USUARIO en obra NO asignada -> 403
+POST {{baseUrl}}/proyectos/2/evidencias
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "tipo": "OBSERVACION", "titulo": "No debería poder" }
+
+### Ver/descargar archivo (?descargar=true fuerza la descarga)
+GET {{baseUrl}}/evidencias/3/archivo
+Authorization: Bearer {{tokenUsuario}}
+
+### ---------------- DASHBOARD ----------------
+
+GET {{baseUrl}}/proyectos/1/dashboard
+Authorization: Bearer {{tokenUsuario}}
+
+###
+GET {{baseUrl}}/dashboard/general?meses=12
+Authorization: Bearer {{token}}
