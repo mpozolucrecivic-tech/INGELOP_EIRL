@@ -1,0 +1,364 @@
+// Esquema de datos de la intranet INGELOP_EIRL
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ADMIN
+  USUARIO
+}
+
+enum EstadoProyecto {
+  PLANIFICADA
+  EN_EJECUCION
+  FINALIZADA
+}
+
+enum EstadoActividad {
+  BACKLOG
+  POR_HACER
+  EN_PROCESO
+  EN_REVISION
+  COMPLETADA
+}
+
+enum TipoMovimiento {
+  ENTRADA
+  SALIDA
+}
+
+enum CategoriaGasto {
+  MATERIALES
+  MANO_DE_OBRA
+  TRANSPORTE
+  EQUIPOS
+  OTROS
+}
+
+enum TipoEvidencia {
+  FOTO
+  INFORME
+  DOCUMENTO
+  OBSERVACION
+}
+
+enum TipoCliente {
+  ENTIDAD_PUBLICA
+  EMPRESA
+  PERSONA
+}
+
+// Especialidades de consultoría de obras según el RNP del OSCE
+enum RubroObra {
+  EDIFICACIONES // obras urbanas, edificaciones y afines
+  SANEAMIENTO // obras de saneamiento y afines
+  VIALES // obras viales, puertos y afines
+  ELECTROMECANICAS // electromecánicas, energéticas, telecomunicaciones
+  REPRESAS_IRRIGACIONES // represas, irrigaciones y afines
+}
+
+enum TipoServicio {
+  ESTUDIO_PREINVERSION
+  EXPEDIENTE_TECNICO
+  DISENO_ARQUITECTONICO
+  DISENO_ESTRUCTURAL
+  SUPERVISION
+  LIQUIDACION_OBRA
+  CONSULTORIA
+  OTRO
+}
+
+enum Especialidad {
+  ARQUITECTURA
+  ESTRUCTURAS
+  INSTALACIONES_SANITARIAS
+  INSTALACIONES_ELECTRICAS
+  INSTALACIONES_MECANICAS
+  SANEAMIENTO // redes de agua potable y alcantarillado
+  VIALIDAD // diseño geométrico, pavimentos, señalización
+  TOPOGRAFIA
+  OTROS
+}
+
+// Flujo de revisión compartido por planos, presupuestos y entregables
+enum EstadoRevision {
+  BORRADOR
+  EN_REVISION
+  OBSERVADO
+  APROBADO
+}
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nombre       String
+  email        String   @unique
+  passwordHash String
+  rol          Rol      @default(USUARIO)
+  activo       Boolean  @default(true)
+  creadoEn     DateTime @default(now())
+
+  proyectosResponsable Proyecto[]           @relation("ProyectoResponsable")
+  proyectosAsignados   UsuarioProyecto[]
+  actividades          Actividad[]          @relation("ActividadResponsable")
+  movimientos          MovimientoMaterial[]
+  evidencias           Evidencia[]
+  planosResponsable    Plano[]              @relation("PlanoResponsable")
+  versionesPlano       PlanoVersion[]
+  entregables          Entregable[]         @relation("EntregableResponsable")
+}
+
+model Cliente {
+  id        Int         @id @default(autoincrement())
+  tipo      TipoCliente @default(EMPRESA)
+  nombre    String // razón social, entidad o nombre completo
+  documento String?     @unique // RUC o DNI
+  contacto  String? // persona de contacto
+  telefono  String?
+  email     String?
+  direccion String?
+  activo    Boolean     @default(true)
+  creadoEn  DateTime    @default(now())
+  proyectos Proyecto[]
+}
+
+model Proyecto {
+  id            Int            @id @default(autoincrement())
+  nombre        String
+  clienteId     Int
+  cliente       Cliente        @relation(fields: [clienteId], references: [id])
+  tipoServicio  TipoServicio   @default(EXPEDIENTE_TECNICO)
+  rubro         RubroObra      @default(EDIFICACIONES)
+  ubicacion     String
+  fechaInicio   DateTime
+  fechaFin      DateTime
+  montoContrato Decimal        @db.Decimal(12, 2) // honorarios pactados con el cliente
+  estado        EstadoProyecto @default(PLANIFICADA)
+  responsableId Int
+  responsable   Usuario        @relation("ProyectoResponsable", fields: [responsableId], references: [id])
+  creadoEn      DateTime       @default(now())
+
+  usuarios       UsuarioProyecto[]
+  sprints        Sprint[]
+  materiales     Material[]
+  gastos         Gasto[]
+  evidencias     Evidencia[]
+  asignaciones   Asignacion[]
+  registrosHoras RegistroHoras[]
+  planos         Plano[]
+  presupuestos   Presupuesto[]
+  entregables    Entregable[]
+}
+
+// Usuarios (rol USUARIO) asignados a una obra: define qué proyectos pueden ver
+model UsuarioProyecto {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  proyectoId Int
+  proyecto   Proyecto @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, proyectoId])
+}
+
+model Sprint {
+  id          Int         @id @default(autoincrement())
+  proyectoId  Int
+  proyecto    Proyecto    @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  numero      Int
+  fechaInicio DateTime
+  fechaFin    DateTime
+  objetivo    String
+  actividades Actividad[]
+
+  @@unique([proyectoId, numero])
+}
+
+model Actividad {
+  id            Int             @id @default(autoincrement())
+  sprintId      Int
+  sprint        Sprint          @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  nombre        String
+  responsableId Int
+  responsable   Usuario         @relation("ActividadResponsable", fields: [responsableId], references: [id])
+  estado        EstadoActividad @default(BACKLOG)
+  avance        Int             @default(0)
+  evidencias    Evidencia[]
+}
+
+model Material {
+  id          Int                  @id @default(autoincrement())
+  proyectoId  Int
+  proyecto    Proyecto             @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  nombre      String
+  unidad      String
+  stockActual Decimal              @default(0) @db.Decimal(12, 2)
+  stockMinimo Decimal              @db.Decimal(12, 2)
+  movimientos MovimientoMaterial[]
+}
+
+model MovimientoMaterial {
+  id          Int            @id @default(autoincrement())
+  materialId  Int
+  material    Material       @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  tipo        TipoMovimiento
+  cantidad    Decimal        @db.Decimal(12, 2)
+  fecha       DateTime       @default(now())
+  observacion String?
+  usuarioId   Int
+  usuario     Usuario        @relation(fields: [usuarioId], references: [id])
+}
+
+model Trabajador {
+  id             Int             @id @default(autoincrement())
+  dni            String          @unique
+  nombre         String
+  cargo          String
+  costoHora      Decimal         @db.Decimal(8, 2)
+  activo         Boolean         @default(true)
+  asignaciones   Asignacion[]
+  registrosHoras RegistroHoras[]
+}
+
+model Asignacion {
+  id           Int        @id @default(autoincrement())
+  trabajadorId Int
+  trabajador   Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  proyectoId   Int
+  proyecto     Proyecto   @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  fechaInicio  DateTime
+  fechaFin     DateTime?
+}
+
+// Parte de horas del equipo técnico: varias entradas por día y por proyecto
+model RegistroHoras {
+  id           Int        @id @default(autoincrement())
+  trabajadorId Int
+  trabajador   Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  proyectoId   Int
+  proyecto     Proyecto   @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  fecha        DateTime   @db.Date
+  horas        Decimal    @db.Decimal(4, 1)
+  descripcion  String? // tarea realizada (ej. "Modelado estructural bloque B")
+  creadoEn     DateTime   @default(now())
+
+  @@index([proyectoId, fecha])
+}
+
+model Gasto {
+  id          Int            @id @default(autoincrement())
+  proyectoId  Int
+  proyecto    Proyecto       @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  categoria   CategoriaGasto
+  descripcion String
+  monto       Decimal        @db.Decimal(12, 2)
+  fecha       DateTime
+}
+
+model Evidencia {
+  id          Int           @id @default(autoincrement())
+  proyectoId  Int
+  proyecto    Proyecto      @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  actividadId Int?
+  actividad   Actividad?    @relation(fields: [actividadId], references: [id], onDelete: SetNull)
+  tipo        TipoEvidencia
+  titulo      String
+  descripcion String?
+  archivoUrl  String?
+  fecha       DateTime      @default(now())
+  usuarioId   Int
+  usuario     Usuario       @relation(fields: [usuarioId], references: [id])
+}
+
+// ---------- Planos ----------
+
+model Plano {
+  id            Int            @id @default(autoincrement())
+  proyectoId    Int
+  proyecto      Proyecto       @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  codigo        String // ej. A-01, E-03, IS-02
+  titulo        String
+  especialidad  Especialidad
+  estado        EstadoRevision @default(BORRADOR)
+  observacion   String? // última observación de la revisión
+  responsableId Int?
+  responsable   Usuario?       @relation("PlanoResponsable", fields: [responsableId], references: [id], onDelete: SetNull)
+  creadoEn      DateTime       @default(now())
+  actualizadoEn DateTime       @updatedAt
+  versiones     PlanoVersion[]
+
+  @@unique([proyectoId, codigo])
+}
+
+model PlanoVersion {
+  id            Int      @id @default(autoincrement())
+  planoId       Int
+  plano         Plano    @relation(fields: [planoId], references: [id], onDelete: Cascade)
+  revision      Int // 1, 2, 3… (se muestra como Rev. A, B, C…)
+  archivoUrl    String
+  nombreArchivo String
+  tamano        Int // bytes
+  comentario    String?
+  usuarioId     Int
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  fecha         DateTime @default(now())
+
+  @@unique([planoId, revision])
+}
+
+// ---------- Presupuestos ----------
+
+model Presupuesto {
+  id                 Int                  @id @default(autoincrement())
+  proyectoId         Int
+  proyecto           Proyecto             @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  nombre             String // ej. "Presupuesto de obra – Estructuras"
+  version            Int                  @default(1)
+  fecha              DateTime             @default(now()) @db.Date
+  estado             EstadoRevision       @default(BORRADOR)
+  gastosGeneralesPct Decimal              @default(10) @db.Decimal(5, 2)
+  utilidadPct        Decimal              @default(5) @db.Decimal(5, 2)
+  igvPct             Decimal              @default(18) @db.Decimal(5, 2)
+  observaciones      String?
+  creadoEn           DateTime             @default(now())
+  actualizadoEn      DateTime             @updatedAt
+  partidas           PartidaPresupuesto[]
+}
+
+model PartidaPresupuesto {
+  id             Int         @id @default(autoincrement())
+  presupuestoId  Int
+  presupuesto    Presupuesto @relation(fields: [presupuestoId], references: [id], onDelete: Cascade)
+  orden          Int
+  item           String // código jerárquico: 01, 01.01, 01.01.02
+  descripcion    String
+  esTitulo       Boolean     @default(false) // títulos agrupan partidas y no llevan metrado
+  unidad         String?
+  metrado        Decimal?    @db.Decimal(14, 2)
+  precioUnitario Decimal?    @db.Decimal(12, 2)
+
+  @@index([presupuestoId, orden])
+}
+
+// ---------- Entregables del expediente técnico ----------
+
+model Entregable {
+  id            Int            @id @default(autoincrement())
+  proyectoId    Int
+  proyecto      Proyecto       @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  orden         Int            @default(0)
+  nombre        String
+  descripcion   String?
+  estado        EstadoRevision @default(BORRADOR)
+  fechaLimite   DateTime?      @db.Date
+  fechaEntrega  DateTime?      @db.Date
+  responsableId Int?
+  responsable   Usuario?       @relation("EntregableResponsable", fields: [responsableId], references: [id], onDelete: SetNull)
+  creadoEn      DateTime       @default(now())
+}
