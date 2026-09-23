@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+backend/uploads/*
+!backend/uploads/.gitkeep
+*.log
+
+# Web PHP: mensajes del formulario de contacto (datos personales)
+web/storage/*.csv

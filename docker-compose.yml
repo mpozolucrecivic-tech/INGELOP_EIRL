@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ingelop_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ingelop
+      POSTGRES_PASSWORD: dev123
+      POSTGRES_DB: ingelop
+    ports:
+      - "5432:5432"
+    volumes:
+      - ingelop_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ingelop -d ingelop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Web informativa en PHP (para probar en local: http://localhost:8080)
+  web:
+    image: php:8.3-apache
+    container_name: ingelop_web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/var/www/html
+    command: >
+      bash -c "a2enmod headers expires rewrite >/dev/null &&
+               sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf &&
+               apache2-foreground"
+
+volumes:
+  ingelop_pgdata:
