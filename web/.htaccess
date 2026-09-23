@@ -1,0 +1,27 @@
+# ---- INGELOP – configuración Apache (hosting compartido) ----
+Options -Indexes
+DirectoryIndex index.php
+AddDefaultCharset UTF-8
+
+# Página 404 propia
+ErrorDocument 404 /404.php
+
+# Bloquea el acceso directo a includes y a la carpeta de mensajes
+RedirectMatch 404 ^/(includes|storage)(/|$)
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Caché de recursos estáticos (los CSS/JS llevan ?v= para forzar la actualización)
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 30 days"
+  ExpiresByType application/javascript "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/webp "access plus 30 days"
+</IfModule>

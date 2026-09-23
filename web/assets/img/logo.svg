@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="INGELOP">
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+  <!-- Frontón y edificio en trazo de plano -->
+  <path d="M14 48h36M18 48V29l14-10 14 10v19" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M28 48v-9h8v9" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M14 54h36" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3"/>
+</svg>
