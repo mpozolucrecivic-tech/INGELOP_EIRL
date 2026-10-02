@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import type { Request, RequestHandler } from 'express';
-import multer from 'multer';
+import multer, { MulterError } from 'multer';
 import { env } from '../config/env';
 import { AppError } from '../utils/AppError';
 
@@ -11,6 +11,8 @@ interface UploadOptions {
   carpeta: (req: Request) => string;
   /** Devuelve un mensaje de error si el archivo no está permitido */
   validar: (file: Express.Multer.File, ext: string) => string | null;
+  /** Tamaño máximo en MB (por defecto MAX_UPLOAD_MB) */
+  maxMB?: number;
 }
 
 /**
@@ -19,7 +21,7 @@ interface UploadOptions {
  * para no dejar archivos huérfanos en disco.
  * Para migrar a S3/Cloudinary: reemplazar el diskStorage (p. ej. multer-s3) y el StorageProvider.
  */
-function crearUpload({ carpeta, validar }: UploadOptions): RequestHandler {
+function crearUpload({ carpeta, validar, maxMB = env.MAX_UPLOAD_MB }: UploadOptions): RequestHandler {
   const handler = multer({
     storage: multer.diskStorage({
       destination(req, _file, cb) {
@@ -31,7 +33,7 @@ function crearUpload({ carpeta, validar }: UploadOptions): RequestHandler {
         cb(null, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`);
       },
     }),
-    limits: { fileSize: env.MAX_UPLOAD_MB * 1024 * 1024, files: 1 },
+    limits: { fileSize: maxMB * 1024 * 1024, files: 1 },
     fileFilter(_req, file, cb) {
       const error = validar(file, path.extname(file.originalname).toLowerCase());
       if (error) return cb(AppError.badRequest(error));
@@ -43,7 +45,12 @@ function crearUpload({ carpeta, validar }: UploadOptions): RequestHandler {
     res.on('finish', () => {
       if (res.statusCode >= 400 && req.file?.path) fs.rm(req.file.path, { force: true }, () => {});
     });
-    handler(req, res, next);
+    handler(req, res, (err?: unknown) => {
+      if (err instanceof MulterError && err.code === 'LIMIT_FILE_SIZE') {
+        return next(new AppError(413, `El archivo supera el máximo de ${maxMB} MB`));
+      }
+      next(err);
+    });
   };
 }
 
@@ -84,4 +91,20 @@ export const uploadPlano = crearUpload({
   carpeta: (req) => path.join('proyectos', String(req.proyectoIdUpload ?? Number(req.params.id)), 'planos'),
   validar: (_file, ext) =>
     EXTENSIONES_PLANO.includes(ext) ? null : `Formato de plano no permitido (${ext || 'sin extensión'}). Use: ${EXTENSIONES_PLANO.join(', ')}`,
+});
+
+// ---------- Fotos de servicios (web pública) ----------
+
+const TIPOS_FOTO: Record<string, string[]> = {
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/webp': ['.webp'],
+};
+
+/** Guarda en <UPLOAD_DIR>/servicios/ con tamaño máximo MAX_FOTO_MB */
+export const uploadFotoServicio = crearUpload({
+  carpeta: () => 'servicios',
+  maxMB: env.MAX_FOTO_MB,
+  validar: (file, ext) =>
+    TIPOS_FOTO[file.mimetype]?.includes(ext) ? null : 'Formato de foto no permitido. Use JPG, PNG o WEBP',
 });

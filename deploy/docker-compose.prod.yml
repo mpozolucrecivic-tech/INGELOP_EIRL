@@ -41,7 +41,9 @@ services:
       DATABASE_URL: postgresql://ingelop:${POSTGRES_PASSWORD}@db:5432/ingelop
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en deploy/.env}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
-      CORS_ORIGIN: https://${DOMINIO_INTRANET}
+      # La intranet y la web pública (servicios y formulario de contacto) llaman a la API
+      CORS_ORIGIN: https://${DOMINIO_INTRANET},https://${DOMINIO_WEB}
+      TRUST_PROXY: 1   # detrás de Caddy: IP real del visitante para el límite de peticiones
       UPLOAD_DIR: uploads
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-50}
     volumes:
@@ -54,6 +56,7 @@ services:
     restart: unless-stopped
     environment:
       INTRANET_URL: https://${DOMINIO_INTRANET}
+      API_URL: https://${DOMINIO_INTRANET}/api/v1   # la lee web/includes/api.php
       CONTACTO_EMAIL: ${CONTACTO_EMAIL:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}

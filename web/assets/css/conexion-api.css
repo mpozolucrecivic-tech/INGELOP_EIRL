@@ -1,0 +1,11 @@
+/* ==========================================================================
+   Foto de servicio cargada desde la API (la intranet la sube).
+   Solo clases nuevas: si un servicio no tiene foto se sigue mostrando .tarjeta__icono.
+   ========================================================================== */
+
+.servicio-foto {
+  display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover;
+  border-radius: 12px; margin-bottom: 14px; background: var(--pizarra-100);
+}
+/* En servicios.php la foto ocupa la columna de 120px, en formato cuadrado */
+.servicio__cabecera .servicio-foto { width: 120px; max-width: 100%; aspect-ratio: 1; margin-bottom: 0; }

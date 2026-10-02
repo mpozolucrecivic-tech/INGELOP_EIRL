@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './client';
 import { useApiMutation } from './mutation';
-import type { Cliente, Rol, TipoCliente, Trabajador, Usuario } from '@/types/api';
+import type { Cliente, MensajeContacto, Rol, Servicio, TipoCliente, TipoMensaje, Trabajador, Usuario } from '@/types/api';
 
 // ---------- Usuarios ----------
 
@@ -116,4 +116,77 @@ export const useActualizarTrabajador = () =>
       (await api.put<Trabajador>(`/trabajadores/${id}`, data)).data,
     invalidate: [['trabajadores']],
     exito: 'Trabajador actualizado',
+  });
+
+// ---------- Servicios de la web ----------
+
+export interface ServicioInput {
+  nombre: string;
+  descripcion: string;
+  slug?: string | null;
+  icono?: string | null;
+  items?: string[];
+  orden?: number;
+  activo?: boolean;
+}
+
+export const useServicios = () =>
+  useQuery({
+    queryKey: ['servicios'],
+    queryFn: async () => (await api.get<Servicio[]>('/servicios/todos')).data,
+  });
+
+export const useCrearServicio = () =>
+  useApiMutation({
+    fn: async (data: ServicioInput) => (await api.post<Servicio>('/servicios', data)).data,
+    invalidate: [['servicios']],
+    exito: 'Servicio creado',
+  });
+
+export const useActualizarServicio = () =>
+  useApiMutation({
+    fn: async ({ id, ...data }: Partial<ServicioInput> & { id: number }) => (await api.put<Servicio>(`/servicios/${id}`, data)).data,
+    invalidate: [['servicios']],
+    exito: 'Servicio actualizado',
+  });
+
+export const useDesactivarServicio = () =>
+  useApiMutation({
+    fn: async (id: number) => {
+      await api.delete(`/servicios/${id}`);
+    },
+    invalidate: [['servicios']],
+    exito: 'Servicio ocultado de la web',
+  });
+
+export const useSubirFotoServicio = () =>
+  useApiMutation({
+    fn: async ({ id, archivo }: { id: number; archivo: File }) => {
+      const form = new FormData();
+      form.append('archivo', archivo);
+      return (await api.post<Servicio>(`/servicios/${id}/foto`, form)).data;
+    },
+    invalidate: [['servicios']],
+    exito: 'Foto actualizada',
+  });
+
+export const useQuitarFotoServicio = () =>
+  useApiMutation({
+    fn: async (id: number) => (await api.delete<Servicio>(`/servicios/${id}/foto`)).data,
+    invalidate: [['servicios']],
+    exito: 'Foto quitada: la web mostrará el ícono',
+  });
+
+// ---------- Mensajes del formulario de contacto ----------
+
+export const useMensajes = (filtros: { tipo?: TipoMensaje; leido?: boolean; q?: string } = {}) =>
+  useQuery({
+    queryKey: ['mensajes', filtros],
+    queryFn: async () => (await api.get<MensajeContacto[]>('/contacto', { params: filtros })).data,
+  });
+
+export const useMarcarLeido = () =>
+  useApiMutation({
+    fn: async ({ id, leido }: { id: number; leido: boolean }) => (await api.patch<MensajeContacto>(`/contacto/${id}/leido`, { leido })).data,
+    invalidate: [['mensajes']],
   });

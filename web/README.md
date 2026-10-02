@@ -19,10 +19,21 @@ Todo lo que cambia con frecuencia está en **`includes/config.php`**:
 
 - **Datos de contacto:** teléfono, correo, dirección y horario.
 - **`intranet_url`:** dirección de la intranet. Cámbiala al publicar.
+- **`includes/api.php`:** dirección de la API (`API_URL`). Es el único lugar donde se cambia. Ver "Conexión con la API".
 - **`SERVICIOS`** y **`ESPECIALIDADES_OSCE`:** textos de servicios y especialidades.
 - **`PROYECTOS`:** agrega aquí los proyectos reales. Las fotos van en `assets/img/proyectos/`. Mientras la lista esté vacía, la página muestra los tipos de proyecto que desarrolla la empresa.
 
-## Formulario de contacto
+## Conexión con la API
+
+- **Servicios:** las páginas muestran primero los servicios fijos de `config.php` (`SERVICIOS`), y `assets/js/servicios.js` los reemplaza por los que se gestionan en la intranet. Si la API no responde, se quedan los fijos. Conviene mantener `SERVICIOS` parecido a lo que hay en la intranet.
+- **Foto de servicio:** si el servicio tiene foto, se muestra en lugar del ícono (`assets/css/conexion-api.css`).
+- **Formulario:** `assets/js/contacto.js` lo envía a la API y los mensajes se leen en la intranet (**Mensajes de la web**).
+- Si `API_URL` se deja vacío en `includes/api.php`, la web funciona como antes, solo con PHP.
+- El dominio de la web debe estar en `CORS_ORIGIN` del backend.
+
+## Formulario de contacto (respaldo por PHP)
+
+Se usa cuando la API no responde o el navegador no tiene JavaScript:
 
 - Envía el mensaje con `mail()` al correo de `config.php`. La mayoría de hostings compartidos lo permiten.
 - Además, **siempre** lo guarda en `storage/mensajes.csv`, por si el correo falla. La carpeta está bloqueada al público y el archivo se abre con Excel.

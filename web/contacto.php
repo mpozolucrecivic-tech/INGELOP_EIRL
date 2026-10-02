@@ -5,7 +5,9 @@ session_start();
 require_once __DIR__ . '/includes/config.php';
 
 $servicios = array_column(SERVICIOS, 'titulo', 'slug');
-$datos = ['nombre' => '', 'email' => '', 'telefono' => '', 'entidad' => '', 'servicio' => '', 'mensaje' => ''];
+// Mismos valores que la API (TipoMensaje)
+$tipos = ['CONTACTO' => 'Contacto', 'CONSULTA_TECNICA' => 'Consulta técnica'];
+$datos = ['nombre' => '', 'email' => '', 'telefono' => '', 'entidad' => '', 'servicio' => '', 'tipo' => 'CONTACTO', 'mensaje' => ''];
 $errores = [];
 $enviado = false;
 
@@ -32,7 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (mb_strlen($datos['nombre']) < 3) $errores['nombre'] = 'Ingresa tu nombre.';
     if (!filter_var($datos['email'], FILTER_VALIDATE_EMAIL)) $errores['email'] = 'Ingresa un correo válido.';
     if ($datos['telefono'] !== '' && !preg_match('/^[0-9 +()-]{6,20}$/', $datos['telefono'])) $errores['telefono'] = 'Teléfono no válido.';
-    if ($datos['servicio'] !== '' && !isset($servicios[$datos['servicio']])) $errores['servicio'] = 'Selecciona un servicio de la lista.';
+    // La lista puede venir de la API (servicios nuevos): se acepta cualquier slug con formato válido
+    if ($datos['servicio'] !== '' && !isset($servicios[$datos['servicio']]) && !preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $datos['servicio'])) $errores['servicio'] = 'Selecciona un servicio de la lista.';
+    if (!isset($tipos[$datos['tipo']])) $errores['tipo'] = 'Selecciona un tipo de consulta válido.';
     if (mb_strlen($datos['mensaje']) < 10) $errores['mensaje'] = 'Cuéntanos un poco más sobre tu proyecto (mínimo 10 caracteres).';
     foreach (['nombre' => 120, 'email' => 150, 'entidad' => 150, 'mensaje' => 3000] as $campo => $max) {
         if (mb_strlen($datos[$campo]) > $max) $errores[$campo] = 'Texto demasiado largo.';
@@ -40,21 +44,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         if (!$esBot) {
-            guardarMensaje($datos, $servicios);
-            enviarCorreo($datos, $servicios);
+            guardarMensaje($datos, $servicios, $tipos);
+            enviarCorreo($datos, $servicios, $tipos);
         }
         // Al bot se le responde igual que a un usuario real, sin guardar nada
         $_SESSION['ultimo_envio'] = time();
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
         $enviado = true;
         $datos = array_map(fn () => '', $datos);
+        $datos['tipo'] = 'CONTACTO';
     }
 } elseif (isset($_GET['servicio'], $servicios[$_GET['servicio']])) {
     $datos['servicio'] = $_GET['servicio'];
 }
 
-/** Respaldo: cada mensaje queda en storage/mensajes.csv (carpeta protegida por .htaccess) */
-function guardarMensaje(array $d, array $servicios): void
+/**
+ * Respaldo: cada mensaje queda en storage/mensajes.csv (carpeta protegida por .htaccess).
+ * Solo se usa si la API no responde (o sin JavaScript); normalmente los mensajes llegan a la intranet.
+ */
+function guardarMensaje(array $d, array $servicios, array $tipos): void
 {
     $dir = __DIR__ . '/storage';
     if (!is_dir($dir)) @mkdir($dir, 0750, true);
@@ -62,23 +70,26 @@ function guardarMensaje(array $d, array $servicios): void
     $nuevo = !file_exists($archivo);
     $fp = @fopen($archivo, 'ab');
     if (!$fp) return;
-    if ($nuevo) fputcsv($fp, ['fecha', 'nombre', 'email', 'telefono', 'entidad', 'servicio', 'mensaje', 'ip']);
+    // "tipo" va al final para no desordenar las columnas de un mensajes.csv ya existente
+    if ($nuevo) fputcsv($fp, ['fecha', 'nombre', 'email', 'telefono', 'entidad', 'servicio', 'mensaje', 'ip', 'tipo']);
     // Evita inyección de fórmulas al abrir el CSV en Excel
     $limpio = fn (string $v) => preg_match('/^[=+\-@]/', $v) ? "'" . $v : $v;
     fputcsv($fp, array_map($limpio, [
         date('Y-m-d H:i:s'), $d['nombre'], $d['email'], $d['telefono'], $d['entidad'],
-        $servicios[$d['servicio']] ?? '', $d['mensaje'], $_SERVER['REMOTE_ADDR'] ?? '',
+        $servicios[$d['servicio']] ?? $d['servicio'], $d['mensaje'], $_SERVER['REMOTE_ADDR'] ?? '',
+        $tipos[$d['tipo']] ?? '',
     ]));
     fclose($fp);
 }
 
 /** Envía el aviso por correo con mail() (funciona en la mayoría de hostings compartidos) */
-function enviarCorreo(array $d, array $servicios): void
+function enviarCorreo(array $d, array $servicios, array $tipos): void
 {
     $sinSaltos = fn (string $v) => str_replace(["\r", "\n"], ' ', $v);
     $asunto = '=?UTF-8?B?' . base64_encode('Nuevo mensaje desde la web – ' . $sinSaltos($d['nombre'])) . '?=';
     $cuerpo = "Nombre: {$d['nombre']}\nCorreo: {$d['email']}\nTeléfono: {$d['telefono']}\n"
-        . "Entidad / empresa: {$d['entidad']}\nServicio: " . ($servicios[$d['servicio']] ?? '-') . "\n\n{$d['mensaje']}\n";
+        . "Entidad / empresa: {$d['entidad']}\nTipo de consulta: " . ($tipos[$d['tipo']] ?? '-')
+        . "\nServicio: " . ($servicios[$d['servicio']] ?? ($d['servicio'] ?: '-')) . "\n\n{$d['mensaje']}\n";
     $cabeceras = [
         'From: Web INGELOP <no-responder@' . ($_SERVER['SERVER_NAME'] ?? 'localhost') . '>',
         'Reply-To: ' . $sinSaltos($d['email']),
@@ -119,7 +130,7 @@ $mapa = rawurlencode(EMPRESA['direccion'] . ', ' . EMPRESA['distrito'] . ', ' . 
                 <div class="alerta alerta--error" role="alert"><?= e($errores['general']) ?></div>
             <?php endif; ?>
 
-            <form method="post" action="contacto.php" novalidate>
+            <form method="post" action="contacto.php" novalidate data-contacto-api>
                 <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
                 <!-- Campo trampa: los usuarios no lo ven; los bots suelen llenarlo -->
                 <div class="trampa" aria-hidden="true">
@@ -149,8 +160,17 @@ $mapa = rawurlencode(EMPRESA['direccion'] . ', ' . EMPRESA['distrito'] . ', ' . 
                         <?= $error('telefono') ?>
                     </div>
                     <div class="campo campo--ancho">
+                        <label for="tipo">Tipo de consulta</label>
+                        <select id="tipo" name="tipo"<?= isset($errores['tipo']) ? ' aria-invalid="true"' : '' ?>>
+                            <?php foreach ($tipos as $valorTipo => $nombreTipo): ?>
+                                <option value="<?= e($valorTipo) ?>"<?= $datos['tipo'] === $valorTipo ? ' selected' : '' ?>><?= e($nombreTipo) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?= $error('tipo') ?>
+                    </div>
+                    <div class="campo campo--ancho">
                         <label for="servicio">Servicio de interés</label>
-                        <select id="servicio" name="servicio">
+                        <select id="servicio" name="servicio" data-servicios="select">
                             <option value="">Selecciona…</option>
                             <?php foreach ($servicios as $slug => $nombre): ?>
                                 <option value="<?= e($slug) ?>"<?= $datos['servicio'] === $slug ? ' selected' : '' ?>><?= e($nombre) ?></option>

@@ -3,6 +3,7 @@ import cors from 'cors';
 import { corsOptions } from './config/cors';
 import { verifyToken } from './middlewares/auth';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
+import { env } from './config/env';
 
 import authRoutes from './modules/auth/auth.routes';
 import usuariosRoutes from './modules/usuarios/usuarios.routes';
@@ -18,10 +19,14 @@ import clientesRoutes from './modules/clientes/clientes.routes';
 import planosRoutes from './modules/planos/planos.routes';
 import presupuestosRoutes from './modules/presupuestos/presupuestos.routes';
 import entregablesRoutes from './modules/entregables/entregables.routes';
+import serviciosRoutes, { serviciosPublicRoutes } from './modules/servicios/servicios.routes';
+import contactoRoutes, { contactoPublicRoutes } from './modules/contacto/contacto.routes';
 
 export const app = express();
 
 app.disable('x-powered-by');
+// En Render o detrás de Caddy: req.ip toma la IP real del visitante (límite de peticiones)
+app.set('trust proxy', env.TRUST_PROXY);
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '1mb' }));
 
@@ -32,8 +37,11 @@ app.get('/health', (_req, res) => {
 
 const api = Router();
 
-// 1) Rutas públicas: solo POST /auth/login (GET /auth/me aplica verifyToken en su propio router)
+// 1) Rutas públicas: POST /auth/login (GET /auth/me aplica verifyToken en su propio router)
+//    y las que usa la web informativa: GET /servicios, GET /servicios/:id/foto y POST /contacto
 api.use(authRoutes);
+api.use(serviciosPublicRoutes);
+api.use(contactoPublicRoutes);
 
 // 2) A partir de aquí TODAS las rutas exigen JWT válido
 api.use(verifyToken);
@@ -50,6 +58,8 @@ api.use(personalRoutes);
 api.use(gastosRoutes);
 api.use(evidenciasRoutes);
 api.use(dashboardRoutes);
+api.use(serviciosRoutes);
+api.use(contactoRoutes);
 
 app.use('/api/v1', api);
 

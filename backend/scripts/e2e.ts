@@ -4,6 +4,8 @@
  *
  * Uso:  npm run dev   (en otra terminal)   y luego   npm run test:e2e
  * Variables opcionales: API_URL (default http://localhost:4000/api/v1), SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD
+ * Ojo: POST /contacto tiene límite anti-spam (RATE_LIMIT_CONTACTO por IP cada RATE_LIMIT_VENTANA_MIN minutos).
+ * Si se ejecuta varias veces seguidas, reinicia la API (el contador está en memoria) o sube ese límite en .env.
  */
 import 'dotenv/config';
 
@@ -380,6 +382,49 @@ async function main() {
   check('dashboard general: serie de 6 meses e incluye el proyecto', general.body.finanzas?.porMes?.length === 6 && general.body.resumenProyectos?.some((p: any) => p.id === P));
   check('dashboard general: planos por revisar y entregables vencidos', Array.isArray(general.body.planosPorRevisar) && Array.isArray(general.body.entregablesVencidos));
   expectStatus('USUARIO GET /dashboard/general', await call('GET', '/dashboard/general', { token: U }), 403);
+
+  seccion('Web pública: servicios');
+  const pub = await call('GET', '/servicios');
+  expectStatus('GET /servicios sin token (público)', pub, 200);
+  check('servicios públicos ordenados y sin ruta interna de la foto', Array.isArray(pub.body) && pub.body.every((s: any, i: number, a: any[]) => s.activo && !('foto' in s) && (i === 0 || a[i - 1].orden <= s.orden)), pub.body);
+  expectStatus('GET /servicios/todos sin token', await call('GET', '/servicios/todos'), 401);
+  expectStatus('USUARIO GET /servicios/todos', await call('GET', '/servicios/todos', { token: U }), 403);
+  expectStatus('USUARIO POST /servicios', await call('POST', '/servicios', { token: U, json: { nombre: 'X', descripcion: 'X' } }), 403);
+  expectStatus('POST /servicios inválido', await call('POST', '/servicios', { token: A, json: { nombre: 'ab', descripcion: 'corta', slug: 'No Valido' } }), 422);
+  const slugE2E = `e2e-${sufijo}`;
+  const serv = await call('POST', '/servicios', { token: A, json: { nombre: 'Servicio E2E', descripcion: 'Servicio creado por la prueba e2e', slug: slugE2E, icono: 'lupa', items: ['Uno', 'Dos'] } });
+  expectStatus('POST /servicios', serv, 201);
+  const SV = serv.body.id as number;
+  expectStatus('POST /servicios slug duplicado', await call('POST', '/servicios', { token: A, json: { nombre: 'Otro E2E', descripcion: 'Servicio con slug repetido', slug: slugE2E } }), 409);
+  const servEd = await call('PUT', `/servicios/${SV}`, { token: A, json: { orden: 999 } });
+  check('PUT /servicios/:id parcial conserva los puntos', servEd.status === 200 && servEd.body.orden === 999 && servEd.body.items?.length === 2, servEd.body);
+  const formServ = (tipo: string, nombre: string, datos: BlobPart = png) => {
+    const f = new FormData();
+    f.append('archivo', new Blob([datos], { type: tipo }), nombre);
+    return f;
+  };
+  expectStatus('USUARIO POST /servicios/:id/foto', await call('POST', `/servicios/${SV}/foto`, { token: U, form: formServ('image/png', 'f.png') }), 403);
+  expectStatus('POST /servicios/:id/foto tipo no permitido', await call('POST', `/servicios/${SV}/foto`, { token: A, form: formServ('application/pdf', 'f.pdf') }), 400);
+  const conFoto = await call('POST', `/servicios/${SV}/foto`, { token: A, form: formServ('image/png', 'f.png') });
+  expectStatus('POST /servicios/:id/foto', conFoto, 200);
+  const fotoPub = await fetch(`${API}${conFoto.body.fotoUrl}`);
+  check('foto pública visible sin token', fotoPub.status === 200 && fotoPub.headers.get('content-type') === 'image/png', fotoPub.status);
+  check('DELETE /servicios/:id/foto', (await call('DELETE', `/servicios/${SV}/foto`, { token: A })).body?.fotoUrl === null);
+  expectStatus('DELETE /servicios/:id (ocultar)', await call('DELETE', `/servicios/${SV}`, { token: A }), 204);
+  check('servicio oculto no aparece en la web', !(await call('GET', '/servicios')).body.some((s: any) => s.id === SV));
+  expectStatus('foto de servicio oculto', await call('GET', `/servicios/${SV}/foto`), 404);
+
+  seccion('Web pública: contacto');
+  expectStatus('POST /contacto inválido', await call('POST', '/contacto', { json: { nombre: 'A', correo: 'malo', mensaje: 'corto' } }), 422);
+  const marca = `E2E-${sufijo}`;
+  expectStatus('POST /contacto (público)', await call('POST', '/contacto', { json: { nombre: 'Visitante E2E', correo: 'visitante@ejemplo.com', tipo: 'CONSULTA_TECNICA', mensaje: `Consulta de prueba ${marca}` } }), 201);
+  expectStatus('GET /contacto sin token', await call('GET', '/contacto'), 401);
+  expectStatus('USUARIO GET /contacto', await call('GET', '/contacto', { token: U }), 403);
+  const msgs = await call('GET', `/contacto?q=${marca}`, { token: A });
+  check('ADMIN ve el mensaje guardado', msgs.status === 200 && msgs.body.length === 1 && msgs.body[0].tipo === 'CONSULTA_TECNICA' && !msgs.body[0].leido, msgs.body);
+  const leido = await call('PATCH', `/contacto/${msgs.body[0]?.id}/leido`, { token: A, json: { leido: true } });
+  check('PATCH /contacto/:id/leido', leido.status === 200 && leido.body.leido === true, leido.body);
+  expectStatus('USUARIO PATCH /contacto/:id/leido', await call('PATCH', `/contacto/${msgs.body[0]?.id}/leido`, { token: U, json: { leido: false } }), 403);
 
   seccion('Varios');
   expectStatus('ruta inexistente', await call('GET', '/no-existe', { token: A }), 404);

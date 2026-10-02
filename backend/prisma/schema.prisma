@@ -362,3 +362,44 @@ model Entregable {
   responsable   Usuario?       @relation("EntregableResponsable", fields: [responsableId], references: [id], onDelete: SetNull)
   creadoEn      DateTime       @default(now())
 }
+
+// ---------- Web pública ----------
+
+// Servicios que muestra la web informativa (se gestionan desde la intranet)
+model Servicio {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  descripcion   String
+  slug          String?  @unique // ancla en la web (servicios.php#slug) y valor del <select> de contacto
+  icono         String? // nombre del icono SVG de la web (web/includes/iconos.php)
+  items         String[] @default([]) // puntos que incluye el servicio
+  foto          String? // key del archivo en UPLOAD_DIR (servicios/...)
+  orden         Int      @default(0)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@index([activo, orden])
+}
+
+enum TipoMensaje {
+  CONTACTO
+  CONSULTA_TECNICA
+}
+
+// Mensajes del formulario de contacto de la web
+model MensajeContacto {
+  id           Int         @id @default(autoincrement())
+  nombre       String
+  correo       String
+  telefono     String?
+  tipo         TipoMensaje @default(CONTACTO)
+  entidad      String? // entidad o empresa del remitente
+  servicioSlug String? // servicio de interés (slug de Servicio, sin FK para no perder el dato si se borra)
+  mensaje      String
+  leido        Boolean     @default(false)
+  ip           String?
+  fecha        DateTime    @default(now())
+
+  @@index([leido, fecha])
+}

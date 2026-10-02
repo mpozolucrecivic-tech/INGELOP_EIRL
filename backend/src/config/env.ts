@@ -13,6 +13,13 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   UPLOAD_DIR: z.string().default('uploads'),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(50),
+  MAX_FOTO_MB: z.coerce.number().positive().default(5),
+  // Detrás de un proxy (Render, Caddy) hay que confiar en él para conocer la IP real del visitante
+  TRUST_PROXY: z.coerce.number().int().nonnegative().default(0),
+  // Límite de peticiones: ventana en minutos y máximo por IP
+  RATE_LIMIT_VENTANA_MIN: z.coerce.number().positive().default(15),
+  RATE_LIMIT_CONTACTO: z.coerce.number().int().positive().default(5),
+  RATE_LIMIT_LOGIN: z.coerce.number().int().positive().default(10),
 });
 
 const parsed = envSchema.safeParse(process.env);

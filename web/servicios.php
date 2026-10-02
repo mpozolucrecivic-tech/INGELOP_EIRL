@@ -14,7 +14,7 @@ require __DIR__ . '/includes/header.php';
 </section>
 
 <section class="seccion">
-    <div class="contenedor servicios-lista">
+    <div class="contenedor servicios-lista" data-servicios="lista">
         <?php foreach (SERVICIOS as $i => $s): ?>
             <article class="servicio" id="<?= e($s['slug']) ?>">
                 <div class="servicio__cabecera">

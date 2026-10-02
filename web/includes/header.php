@@ -7,6 +7,7 @@
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/iconos.php';
+require_once __DIR__ . '/api.php';
 
 $pagina ??= 'inicio';
 $titulo = isset($titulo) ? $titulo . ' | ' . EMPRESA['nombre_corto'] : EMPRESA['nombre_corto'] . ' | Consultoría en ingeniería y arquitectura en Chiclayo';
@@ -57,9 +58,10 @@ $jsonLd = [
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/estilos.css?v=1">
+    <link rel="stylesheet" href="assets/css/conexion-api.css?v=1">
     <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 </head>
-<body class="pagina-<?= e($pagina) ?>">
+<body class="pagina-<?= e($pagina) ?>"<?= API_URL !== '' ? ' data-api="' . e(API_URL) . '"' : '' ?>>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
 <header class="cabecera" id="cabecera">

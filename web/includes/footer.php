@@ -16,7 +16,7 @@
 
         <div>
             <h2 class="pie__titulo">Servicios</h2>
-            <ul class="pie__lista">
+            <ul class="pie__lista" data-servicios="pie">
                 <?php foreach (SERVICIOS as $s): ?>
                     <li><a href="servicios.php#<?= e($s['slug']) ?>"><?= e($s['titulo']) ?></a></li>
                 <?php endforeach; ?>
@@ -47,6 +47,17 @@
     <?= icono('whatsapp') ?>
 </a>
 
+<?php if (API_URL !== ''): ?>
+<!-- Íconos que usa assets/js/servicios.js al dibujar los servicios recibidos de la API -->
+<template id="iconos-api">
+    <?php foreach (ICONOS_SERVICIO as $nombreIcono): ?><span data-icono="<?= e($nombreIcono) ?>"><?= icono($nombreIcono) ?></span><?php endforeach; ?>
+</template>
+<?php endif; ?>
+
 <script src="assets/js/main.js?v=1" defer></script>
+<?php if (API_URL !== ''): ?>
+<script src="assets/js/servicios.js?v=1" defer></script>
+<?php if ($pagina === 'contacto'): ?><script src="assets/js/contacto.js?v=1" defer></script><?php endif; ?>
+<?php endif; ?>
 </body>
 </html>

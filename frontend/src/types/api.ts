@@ -383,3 +383,36 @@ export interface ApiErrorBody {
   errors?: { campo: string; mensaje: string }[];
   details?: Record<string, unknown>;
 }
+
+// ---------- Web pública ----------
+
+export interface Servicio {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  slug: string | null;
+  icono: string | null;
+  items: string[];
+  /** Relativa a la URL base de la API (ej. "/servicios/3/foto?v=…"); null si no tiene foto */
+  fotoUrl: string | null;
+  orden: number;
+  activo: boolean;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export type TipoMensaje = 'CONTACTO' | 'CONSULTA_TECNICA';
+
+export interface MensajeContacto {
+  id: number;
+  nombre: string;
+  correo: string;
+  telefono: string | null;
+  tipo: TipoMensaje;
+  entidad: string | null;
+  servicioSlug: string | null;
+  servicioNombre: string | null;
+  mensaje: string;
+  leido: boolean;
+  fecha: string;
+}

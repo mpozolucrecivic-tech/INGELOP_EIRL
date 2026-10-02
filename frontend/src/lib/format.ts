@@ -1,4 +1,4 @@
-import type { CategoriaGasto, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoServicio } from '@/types/api';
+import type { CategoriaGasto, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, TipoServicio } from '@/types/api';
 
 const soles = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
 const solesCorto = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', notation: 'compact', maximumFractionDigits: 1 });
@@ -74,6 +74,29 @@ export const TIPO_CLIENTE: Record<TipoCliente, string> = {
   ENTIDAD_PUBLICA: 'Entidad pública',
   EMPRESA: 'Empresa',
   PERSONA: 'Persona natural',
+};
+
+export const TIPO_MENSAJE: Record<TipoMensaje, { label: string; color: 'slate' | 'blue' }> = {
+  CONTACTO: { label: 'Contacto', color: 'slate' },
+  CONSULTA_TECNICA: { label: 'Consulta técnica', color: 'blue' },
+};
+
+/** Íconos que la web sabe dibujar (web/includes/api.php → ICONOS_SERVICIO) */
+export const ICONOS_WEB: Record<string, string> = {
+  lupa: 'Lupa',
+  carpeta: 'Carpeta',
+  compas: 'Compás',
+  casco: 'Casco',
+  check: 'Check',
+  chat: 'Conversación',
+  edificio: 'Edificio',
+  agua: 'Agua',
+  via: 'Vía',
+  rayo: 'Rayo',
+  represa: 'Represa',
+  escudo: 'Escudo',
+  regla: 'Regla',
+  usuario: 'Usuario',
 };
 
 /** Especialidades con su prefijo habitual de lámina */

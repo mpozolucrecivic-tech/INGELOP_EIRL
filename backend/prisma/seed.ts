@@ -21,6 +21,7 @@ import {
   TipoEvidencia,
   TipoServicio,
 } from '@prisma/client';
+import { cargarServiciosIniciales } from '../src/data/serviciosIniciales';
 
 const prisma = new PrismaClient();
 
@@ -66,6 +67,9 @@ async function main() {
     process.exit(1);
   }
   console.log('🌱 Ejecutando seed...');
+
+  // ---------- Servicios de la web (no se borran: se crean solo los que falten) ----------
+  console.log(`   Servicios de la web creados: ${await cargarServiciosIniciales(prisma)}`);
 
   // ---------- Usuarios ----------
   const admin = await prisma.usuario.upsert({

@@ -61,7 +61,7 @@ require __DIR__ . '/includes/header.php';
             <h2>Acompañamos el proyecto desde la idea hasta la obra terminada</h2>
             <p>Un solo equipo técnico para estudiar, diseñar, presupuestar y supervisar, con la documentación que exigen las entidades públicas.</p>
         </div>
-        <div class="tarjetas tarjetas--3">
+        <div class="tarjetas tarjetas--3" data-servicios="tarjetas">
             <?php foreach (array_slice(SERVICIOS, 0, 6) as $s): ?>
                 <article class="tarjeta">
                     <span class="tarjeta__icono"><?= icono($s['icono']) ?></span>

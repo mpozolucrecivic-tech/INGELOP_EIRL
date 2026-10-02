@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
-import { Briefcase, Building2, HardHat, LayoutDashboard, LogOut, Menu, Users, X } from 'lucide-react';
+import { Briefcase, Building2, HardHat, Inbox, Layers, LayoutDashboard, LogOut, Menu, Users, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/Display';
 
@@ -11,6 +11,9 @@ const navItems = [
   { to: '/clientes', label: 'Clientes', icon: Briefcase, admin: true },
   { to: '/trabajadores', label: 'Equipo técnico', icon: HardHat, admin: true },
   { to: '/usuarios', label: 'Usuarios', icon: Users, admin: true },
+  // Web informativa
+  { to: '/servicios', label: 'Servicios de la web', icon: Layers, admin: true },
+  { to: '/mensajes', label: 'Mensajes de la web', icon: Inbox, admin: true },
 ];
 
 function Logo() {
