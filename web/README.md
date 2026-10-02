@@ -17,8 +17,8 @@ Sitio público de **INGELOP Consultores y Ejecutores E.I.R.L.** (Chiclayo), hech
 
 Todo lo que cambia con frecuencia está en **`includes/config.php`**:
 
-- **Datos de contacto:** teléfono, correo, dirección y horario.
-- **`intranet_url`:** dirección de la intranet. Cámbiala al publicar.
+- **Datos de contacto visibles** (`telefono`, `email`, `direccion`, `distrito`, `horario`): por ahora están vacíos por seguridad. Lo que quede vacío no se muestra en ninguna página. `telefono_e164` es el número de los botones de WhatsApp y `email_formulario` es el correo que recibe los mensajes del respaldo PHP (no se publica).
+- La web **no enlaza a la intranet** (se quitó "Acceso del personal"): el personal entra directamente con la dirección de la intranet.
 - **`includes/api.php`:** dirección de la API (`API_URL`). Es el único lugar donde se cambia. Ver "Conexión con la API".
 - **`SERVICIOS`** y **`ESPECIALIDADES_OSCE`:** textos de servicios y especialidades.
 - **`PROYECTOS`:** agrega aquí los proyectos reales. Las fotos van en `assets/img/proyectos/`. Mientras la lista esté vacía, la página muestra los tipos de proyecto que desarrolla la empresa.
@@ -35,7 +35,7 @@ Todo lo que cambia con frecuencia está en **`includes/config.php`**:
 
 Se usa cuando la API no responde o el navegador no tiene JavaScript:
 
-- Envía el mensaje con `mail()` al correo de `config.php`. La mayoría de hostings compartidos lo permiten.
+- Envía el mensaje con `mail()` al correo `email_formulario` de `config.php`. La mayoría de hostings compartidos lo permiten.
 - Además, **siempre** lo guarda en `storage/mensajes.csv`, por si el correo falla. La carpeta está bloqueada al público y el archivo se abre con Excel.
 - Protecciones: token CSRF, campo trampa contra bots, límite de un envío cada 30 segundos y validación de todos los campos.
 
@@ -53,6 +53,6 @@ Luego abre **http://localhost:8080**. En local, `mail()` no envía correos, pero
 
 1. Sube **todo el contenido de la carpeta `web/`** a `public_html/`, incluidos `.htaccess` y `storage/.htaccess`.
 2. Verifica que `storage/` tenga permisos de escritura (755, o 775 según el hosting).
-3. En `includes/config.php`, pon la dirección real de la intranet en `intranet_url`.
+3. En `includes/api.php`, pon la dirección de la API (`API_URL`).
 4. Activa **HTTPS** (Let's Encrypt suele ser gratuito en cPanel).
 5. Recomendado: crea un correo del dominio (ej. `contacto@tudominio.pe`) y úsalo en `config.php`.

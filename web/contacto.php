@@ -95,16 +95,16 @@ function enviarCorreo(array $d, array $servicios, array $tipos): void
         'Reply-To: ' . $sinSaltos($d['email']),
         'Content-Type: text/plain; charset=UTF-8',
     ];
-    @mail(EMPRESA['email'], $asunto, $cuerpo, implode("\r\n", $cabeceras));
+    @mail(EMPRESA['email_formulario'], $asunto, $cuerpo, implode("\r\n", $cabeceras));
 }
 
 $pagina = 'contacto';
 $titulo = 'Contacto';
-$descripcion = 'Solicita una cotización de expedientes técnicos, diseño o supervisión de obras. Oficina en La Victoria, Chiclayo.';
+$descripcion = 'Solicita una cotización de expedientes técnicos, diseño o supervisión de obras. Oficina en Chiclayo.';
 require __DIR__ . '/includes/header.php';
 
 $error = fn (string $campo) => isset($errores[$campo]) ? '<p class="campo__error">' . e($errores[$campo]) . '</p>' : '';
-$mapa = rawurlencode(EMPRESA['direccion'] . ', ' . EMPRESA['distrito'] . ', ' . EMPRESA['ciudad'] . ', Perú');
+$mapa = rawurlencode(direccion_completa() . ', Perú');
 ?>
 
 <section class="encabezado">
@@ -190,26 +190,36 @@ $mapa = rawurlencode(EMPRESA['direccion'] . ', ' . EMPRESA['distrito'] . ', ' . 
         </div>
 
         <aside class="contacto__datos">
+            <?php if (EMPRESA['telefono_e164'] !== ''): ?>
             <a class="dato" href="<?= e(whatsapp()) ?>" target="_blank" rel="noopener">
                 <span class="dato__icono dato__icono--wsp"><?= icono('whatsapp') ?></span>
-                <span><strong>WhatsApp</strong><?= e(EMPRESA['telefono']) ?></span>
+                <span><strong>WhatsApp</strong><?= e(EMPRESA['telefono'] !== '' ? EMPRESA['telefono'] : 'Escríbenos') ?></span>
             </a>
+            <?php endif; ?>
+            <?php if (EMPRESA['telefono'] !== ''): ?>
             <a class="dato" href="tel:+<?= e(EMPRESA['telefono_e164']) ?>">
                 <span class="dato__icono"><?= icono('telefono') ?></span>
                 <span><strong>Llámanos</strong><?= e(EMPRESA['telefono']) ?></span>
             </a>
+            <?php endif; ?>
+            <?php if (EMPRESA['email'] !== ''): ?>
             <a class="dato" href="mailto:<?= e(EMPRESA['email']) ?>">
                 <span class="dato__icono"><?= icono('correo') ?></span>
                 <span><strong>Correo</strong><?= e(EMPRESA['email']) ?></span>
             </a>
+            <?php endif; ?>
+            <?php if (EMPRESA['direccion'] !== ''): ?>
             <a class="dato" href="https://www.google.com/maps/search/?api=1&amp;query=<?= $mapa ?>" target="_blank" rel="noopener">
                 <span class="dato__icono"><?= icono('mapa') ?></span>
-                <span><strong>Oficina</strong><?= e(EMPRESA['direccion']) ?>, <?= e(EMPRESA['distrito']) ?>, <?= e(EMPRESA['ciudad']) ?></span>
+                <span><strong>Oficina</strong><?= e(direccion_completa()) ?></span>
             </a>
+            <?php endif; ?>
+            <?php if (EMPRESA['horario'] !== ''): ?>
             <div class="dato dato--estatico">
                 <span class="dato__icono"><?= icono('reloj') ?></span>
                 <span><strong>Horario de atención</strong><?= e(EMPRESA['horario']) ?></span>
             </div>
+            <?php endif; ?>
         </aside>
     </div>
 </section>

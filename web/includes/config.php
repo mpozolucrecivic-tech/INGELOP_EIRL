@@ -17,18 +17,20 @@ define('EMPRESA', [
     'eslogan'        => 'Ingeniería y arquitectura para obras que transforman Lambayeque',
     'descripcion'    => 'Consultora chiclayana de arquitectura e ingeniería: estudios de preinversión, expedientes técnicos, diseño y supervisión de obras públicas y privadas.',
     'inicio'         => 2023, // inicio de actividades según SUNAT (inscrita el 11/11/2022)
-    'telefono'       => '979 660 255',
-    'telefono_e164'  => '51979660255', // para enlaces tel: y WhatsApp
-    // Correo que recibe los mensajes del formulario (en el servidor se puede definir con CONTACTO_EMAIL)
-    'email'          => getenv('CONTACTO_EMAIL') ?: 'luisalbertolopez19@gmail.com',
-    'direccion'      => 'Calle Yahuar Huaca 137, Asoc. Las Quintas Sector Uno',
-    'distrito'       => 'La Victoria',
+    // Datos de contacto VISIBLES en la web. Por seguridad están vacíos hasta que la empresa
+    // apruebe qué publicar: lo que quede en '' no se muestra (pie, Contacto, Nosotros y datos para Google).
+    'telefono'       => '',
+    'email'          => '',
+    'direccion'      => '',
+    'distrito'       => '',
+    'horario'        => '',
     'ciudad'         => 'Chiclayo',
     'region'         => 'Lambayeque',
-    'horario'        => 'Lunes a viernes de 8:00 a. m. a 6:00 p. m.',
-    // Sistema interno del equipo: solo aparece como enlace discreto en el pie de página.
-    // Dejar vacío ('') para no mostrarlo en la web.
-    'intranet_url'   => getenv('INTRANET_URL') !== false ? (string) getenv('INTRANET_URL') : 'http://localhost:5173',
+    // Número para los botones de WhatsApp (formato internacional, sin +). '' oculta los botones.
+    'telefono_e164'  => '51979660255',
+    // Correo que RECIBE los mensajes del formulario cuando se envían por PHP (no se muestra en la web).
+    // En el servidor se puede definir con la variable de entorno CONTACTO_EMAIL.
+    'email_formulario' => getenv('CONTACTO_EMAIL') ?: 'luisalbertolopez19@gmail.com',
     // Redes sociales: dejar vacío lo que no exista
     'facebook'       => '',
     'linkedin'       => '',
@@ -81,6 +83,18 @@ const PROYECTOS = [];
 function e(string|int|null $texto): string
 {
     return htmlspecialchars((string) $texto, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+/** true si hay al menos un dato de contacto publicado (teléfono, correo, dirección u horario) */
+function hay_contacto_visible(): bool
+{
+    return EMPRESA['telefono'] !== '' || EMPRESA['email'] !== '' || EMPRESA['direccion'] !== '' || EMPRESA['horario'] !== '';
+}
+
+/** Dirección con distrito y ciudad, omitiendo las partes vacías */
+function direccion_completa(): string
+{
+    return implode(', ', array_filter([EMPRESA['direccion'], EMPRESA['distrito'], EMPRESA['ciudad']], fn ($v) => $v !== ''));
 }
 
 /** Enlace de WhatsApp con mensaje prellenado */

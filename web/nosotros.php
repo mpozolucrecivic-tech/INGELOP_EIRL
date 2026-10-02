@@ -43,7 +43,7 @@ require __DIR__ . '/includes/header.php';
                 <div><dt>RUC</dt><dd><?= e(EMPRESA['ruc']) ?></dd></div>
                 <div><dt>Actividad</dt><dd>Actividades de arquitectura e ingeniería y consultoría técnica (CIIU 7110)</dd></div>
                 <div><dt>Registro Nacional de Proveedores</dt><dd>Habilitado como consultor de obras, apto para contratar con el Estado</dd></div>
-                <div><dt>Domicilio</dt><dd><?= e(EMPRESA['direccion']) ?>, <?= e(EMPRESA['distrito']) ?>, <?= e(EMPRESA['ciudad']) ?> – <?= e(EMPRESA['region']) ?></dd></div>
+                <?php if (EMPRESA['direccion'] !== ''): ?><div><dt>Domicilio</dt><dd><?= e(direccion_completa()) ?> – <?= e(EMPRESA['region']) ?></dd></div><?php endif; ?>
                 <div><dt>Inicio de actividades</dt><dd>Enero de <?= e(EMPRESA['inicio']) ?></dd></div>
             </dl>
         </aside>

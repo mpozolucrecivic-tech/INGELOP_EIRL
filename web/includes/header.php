@@ -29,17 +29,19 @@ $jsonLd = [
     'alternateName' => EMPRESA['nombre_corto'],
     'description'   => EMPRESA['descripcion'],
     'taxID'     => EMPRESA['ruc'],
-    'telephone' => '+' . EMPRESA['telefono_e164'],
-    'email'     => EMPRESA['email'],
-    'address'   => [
+    // Teléfono, correo y calle solo si están publicados en config.php
+    'telephone' => EMPRESA['telefono'] !== '' ? '+' . EMPRESA['telefono_e164'] : null,
+    'email'     => EMPRESA['email'] !== '' ? EMPRESA['email'] : null,
+    'address'   => array_filter([
         '@type' => 'PostalAddress',
-        'streetAddress'   => EMPRESA['direccion'],
-        'addressLocality' => EMPRESA['distrito'] . ', ' . EMPRESA['ciudad'],
+        'streetAddress'   => EMPRESA['direccion'] !== '' ? EMPRESA['direccion'] : null,
+        'addressLocality' => implode(', ', array_filter([EMPRESA['distrito'], EMPRESA['ciudad']], fn ($v) => $v !== '')),
         'addressRegion'   => EMPRESA['region'],
         'addressCountry'  => 'PE',
-    ],
+    ]),
     'areaServed' => ['Lambayeque', 'Norte del Perú'],
 ];
+$jsonLd = array_filter($jsonLd, fn ($v) => $v !== null);
 ?>
 <!doctype html>
 <html lang="es-PE">

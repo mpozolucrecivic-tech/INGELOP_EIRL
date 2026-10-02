@@ -55,7 +55,6 @@ services:
       dockerfile: deploy/web.Dockerfile
     restart: unless-stopped
     environment:
-      INTRANET_URL: https://${DOMINIO_INTRANET}
       API_URL: https://${DOMINIO_INTRANET}/api/v1   # la lee web/includes/api.php
       CONTACTO_EMAIL: ${CONTACTO_EMAIL:-}
       SMTP_HOST: ${SMTP_HOST:-}

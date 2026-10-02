@@ -23,29 +23,30 @@
             </ul>
         </div>
 
+        <?php if (hay_contacto_visible()): ?>
         <div>
             <h2 class="pie__titulo">Contacto</h2>
             <ul class="pie__lista pie__lista--iconos">
-                <li><?= icono('telefono') ?><a href="tel:+<?= e(EMPRESA['telefono_e164']) ?>"><?= e(EMPRESA['telefono']) ?></a></li>
-                <li><?= icono('correo') ?><a href="mailto:<?= e(EMPRESA['email']) ?>"><?= e(EMPRESA['email']) ?></a></li>
-                <li><?= icono('mapa') ?><span><?= e(EMPRESA['direccion']) ?>, <?= e(EMPRESA['distrito']) ?>, <?= e(EMPRESA['ciudad']) ?></span></li>
-                <li><?= icono('reloj') ?><span><?= e(EMPRESA['horario']) ?></span></li>
+                <?php if (EMPRESA['telefono'] !== ''): ?><li><?= icono('telefono') ?><a href="tel:+<?= e(EMPRESA['telefono_e164']) ?>"><?= e(EMPRESA['telefono']) ?></a></li><?php endif; ?>
+                <?php if (EMPRESA['email'] !== ''): ?><li><?= icono('correo') ?><a href="mailto:<?= e(EMPRESA['email']) ?>"><?= e(EMPRESA['email']) ?></a></li><?php endif; ?>
+                <?php if (EMPRESA['direccion'] !== ''): ?><li><?= icono('mapa') ?><span><?= e(direccion_completa()) ?></span></li><?php endif; ?>
+                <?php if (EMPRESA['horario'] !== ''): ?><li><?= icono('reloj') ?><span><?= e(EMPRESA['horario']) ?></span></li><?php endif; ?>
             </ul>
         </div>
+        <?php endif; ?>
     </div>
     <div class="pie__base">
         <div class="contenedor pie__base-fila">
             <span>© <?= date('Y') ?> <?= e(EMPRESA['razon_social']) ?>. Chiclayo, Lambayeque – Perú.</span>
-            <?php if (EMPRESA['intranet_url'] !== ''): ?>
-                <a href="<?= e(EMPRESA['intranet_url']) ?>" rel="nofollow">Acceso del personal</a>
-            <?php endif; ?>
         </div>
     </div>
 </footer>
 
+<?php if (EMPRESA['telefono_e164'] !== ''): ?>
 <a class="whatsapp-flotante" href="<?= e(whatsapp()) ?>" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
     <?= icono('whatsapp') ?>
 </a>
+<?php endif; ?>
 
 <?php if (API_URL !== ''): ?>
 <!-- Íconos que usa assets/js/servicios.js al dibujar los servicios recibidos de la API -->
