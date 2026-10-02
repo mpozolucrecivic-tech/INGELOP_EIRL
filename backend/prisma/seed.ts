@@ -25,8 +25,9 @@ import {
 const prisma = new PrismaClient();
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@ingelop.com';
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'Admin123!';
-const USUARIO_PASSWORD = 'Usuario123!';
+// Las contraseñas de los usuarios de demostración se leen de .env: nunca se escriben en el código
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? '';
+const USUARIO_PASSWORD = process.env.SEED_USUARIO_PASSWORD ?? '';
 const UPLOAD_PATH = path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads');
 
 const d = (s: string) => new Date(`${s}T00:00:00.000Z`);
@@ -54,6 +55,16 @@ function crearPdfDemo(proyectoId: number, nombreArchivo: string, rotulo: string)
 }
 
 async function main() {
+  // El seed BORRA los datos de negocio y carga datos de demostración: nunca en producción
+  if (process.env.NODE_ENV === 'production' && process.env.PERMITIR_SEED !== 'si') {
+    console.error('❌ El seed de demostración está bloqueado en producción (borraría los datos reales).');
+    console.error('   Para crear el administrador usa: node dist/scripts/crearAdmin.js');
+    process.exit(1);
+  }
+  if (ADMIN_PASSWORD.length < 8 || USUARIO_PASSWORD.length < 8) {
+    console.error('❌ Define SEED_ADMIN_PASSWORD y SEED_USUARIO_PASSWORD en backend/.env (mínimo 8 caracteres).');
+    process.exit(1);
+  }
   console.log('🌱 Ejecutando seed...');
 
   // ---------- Usuarios ----------
@@ -495,8 +506,8 @@ async function main() {
 
   console.log('✅ Seed completado');
   console.log(`   ADMIN:   ${ADMIN_EMAIL} / (SEED_ADMIN_PASSWORD)`);
-  console.log(`   USUARIO: residente@ingelop.com / ${USUARIO_PASSWORD}  -> "${expediente.nombre}"`);
-  console.log(`   USUARIO: supervisor@ingelop.com / ${USUARIO_PASSWORD} -> "${vivienda.nombre}"`);
+  console.log(`   USUARIO: residente@ingelop.com / (SEED_USUARIO_PASSWORD)  -> "${expediente.nombre}"`);
+  console.log(`   USUARIO: supervisor@ingelop.com / (SEED_USUARIO_PASSWORD) -> "${vivienda.nombre}"`);
 }
 
 function round(n: number) {

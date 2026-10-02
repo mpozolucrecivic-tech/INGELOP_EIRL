@@ -9,7 +9,7 @@ import 'dotenv/config';
 
 const API = process.env.API_URL ?? `http://localhost:${process.env.PORT ?? 4000}/api/v1`;
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@ingelop.com';
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'Admin123!';
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? '';
 
 let pasadas = 0;
 const fallos: string[] = [];

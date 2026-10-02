@@ -5,5 +5,12 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 *.log
 
-# Web PHP: mensajes del formulario de contacto (datos personales)
-web/storage/*.csv
+# Web PHP: mensajes del formulario de contacto (datos personales). Nunca subirlos.
+# Se conservan solo los archivos que protegen la carpeta en el servidor.
+web/storage/*
+!web/storage/.htaccess
+!web/storage/index.html
+web/storage.zip
+
+# Producción: secretos del servidor
+deploy/.env

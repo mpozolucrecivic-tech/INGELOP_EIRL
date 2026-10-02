@@ -48,6 +48,7 @@ INGELOP_EIRL/
 │   │   └── types/api.ts           # tipos de las respuestas de la API
 │   └── vite.config.ts             # proxy /api -> http://localhost:4000
 ├── web/                           # sitio público en PHP (ver web/README.md)
+├── deploy/                        # producción: docker-compose, Caddy (HTTPS), respaldos y guía
 ├── package.json                   # scripts para levantar todo junto
 └── docker-compose.yml             # PostgreSQL + PHP/Apache para la web
 ```
@@ -94,8 +95,8 @@ Para verificar la API, con el servidor corriendo, en otra terminal: `npm run tes
 | Rol | Email | Contraseña | Acceso |
 |---|---|---|---|
 | ADMIN | `admin@ingelop.com` | valor de `SEED_ADMIN_PASSWORD` en `.env` | Todo |
-| USUARIO | `residente@ingelop.com` | `Usuario123!` | "Expediente técnico: Mejoramiento de la I.E. N° 10125" |
-| USUARIO | `supervisor@ingelop.com` | `Usuario123!` | "Diseño de vivienda multifamiliar de 5 pisos" |
+| USUARIO | `residente@ingelop.com` | valor de `SEED_USUARIO_PASSWORD` en `.env` | "Expediente técnico: Mejoramiento de la I.E. N° 10125" |
+| USUARIO | `supervisor@ingelop.com` | valor de `SEED_USUARIO_PASSWORD` en `.env` | "Diseño de vivienda multifamiliar de 5 pisos" |
 
 El seed conserva los usuarios y **recrea** los datos de demo (clientes, proyectos, planos con PDFs de ejemplo, presupuestos, entregables, equipo y horas) en cada ejecución. Todos los datos de clientes son ficticios.
 
@@ -124,6 +125,20 @@ El seed conserva los usuarios y **recrea** los datos de demo (clientes, proyecto
 | `UPLOAD_DIR` | `uploads` | Carpeta de archivos |
 | `MAX_UPLOAD_MB` | `50` | Tamaño máximo por archivo (los planos DWG pueden pesar bastante) |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | | Credenciales del admin que crea el seed |
+| `SEED_USUARIO_PASSWORD` | | Contraseña de los usuarios de demostración del seed |
+
+---
+
+## Despliegue en producción
+
+Todo (web, intranet, API y base de datos) se publica en **un solo VPS con Docker**, con HTTPS automático (Caddy + Let's Encrypt) y respaldos diarios. La guía paso a paso está en [`deploy/DESPLIEGUE.md`](deploy/DESPLIEGUE.md).
+
+```bash
+cp deploy/.env.example deploy/.env      # dominios y secretos
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
+```
+
+En producción el seed de demostración está **bloqueado**. El primer administrador se crea con `node dist/scripts/crearAdmin.js` (ver la guía).
 
 ---
 

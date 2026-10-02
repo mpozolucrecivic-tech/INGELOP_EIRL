@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+.git
+backend/uploads
+backend/.env
+deploy/.env
+web/storage/*.csv
+**/*.log

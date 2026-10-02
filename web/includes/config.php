@@ -9,7 +9,8 @@ declare(strict_types=1);
 
 date_default_timezone_set('America/Lima');
 
-const EMPRESA = [
+// define() (y no const) porque algunos valores se leen de variables de entorno del servidor
+define('EMPRESA', [
     'nombre_corto'   => 'INGELOP',
     'razon_social'   => 'INGELOP Consultores y Ejecutores E.I.R.L.',
     'ruc'            => '20610231676',
@@ -18,7 +19,8 @@ const EMPRESA = [
     'inicio'         => 2023, // inicio de actividades según SUNAT (inscrita el 11/11/2022)
     'telefono'       => '979 660 255',
     'telefono_e164'  => '51979660255', // para enlaces tel: y WhatsApp
-    'email'          => 'luisalbertolopez19@gmail.com',
+    // Correo que recibe los mensajes del formulario (en el servidor se puede definir con CONTACTO_EMAIL)
+    'email'          => getenv('CONTACTO_EMAIL') ?: 'luisalbertolopez19@gmail.com',
     'direccion'      => 'Calle Yahuar Huaca 137, Asoc. Las Quintas Sector Uno',
     'distrito'       => 'La Victoria',
     'ciudad'         => 'Chiclayo',
@@ -26,11 +28,11 @@ const EMPRESA = [
     'horario'        => 'Lunes a viernes de 8:00 a. m. a 6:00 p. m.',
     // Sistema interno del equipo: solo aparece como enlace discreto en el pie de página.
     // Dejar vacío ('') para no mostrarlo en la web.
-    'intranet_url'   => 'http://localhost:5173',
+    'intranet_url'   => getenv('INTRANET_URL') !== false ? (string) getenv('INTRANET_URL') : 'http://localhost:5173',
     // Redes sociales: dejar vacío lo que no exista
     'facebook'       => '',
     'linkedin'       => '',
-];
+]);
 
 /** Especialidades inscritas en el RNP del OSCE como consultor de obras (categoría entre paréntesis) */
 const ESPECIALIDADES_OSCE = [
