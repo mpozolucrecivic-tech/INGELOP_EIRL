@@ -43,7 +43,7 @@ INGELOP_EIRL/
 │   │   ├── components/            # ui/ (Button, Field, Modal…), layout/, gráficos
 │   │   ├── context/AuthContext    # sesión: login, /auth/me, logout
 │   │   ├── lib/format.ts          # soles, fechas, etiquetas en español
-│   │   ├── pages/                 # Login, Dashboard, Proyectos, Clientes, Equipo técnico, Usuarios
+│   │   ├── pages/                 # Login, Resumen general, Proyectos, Clientes, Personal y tarifas, Accesos, Servicios, Mensajes, Ayuda
 │   │   │   └── proyecto/          # pestañas del proyecto (ver tabla más abajo)
 │   │   └── types/api.ts           # tipos de las respuestas de la API
 │   └── vite.config.ts             # proxy /api -> http://localhost:4000
@@ -223,19 +223,24 @@ BORRADOR ──► EN REVISIÓN ──► APROBADO
 
 ## Frontend: pantallas
 
+En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingeniero** (`USUARIO`). El menú se agrupa en *Trabajo*, *Personas* y *Página web*.
+
 | Pantalla | ADMIN | USUARIO |
 |---|---|---|
-| **Dashboard** | Proyectos en desarrollo, monto contratado vs gastos, **planos esperando revisión**, **entregables vencidos**, horas-hombre del mes, estado por proyecto | — |
+| **Resumen general** | "Primeros pasos" (mientras falte algo), proyectos en desarrollo, monto contratado vs gastos, **planos esperando revisión**, **entregables vencidos**, horas trabajadas del mes, estado por proyecto | — |
 | **Proyectos** | Todos, con búsqueda y filtros; crear | Solo los suyos |
 | **Clientes** | Entidades públicas, empresas y personas (RUC/DNI, contacto) | — |
-| **Equipo técnico** | Profesionales con su costo por hora | — |
-| **Usuarios** | Cuentas de acceso | — |
-| Proyecto → **Resumen** | Planos aprobados, avance del expediente, plazo, horas, presupuestos, economía | Igual, sin economía |
+| **Personal y tarifas** | Profesionales con su costo por hora (no necesitan cuenta) | — |
+| **Accesos a la intranet** | Cuentas para iniciar sesión | — |
+| **Servicios** | Servicios de la web: orden, textos, foto, ocultar | — |
+| **Mensajes** | Mensajes del formulario de la web (contador de no leídos en el menú) | — |
+| **Ayuda** | Guías paso a paso | Solo las guías que le aplican |
+| Proyecto → **Resumen** | Planos aprobados, entregables aprobados, plazo, horas, presupuestos, dinero del proyecto | Igual, sin dinero |
 | Proyecto → **Planos** | Por especialidad; aprobar/observar, historial de revisiones | Registrar, subir revisiones, descargar |
 | Proyecto → **Presupuestos** | Editor de partidas, versiones, aprobar/observar, Excel, PDF | Editar y enviar a revisión |
 | Proyecto → **Entregables** | Checklist del expediente, plantilla, fechas límite | Solo lectura |
-| Proyecto → **Tablero** | Kanban de tareas por sprint (arrastrar tarjetas) | Solo lectura |
-| Proyecto → **Equipo y horas** | Asignar profesionales, registrar horas por tarea, horas-hombre y costo | — |
+| Proyecto → **Tareas** | Tareas por periodo de trabajo (en la API: *sprints*), arrastrando tarjetas | Solo lectura |
+| Proyecto → **Equipo y horas** | Asignar profesionales, registrar horas por tarea, horas trabajadas y costo | — |
 | Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen) | — |
 | Proyecto → **Documentos** | Galería de actas, informes, fotos y observaciones | Subir y ver |
 | Proyecto → **Ajustes** | Editar el proyecto, dar/quitar acceso, eliminar | — |

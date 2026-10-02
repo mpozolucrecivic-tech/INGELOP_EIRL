@@ -57,7 +57,7 @@ export async function actualizar(usuario: UsuarioAutenticado, id: number, data: 
   if (data.sprintId && data.sprintId !== actividad.sprintId) {
     const destino = await prisma.sprint.findUnique({ where: { id: data.sprintId }, select: { proyectoId: true } });
     if (!destino || destino.proyectoId !== actividad.sprint.proyectoId) {
-      throw AppError.badRequest('sprintId: el sprint destino no existe o pertenece a otro proyecto');
+      throw AppError.badRequest('El periodo de trabajo elegido no existe o pertenece a otro proyecto');
     }
   }
 

@@ -23,7 +23,7 @@ export function avancePromedio(actividades: { estado: EstadoActividad; avance: n
 /** Obtiene un sprint verificando que el usuario tenga acceso a su proyecto */
 export async function obtenerSprintConAcceso(usuario: UsuarioAutenticado, sprintId: number) {
   const sprint = await prisma.sprint.findUnique({ where: { id: sprintId } });
-  if (!sprint) throw AppError.notFound('Sprint no encontrado');
+  if (!sprint) throw AppError.notFound('Periodo de trabajo no encontrado');
   await assertProjectAccess(usuario, sprint.proyectoId);
   return sprint;
 }
@@ -57,7 +57,7 @@ export async function crear(proyectoId: number, data: CrearSprintInput) {
 
 export async function actualizar(id: number, data: ActualizarSprintInput) {
   const actual = await prisma.sprint.findUnique({ where: { id } });
-  if (!actual) throw AppError.notFound('Sprint no encontrado');
+  if (!actual) throw AppError.notFound('Periodo de trabajo no encontrado');
   const inicio = data.fechaInicio ?? actual.fechaInicio;
   const fin = data.fechaFin ?? actual.fechaFin;
   if (fin < inicio) throw AppError.badRequest('fechaFin debe ser posterior o igual a fechaInicio');

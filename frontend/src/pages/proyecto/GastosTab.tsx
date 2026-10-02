@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { TextoAyuda } from '@/components/Common';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,6 +32,7 @@ export default function GastosTab({ proyectoId }: { proyectoId: number }) {
 
   return (
     <div className="space-y-6">
+      <TextoAyuda>Lo que el proyecto le cuesta a la empresa (planilla, viáticos, estudios, trámites…) frente al monto cobrado al cliente.</TextoAyuda>
       {resumen && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard label="Monto del contrato" value={formatSoles(resumen.montoContrato)} hint="Honorarios pactados con el cliente" />

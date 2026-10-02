@@ -31,7 +31,7 @@ export default function ProyectoPage() {
     { to: `${base}/planos`, label: 'Planos' },
     { to: `${base}/presupuestos`, label: 'Presupuestos' },
     { to: `${base}/entregables`, label: 'Entregables' },
-    { to: `${base}/tablero`, label: 'Tablero' },
+    { to: `${base}/tablero`, label: 'Tareas' },
     ...(esAdmin ? [{ to: `${base}/equipo`, label: 'Equipo y horas' }] : []),
     ...(esAdmin ? [{ to: `${base}/gastos`, label: 'Gastos' }] : []),
     { to: `${base}/documentos`, label: 'Documentos' },

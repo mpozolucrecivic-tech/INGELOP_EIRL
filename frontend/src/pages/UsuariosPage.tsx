@@ -9,7 +9,7 @@ import { Badge, Card, EmptyState, ErrorState, PageHeader, Spinner, Table, td, th
 import { Input, Select } from '@/components/ui/Field';
 import { Modal, useConfirm } from '@/components/ui/Modal';
 import { useAuth } from '@/context/AuthContext';
-import { formatFecha } from '@/lib/format';
+import { formatFecha, ROL } from '@/lib/format';
 import type { Usuario } from '@/types/api';
 
 export default function UsuariosPage() {
@@ -24,8 +24,8 @@ export default function UsuariosPage() {
   return (
     <>
       <PageHeader
-        title="Usuarios"
-        subtitle="Cuentas de acceso a la intranet. El equipo técnico solo ve los proyectos donde tiene acceso."
+        title="Accesos a la intranet"
+        subtitle="Personas que pueden iniciar sesión. Las jefaturas ven todo; los arquitectos e ingenieros solo ven los proyectos que se les asignan."
         actions={
           <Button icon={<Plus className="size-4" />} onClick={() => setModal({})}>
             Nuevo usuario
@@ -69,7 +69,7 @@ export default function UsuariosPage() {
                   </td>
                   <td className={td}>
                     <div className="flex gap-1">
-                      {u.rol === 'ADMIN' ? <Badge color="violet">Administrador</Badge> : <Badge>Equipo técnico</Badge>}
+                      {u.rol === 'ADMIN' ? <Badge color="violet">{ROL.ADMIN.label}</Badge> : <Badge>{ROL.USUARIO.label}</Badge>}
                       {!u.activo && <Badge color="red">Inactivo</Badge>}
                     </div>
                   </td>
@@ -193,8 +193,8 @@ function UsuarioModal({ state, onClose, esYo }: { state: { usuario?: Usuario } |
           {...register('password')}
         />
         <Select label="Rol" disabled={esYo} hint={esYo ? 'No puedes cambiar tu propio rol' : undefined} error={errors.rol?.message} {...register('rol')}>
-          <option value="USUARIO">Equipo técnico — ve sus proyectos, sube planos y elabora presupuestos</option>
-          <option value="ADMIN">Administrador — acceso total</option>
+          <option value="USUARIO">{ROL.USUARIO.label} — {ROL.USUARIO.descripcion}</option>
+          <option value="ADMIN">{ROL.ADMIN.label} — {ROL.ADMIN.descripcion}</option>
         </Select>
       </form>
     </Modal>

@@ -1,4 +1,4 @@
-import type { CategoriaGasto, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, TipoServicio } from '@/types/api';
+import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, TipoServicio } from '@/types/api';
 
 const soles = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
 const solesCorto = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', notation: 'compact', maximumFractionDigits: 1 });
@@ -32,12 +32,18 @@ export const ESTADO_PROYECTO: Record<EstadoProyecto, { label: string; color: 'sl
   FINALIZADA: { label: 'Finalizado', color: 'green' },
 };
 
+/** Nombres de los roles en pantalla (en la API siguen siendo ADMIN y USUARIO) */
+export const ROL: Record<Rol, { label: string; descripcion: string }> = {
+  ADMIN: { label: 'Jefatura', descripcion: 've y gestiona todo' },
+  USUARIO: { label: 'Arquitecto o ingeniero', descripcion: 've solo los proyectos asignados, sube planos y documentos' },
+};
+
 export const ESTADO_ACTIVIDAD: Record<EstadoActividad, { label: string; dot: string }> = {
-  BACKLOG: { label: 'Backlog', dot: 'bg-slate-400' },
+  BACKLOG: { label: 'Pendiente', dot: 'bg-slate-400' },
   POR_HACER: { label: 'Por hacer', dot: 'bg-sky-500' },
   EN_PROCESO: { label: 'En proceso', dot: 'bg-amber-500' },
   EN_REVISION: { label: 'En revisión', dot: 'bg-violet-500' },
-  COMPLETADA: { label: 'Completada', dot: 'bg-emerald-500' },
+  COMPLETADA: { label: 'Terminada', dot: 'bg-emerald-500' },
 };
 export const ORDEN_ESTADOS: EstadoActividad[] = ['BACKLOG', 'POR_HACER', 'EN_PROCESO', 'EN_REVISION', 'COMPLETADA'];
 

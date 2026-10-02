@@ -4,7 +4,7 @@ import { Camera, Download, ExternalLink, FileText, MessageSquareText, Trash2, Up
 import { useActividades, useSprints } from '@/api/proyectos';
 import { useCrearEvidencia, useEliminarEvidencia, useEvidencias } from '@/api/recursos';
 import { obtenerArchivo } from '@/api/client';
-import { abrirArchivo, AuthImage } from '@/components/Common';
+import { abrirArchivo, AuthImage, TextoAyuda } from '@/components/Common';
 import { Button, IconButton } from '@/components/ui/Button';
 import { Badge, Card, EmptyState, ErrorState, Spinner } from '@/components/ui/Display';
 import { Input, Select, Textarea } from '@/components/ui/Field';
@@ -35,6 +35,7 @@ export default function EvidenciasTab({ proyectoId }: { proyectoId: number }) {
 
   return (
     <>
+      <TextoAyuda>Actas, informes, fotos de visitas y observaciones del proyecto. Usa los botones para ver solo un tipo.</TextoAyuda>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-1.5">
           {(['', ...TIPOS] as const).map((t) => (
@@ -300,7 +301,7 @@ function SubirModal({ proyectoId, open, onClose }: { proyectoId: number; open: b
         {sprints.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
             <Select
-              label="Sprint"
+              label="Periodo"
               value={sprintId ?? ''}
               onChange={(e) => {
                 setSprintId(e.target.value ? Number(e.target.value) : null);
@@ -309,7 +310,7 @@ function SubirModal({ proyectoId, open, onClose }: { proyectoId: number; open: b
             >
               {sprints.map((s) => (
                 <option key={s.id} value={s.id}>
-                  Sprint {s.numero}
+                  Periodo {s.numero}
                 </option>
               ))}
             </Select>

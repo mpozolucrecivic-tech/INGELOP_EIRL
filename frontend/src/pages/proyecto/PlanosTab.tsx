@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { TextoAyuda } from '@/components/Common';
 import clsx from 'clsx';
 import { CheckCircle2, Download, Eye, FileStack, History, MessageSquareWarning, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import { useUsuarios } from '@/api/admin';
@@ -113,6 +114,7 @@ export default function PlanosTab({ proyectoId }: { proyectoId: number }) {
 
   return (
     <>
+      <TextoAyuda>Cada lámina se registra por especialidad. Las jefaturas la aprueban u observan, y cada corrección se sube como una revisión nueva (Rev. A, B, C…).</TextoAyuda>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <Select value={especialidad} onChange={(e) => setEspecialidad(e.target.value as Especialidad | '')} aria-label="Especialidad" wrapperClassName="w-full sm:w-60">

@@ -1,19 +1,47 @@
 import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
-import { Briefcase, Building2, HardHat, Inbox, Layers, LayoutDashboard, LogOut, Menu, Users, X } from 'lucide-react';
+import { Briefcase, Building2, CircleHelp, HardHat, Inbox, KeyRound, Layers, LayoutDashboard, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
+import { useMensajesSinLeer } from '@/api/admin';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/Display';
+import { ROL } from '@/lib/format';
 
-const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, admin: true, end: true },
-  { to: '/proyectos', label: 'Proyectos', icon: Building2, admin: false },
-  { to: '/clientes', label: 'Clientes', icon: Briefcase, admin: true },
-  { to: '/trabajadores', label: 'Equipo técnico', icon: HardHat, admin: true },
-  { to: '/usuarios', label: 'Usuarios', icon: Users, admin: true },
-  // Web informativa
-  { to: '/servicios', label: 'Servicios de la web', icon: Layers, admin: true },
-  { to: '/mensajes', label: 'Mensajes de la web', icon: Inbox, admin: true },
+interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  admin: boolean;
+  end?: boolean;
+  /** Muestra la cantidad de mensajes sin leer */
+  contador?: 'mensajes';
+}
+
+// Grupos del menú: el título solo se muestra si el grupo tiene opciones visibles para el rol
+const navGrupos: { titulo?: string; items: NavItem[] }[] = [
+  { items: [{ to: '/', label: 'Resumen general', icon: LayoutDashboard, admin: true, end: true }] },
+  {
+    titulo: 'Trabajo',
+    items: [
+      { to: '/proyectos', label: 'Proyectos', icon: Building2, admin: false },
+      { to: '/clientes', label: 'Clientes', icon: Briefcase, admin: true },
+    ],
+  },
+  {
+    titulo: 'Personas',
+    items: [
+      { to: '/trabajadores', label: 'Personal y tarifas', icon: HardHat, admin: true },
+      { to: '/usuarios', label: 'Accesos a la intranet', icon: KeyRound, admin: true },
+    ],
+  },
+  {
+    titulo: 'Página web',
+    items: [
+      { to: '/servicios', label: 'Servicios', icon: Layers, admin: true },
+      { to: '/mensajes', label: 'Mensajes', icon: Inbox, admin: true, contador: 'mensajes' },
+    ],
+  },
+  { items: [{ to: '/ayuda', label: 'Ayuda', icon: CircleHelp, admin: false }] },
 ];
 
 function Logo() {
@@ -30,30 +58,43 @@ function Logo() {
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { usuario, esAdmin, logout } = useAuth();
-  const items = navItems.filter((i) => esAdmin || !i.admin);
+  const { data: sinLeer = 0 } = useMensajesSinLeer(esAdmin);
+  const grupos = navGrupos
+    .map((g) => ({ ...g, items: g.items.filter((i) => esAdmin || !i.admin) }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <div className="flex h-full flex-col bg-slate-900 px-3 py-4">
       <div className="px-2 pb-6">
         <Logo />
       </div>
-      <nav className="flex-1 space-y-1" aria-label="Principal">
-        {items.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              clsx(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                isActive ? 'bg-slate-800 text-brand-400' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white',
-              )
-            }
-          >
-            <Icon className="size-[18px]" />
-            {label}
-          </NavLink>
+      <nav className="flex-1 space-y-4 overflow-y-auto" aria-label="Principal">
+        {grupos.map((grupo, i) => (
+          <div key={grupo.titulo ?? i} className="space-y-1">
+            {grupo.titulo && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{grupo.titulo}</p>}
+            {grupo.items.map(({ to, label, icon: Icon, end, contador }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  clsx(
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    isActive ? 'bg-slate-800 text-brand-400' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white',
+                  )
+                }
+              >
+                <Icon className="size-[18px]" />
+                <span className="flex-1">{label}</span>
+                {contador === 'mensajes' && sinLeer > 0 && (
+                  <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-900" aria-label={`${sinLeer} sin leer`}>
+                    {sinLeer}
+                  </span>
+                )}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
       <div className="border-t border-slate-800 pt-4">
@@ -63,7 +104,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-white">{usuario?.nombre}</p>
-            <p className="text-xs text-slate-400">{esAdmin ? 'Administrador' : 'Equipo técnico'}</p>
+            <p className="text-xs text-slate-400">{ROL[esAdmin ? 'ADMIN' : 'USUARIO'].label}</p>
           </div>
           <button
             onClick={logout}

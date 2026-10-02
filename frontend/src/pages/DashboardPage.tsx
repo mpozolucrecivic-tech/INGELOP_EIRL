@@ -1,11 +1,56 @@
 import { Link } from 'react-router';
-import { AlertTriangle, Briefcase, Clock, FileStack, Wallet } from 'lucide-react';
+import { AlertTriangle, Briefcase, CheckCircle2, ChevronRight, Circle, Clock, FileStack, Wallet } from 'lucide-react';
+import clsx from 'clsx';
+import { useUsuarios } from '@/api/admin';
 import { useDashboardGeneral } from '@/api/proyectos';
 import { GastoCategoriaChart, GastoMensualChart } from '@/components/Charts';
 import { EstadoProyectoBadge } from '@/components/Common';
 import { Badge, Card, CardHeader, ErrorState, PageHeader, ProgressBar, Spinner, StatCard, Table, td, th } from '@/components/ui/Display';
 import { useAuth } from '@/context/AuthContext';
 import { ESPECIALIDAD, formatFecha, formatNumero, formatPorcentaje, formatSoles, RUBRO_OBRA, TIPO_SERVICIO } from '@/lib/format';
+import type { DashboardGeneral } from '@/types/api';
+
+/** Guía para empezar: se muestra mientras falte alguno de los pasos básicos */
+function PrimerosPasos({ data }: { data: DashboardGeneral }) {
+  const { data: tecnicos } = useUsuarios({ rol: 'USUARIO', activo: true });
+  if (!tecnicos) return null;
+
+  const primerProyecto = data.resumenProyectos[0];
+  const pasos = [
+    { hecho: data.clientesActivos > 0, texto: 'Registrar un cliente', detalle: 'La municipalidad, entidad o empresa que contrata el servicio.', to: '/clientes' },
+    { hecho: data.proyectos.total > 0, texto: 'Crear un proyecto', detalle: 'Con su cliente, ubicación, plazo y monto del contrato.', to: '/proyectos' },
+    { hecho: data.profesionalesActivos > 0, texto: 'Registrar al personal', detalle: 'Arquitectos, ingenieros y dibujantes con su costo por hora.', to: '/trabajadores' },
+    { hecho: tecnicos.length > 0, texto: 'Dar acceso a un arquitecto o ingeniero', detalle: 'Para que entre a la intranet y suba planos de sus proyectos.', to: '/usuarios' },
+    {
+      hecho: data.resumenProyectos.some((p) => p.planos.total > 0),
+      texto: 'Subir el primer plano',
+      detalle: 'Desde la pestaña Planos de un proyecto.',
+      to: primerProyecto ? `/proyectos/${primerProyecto.id}/planos` : '/proyectos',
+    },
+  ];
+  const hechos = pasos.filter((p) => p.hecho).length;
+  if (hechos === pasos.length) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardHeader title="Primeros pasos" subtitle={`Para empezar a usar la intranet · ${hechos} de ${pasos.length} listos`} />
+      <ol className="divide-y divide-slate-100">
+        {pasos.map((p) => (
+          <li key={p.texto}>
+            <Link to={p.to} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50">
+              {p.hecho ? <CheckCircle2 className="size-5 shrink-0 text-emerald-500" /> : <Circle className="size-5 shrink-0 text-slate-300" />}
+              <div className="min-w-0 flex-1">
+                <p className={clsx('text-sm font-medium', p.hecho ? 'text-slate-400 line-through' : 'text-slate-900')}>{p.texto}</p>
+                {!p.hecho && <p className="text-xs text-slate-500">{p.detalle}</p>}
+              </div>
+              {!p.hecho && <ChevronRight className="size-4 text-slate-400" />}
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}
 
 export default function DashboardPage() {
   const { usuario } = useAuth();
@@ -19,7 +64,9 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader title={`Hola, ${usuario?.nombre.split(' ')[0]}`} subtitle="Resumen de todos los proyectos de la consultora." />
+      <PageHeader title={`Hola, ${usuario?.nombre.split(' ')[0]}`} subtitle="Lo más importante de hoy: qué revisar, qué está vencido y cómo van los proyectos." />
+
+      <PrimerosPasos data={data} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -49,7 +96,7 @@ export default function DashboardPage() {
           hint={data.planosPorRevisar.length ? 'Esperan tu aprobación u observación' : 'No hay planos pendientes de revisión'}
         />
         <StatCard
-          label="Horas-hombre este mes"
+          label="Horas trabajadas este mes"
           value={formatNumero(data.horasMes)}
           icon={<Clock className="size-5" />}
           hint={`${data.profesionalesActivos} profesionales activos`}
@@ -106,14 +153,14 @@ export default function DashboardPage() {
       )}
 
       <Card className="mt-6">
-        <CardHeader title="Estado de los proyectos" subtitle="Planos aprobados, avance del expediente y gasto frente al monto del contrato" />
+        <CardHeader title="Estado de los proyectos" subtitle="Cuántos planos están aprobados, cuántos entregables están listos y cuánto se ha gastado de lo contratado" />
         <Table>
           <thead>
             <tr>
               <th className={th}>Proyecto</th>
               <th className={th}>Estado</th>
               <th className={th}>Planos</th>
-              <th className={th}>Expediente</th>
+              <th className={th}>Entregables</th>
               <th className={th}>Gasto / contrato</th>
               <th className={th}>Plazo</th>
             </tr>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { TextoAyuda } from '@/components/Common';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,13 +49,14 @@ export default function TableroTab({ proyectoId }: { proyectoId: number }) {
 
   return (
     <>
+      <TextoAyuda>Las tareas del equipo, organizadas en periodos de trabajo. Cambia el estado de cada tarea a medida que avanza.</TextoAyuda>
       {!sprints?.length ? (
         <Card>
           <EmptyState
             icon={<KanbanSquare className="size-6" />}
-            title="Aún no hay sprints"
-            description="Organiza las tareas del proyecto en sprints (periodos de 2 a 4 semanas) con un objetivo claro."
-            action={esAdmin && <Button icon={<Plus className="size-4" />} onClick={() => setSprintModal({})}>Crear primer sprint</Button>}
+            title="Aún no hay periodos de trabajo"
+            description="Divide el proyecto en periodos de 2 a 4 semanas, cada uno con un objetivo (ej. «Planos de arquitectura»), y anota sus tareas."
+            action={esAdmin && <Button icon={<Plus className="size-4" />} onClick={() => setSprintModal({})}>Crear el primer periodo</Button>}
           />
         </Card>
       ) : (
@@ -70,14 +72,14 @@ export default function TableroTab({ proyectoId }: { proyectoId: number }) {
                     s.id === sprintId ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
                   )}
                 >
-                  Sprint {s.numero}
-                  {s.vigente && <span className="size-1.5 rounded-full bg-emerald-400" title="Vigente" />}
+                  Periodo {s.numero}
+                  {s.vigente && <span className="size-1.5 rounded-full bg-emerald-400" title="En curso" />}
                 </button>
               ))}
             </div>
             {esAdmin && (
               <Button variant="secondary" size="sm" icon={<Plus className="size-4" />} onClick={() => setSprintModal({})}>
-                Sprint
+                Periodo
               </Button>
             )}
           </div>
@@ -87,8 +89,8 @@ export default function TableroTab({ proyectoId }: { proyectoId: number }) {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-semibold text-slate-900">Sprint {sprint.numero}</h2>
-                    {sprint.vigente && <Badge color="green">Vigente</Badge>}
+                    <h2 className="font-semibold text-slate-900">Periodo {sprint.numero}</h2>
+                    {sprint.vigente && <Badge color="green">En curso</Badge>}
                     <span className="text-sm text-slate-500">
                       {formatFecha(sprint.fechaInicio)} – {formatFecha(sprint.fechaFin)}
                     </span>
@@ -105,16 +107,16 @@ export default function TableroTab({ proyectoId }: { proyectoId: number }) {
                   </div>
                   {esAdmin && (
                     <div className="flex">
-                      <IconButton label="Editar sprint" onClick={() => setSprintModal({ sprint })}>
+                      <IconButton label="Editar periodo" onClick={() => setSprintModal({ sprint })}>
                         <Pencil className="size-4" />
                       </IconButton>
                       <IconButton
-                        label="Eliminar sprint"
+                        label="Eliminar periodo"
                         className="hover:text-red-600"
                         onClick={() =>
                           confirm({
-                            title: `Eliminar Sprint ${sprint.numero}`,
-                            message: `Se eliminarán también sus ${sprint.totalActividades} actividades. Esta acción no se puede deshacer.`,
+                            title: `Eliminar el periodo ${sprint.numero}`,
+                            message: `Se eliminarán también sus ${sprint.totalActividades} tareas. Esta acción no se puede deshacer.`,
                             onConfirm: async () => {
                               await eliminarSprint.mutateAsync(sprint.id);
                               setSprintId(null);
@@ -305,7 +307,7 @@ const sprintSchema = z
     numero: z.number().int().positive().optional(),
     fechaInicio: z.string().min(1, 'Requerido'),
     fechaFin: z.string().min(1, 'Requerido'),
-    objetivo: z.string().trim().min(3, 'Describe el objetivo del sprint'),
+    objetivo: z.string().trim().min(3, 'Describe el objetivo del periodo'),
   })
   .refine((d) => d.fechaFin >= d.fechaInicio, { message: 'Debe ser posterior al inicio', path: ['fechaFin'] });
 type SprintForm = z.infer<typeof sprintSchema>;
@@ -350,7 +352,7 @@ function SprintModal({
     <Modal
       open={!!state}
       onClose={onClose}
-      title={sprint ? `Editar Sprint ${sprint.numero}` : 'Nuevo sprint'}
+      title={sprint ? `Editar el periodo ${sprint.numero}` : 'Nuevo periodo de trabajo'}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
@@ -501,10 +503,10 @@ function ActividadModal({
           </Select>
           <Input label="Avance (%)" type="number" min={0} max={100} error={errors.avance?.message} {...register('avance', { valueAsNumber: true })} />
           {actividad && (
-            <Select label="Sprint" wrapperClassName="col-span-2" {...register('sprintId', { valueAsNumber: true })}>
+            <Select label="Periodo" wrapperClassName="col-span-2" {...register('sprintId', { valueAsNumber: true })}>
               {sprints.map((s) => (
                 <option key={s.id} value={s.id}>
-                  Sprint {s.numero} · {s.objetivo}
+                  Periodo {s.numero} · {s.objetivo}
                 </option>
               ))}
             </Select>

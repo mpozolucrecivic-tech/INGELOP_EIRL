@@ -50,15 +50,15 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
           }
         />
         <StatCard
-          label="Expediente"
-          value={formatPorcentaje(entregables.porcentaje)}
+          label="Entregables aprobados"
+          value={`${entregables.aprobados} de ${entregables.total}`}
           icon={<ClipboardList className="size-5" />}
           tone={entregables.vencidos > 0 ? 'danger' : 'default'}
           hint={
             <div className="space-y-1.5">
               <ProgressBar value={entregables.porcentaje} color="blue" />
               <span>
-                {entregables.aprobados} de {entregables.total} entregables aprobados
+                {formatPorcentaje(entregables.porcentaje)} del expediente
                 {entregables.vencidos > 0 && ` · ${entregables.vencidos} vencido${entregables.vencidos === 1 ? '' : 's'}`}
               </span>
             </div>
@@ -77,7 +77,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
           }
         />
         <StatCard
-          label="Horas-hombre"
+          label="Horas trabajadas"
           value={formatNumero(equipo.totalHoras)}
           icon={<Clock className="size-5" />}
           hint={
@@ -168,8 +168,8 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
 
         <Card>
           <CardHeader
-            title="Tablero de tareas"
-            subtitle={avance.sprintVigente ? `Sprint ${avance.sprintVigente.numero}: ${avance.sprintVigente.objetivo}` : 'Sin sprint vigente'}
+            title="Tareas"
+            subtitle={avance.sprintVigente ? `Periodo ${avance.sprintVigente.numero}: ${avance.sprintVigente.objetivo}` : 'Ningún periodo de trabajo en curso'}
             action={<Link to={`${base}/tablero`} className={link}>Ver</Link>}
           />
           <div className="space-y-2 p-5">
@@ -193,7 +193,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
       {esAdmin && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card>
-            <CardHeader title="Economía del servicio" action={<Link to={`${base}/gastos`} className={link}>Gastos</Link>} />
+            <CardHeader title="Dinero del proyecto" action={<Link to={`${base}/gastos`} className={link}>Gastos</Link>} />
             <dl className="space-y-3 p-5 text-sm">
               <div className="flex justify-between">
                 <dt className="text-slate-500">Monto del contrato</dt>

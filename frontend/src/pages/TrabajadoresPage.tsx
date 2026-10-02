@@ -26,8 +26,8 @@ export default function TrabajadoresPage() {
   return (
     <>
       <PageHeader
-        title="Equipo técnico"
-        subtitle="Arquitectos, ingenieros y dibujantes. Asígnalos a cada proyecto desde la pestaña Equipo y horas."
+        title="Personal y tarifas"
+        subtitle="Profesionales con su costo por hora, para registrar horas y calcular el costo de cada proyecto. No necesitan cuenta para entrar a la intranet."
         actions={
           <Button icon={<Plus className="size-4" />} onClick={() => setModal({})}>
             Nuevo profesional
@@ -54,7 +54,7 @@ export default function TrabajadoresPage() {
             <ErrorState error={error} onRetry={refetch} />
           </div>
         ) : !trabajadores?.length ? (
-          <EmptyState icon={<HardHat className="size-6" />} title={busqueda ? 'Sin resultados' : 'Sin profesionales'} description={busqueda ? undefined : 'Registra al equipo técnico para controlar sus horas por proyecto.'} />
+          <EmptyState icon={<HardHat className="size-6" />} title={busqueda ? 'Sin resultados' : 'Sin profesionales'} description={busqueda ? undefined : 'Registra a tus profesionales y su costo por hora para controlar las horas de cada proyecto.'} />
         ) : (
           <Table>
             <thead>

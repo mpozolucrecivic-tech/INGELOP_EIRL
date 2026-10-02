@@ -179,10 +179,21 @@ export const useQuitarFotoServicio = () =>
 
 // ---------- Mensajes del formulario de contacto ----------
 
-export const useMensajes = (filtros: { tipo?: TipoMensaje; leido?: boolean; q?: string } = {}) =>
+export const useMensajes = (filtros: { tipo?: TipoMensaje; leido?: boolean; q?: string } = {}, enabled = true) =>
   useQuery({
     queryKey: ['mensajes', filtros],
     queryFn: async () => (await api.get<MensajeContacto[]>('/contacto', { params: filtros })).data,
+    enabled,
+  });
+
+/** Cantidad de mensajes sin leer (para el menú); se actualiza cada minuto */
+export const useMensajesSinLeer = (enabled = true) =>
+  useQuery({
+    queryKey: ['mensajes', { leido: false }],
+    queryFn: async () => (await api.get<MensajeContacto[]>('/contacto', { params: { leido: false } })).data,
+    select: (mensajes) => mensajes.length,
+    refetchInterval: 60_000,
+    enabled,
   });
 
 export const useMarcarLeido = () =>

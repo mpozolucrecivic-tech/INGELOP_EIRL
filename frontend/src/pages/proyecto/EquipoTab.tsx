@@ -143,7 +143,7 @@ function ResumenHorasCard({ proyectoId }: { proyectoId: number }) {
 
   return (
     <Card>
-      <CardHeader title="Horas-hombre y costo" subtitle={desde || hasta ? 'Periodo seleccionado' : 'Acumulado del proyecto'} />
+      <CardHeader title="Horas trabajadas y costo" subtitle={desde || hasta ? 'Periodo seleccionado' : 'Acumulado del proyecto'} />
       <div className="flex gap-3 px-5 pt-4">
         <Input label="Desde" type="date" value={desde} max={hasta || undefined} onChange={(e) => setDesde(e.target.value)} wrapperClassName="flex-1" />
         <Input label="Hasta" type="date" value={hasta} min={desde || undefined} onChange={(e) => setHasta(e.target.value)} wrapperClassName="flex-1" />
@@ -158,7 +158,7 @@ function ResumenHorasCard({ proyectoId }: { proyectoId: number }) {
         <>
           <div className="grid grid-cols-2 gap-3 p-5">
             <div className="rounded-lg bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Horas-hombre</p>
+              <p className="text-xs text-slate-500">Horas trabajadas</p>
               <p className="text-xl font-semibold tabular-nums">{formatNumero(data?.totalHoras ?? 0)}</p>
             </div>
             <div className="rounded-lg bg-slate-50 p-3">
@@ -281,7 +281,7 @@ function AsignarModal({ proyectoId, open, onClose, asignaciones }: { proyectoId:
       }
     >
       <div className="space-y-4">
-        <Select label="Profesional" value={trabajadorId} onChange={(e) => setTrabajadorId(e.target.value)} hint={disponibles.length ? undefined : 'No hay profesionales disponibles. Regístralos en "Equipo técnico".'}>
+        <Select label="Profesional" value={trabajadorId} onChange={(e) => setTrabajadorId(e.target.value)} hint={disponibles.length ? undefined : 'No hay profesionales disponibles. Regístralos en "Personal y tarifas".'}>
           <option value="">Selecciona…</option>
           {disponibles.map((t) => (
             <option key={t.id} value={t.id}>

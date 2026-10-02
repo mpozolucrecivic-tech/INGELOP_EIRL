@@ -112,7 +112,7 @@ export default function AjustesTab({ proyecto }: { proyecto: ProyectoDetalle }) 
         <div className="flex flex-wrap items-center justify-between gap-4 p-5">
           <div>
             <h3 className="font-semibold text-red-700">Eliminar proyecto</h3>
-            <p className="mt-0.5 text-sm text-slate-600">Se borran planos, presupuestos, entregables, sprints, horas, gastos y documentos con sus archivos. No se puede deshacer.</p>
+            <p className="mt-0.5 text-sm text-slate-600">Se borran planos, presupuestos, entregables, tareas, horas, gastos y documentos con sus archivos. No se puede deshacer.</p>
           </div>
           <Button
             variant="danger"

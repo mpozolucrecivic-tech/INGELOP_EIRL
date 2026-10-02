@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { TextoAyuda } from '@/components/Common';
 import clsx from 'clsx';
 import { AlertTriangle, CheckCircle2, ClipboardList, ListPlus, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useUsuarios } from '@/api/admin';
@@ -29,6 +30,7 @@ export default function EntregablesTab({ proyectoId }: { proyectoId: number }) {
 
   return (
     <>
+      <TextoAyuda>Las partes del expediente técnico que se entregan al cliente (memoria, planos, metrados, presupuesto…). Cada una pasa por borrador, revisión y aprobación.</TextoAyuda>
       <Card className="mb-5 p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-[240px] flex-1">

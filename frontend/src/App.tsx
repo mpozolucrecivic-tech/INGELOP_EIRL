@@ -14,6 +14,7 @@ const ClientesPage = lazy(() => import('@/pages/ClientesPage'));
 const TrabajadoresPage = lazy(() => import('@/pages/TrabajadoresPage'));
 const ServiciosPage = lazy(() => import('@/pages/ServiciosPage'));
 const MensajesPage = lazy(() => import('@/pages/MensajesPage'));
+const AyudaPage = lazy(() => import('@/pages/AyudaPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 /** Exige sesión iniciada */
@@ -39,6 +40,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/proyectos" element={<ProyectosPage />} />
           <Route path="/proyectos/:id/*" element={<ProyectoPage />} />
+          <Route path="/ayuda" element={<AyudaPage />} />
           <Route element={<RequireAdmin />}>
             <Route index element={<DashboardPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />

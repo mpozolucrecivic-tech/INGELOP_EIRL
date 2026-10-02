@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FileText, ImageOff } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { FileText, ImageOff, Info } from 'lucide-react';
 import { obtenerArchivo } from '@/api/client';
 import { ESTADO_PROYECTO } from '@/lib/format';
 import type { EstadoProyecto } from '@/types/api';
@@ -54,4 +55,14 @@ export async function abrirArchivo(url: string) {
 
 export function IconoArchivo() {
   return <FileText className="size-8 text-slate-400" />;
+}
+
+/** Frase corta que explica para qué sirve una pestaña */
+export function TextoAyuda({ children }: { children: ReactNode }) {
+  return (
+    <p className="mb-4 flex items-start gap-2 text-sm text-slate-500">
+      <Info className="mt-0.5 size-4 shrink-0 text-slate-400" />
+      <span>{children}</span>
+    </p>
+  );
 }
