@@ -15,6 +15,8 @@ const TrabajadoresPage = lazy(() => import('@/pages/TrabajadoresPage'));
 const ServiciosPage = lazy(() => import('@/pages/ServiciosPage'));
 const MensajesPage = lazy(() => import('@/pages/MensajesPage'));
 const AyudaPage = lazy(() => import('@/pages/AyudaPage'));
+const SitioPage = lazy(() => import('@/pages/SitioPage'));
+const PortafolioPage = lazy(() => import('@/pages/PortafolioPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 /** Exige sesión iniciada */
@@ -48,6 +50,8 @@ export default function App() {
             <Route path="/trabajadores" element={<TrabajadoresPage />} />
             <Route path="/servicios" element={<ServiciosPage />} />
             <Route path="/mensajes" element={<MensajesPage />} />
+            <Route path="/datos-empresa" element={<SitioPage />} />
+            <Route path="/proyectos-realizados" element={<PortafolioPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>

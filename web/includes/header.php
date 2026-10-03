@@ -30,7 +30,7 @@ $jsonLd = [
     'description'   => EMPRESA['descripcion'],
     'taxID'     => EMPRESA['ruc'],
     // Teléfono, correo y calle solo si están publicados en config.php
-    'telephone' => EMPRESA['telefono'] !== '' ? '+' . EMPRESA['telefono_e164'] : null,
+    'telephone' => EMPRESA['telefono'] !== '' ? telefono_enlace() : null,
     'email'     => EMPRESA['email'] !== '' ? EMPRESA['email'] : null,
     'address'   => array_filter([
         '@type' => 'PostalAddress',
@@ -40,6 +40,7 @@ $jsonLd = [
         'addressCountry'  => 'PE',
     ]),
     'areaServed' => ['Lambayeque', 'Norte del Perú'],
+    'sameAs'     => array_values(array_filter([EMPRESA['facebook'], EMPRESA['linkedin']])) ?: null,
 ];
 $jsonLd = array_filter($jsonLd, fn ($v) => $v !== null);
 ?>

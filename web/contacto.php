@@ -190,14 +190,14 @@ $mapa = rawurlencode(direccion_completa() . ', Perú');
         </div>
 
         <aside class="contacto__datos">
-            <?php if (EMPRESA['telefono_e164'] !== ''): ?>
+            <?php if (hay_whatsapp()): ?>
             <a class="dato" href="<?= e(whatsapp()) ?>" target="_blank" rel="noopener">
                 <span class="dato__icono dato__icono--wsp"><?= icono('whatsapp') ?></span>
                 <span><strong>WhatsApp</strong><?= e(EMPRESA['telefono'] !== '' ? EMPRESA['telefono'] : 'Escríbenos') ?></span>
             </a>
             <?php endif; ?>
             <?php if (EMPRESA['telefono'] !== ''): ?>
-            <a class="dato" href="tel:+<?= e(EMPRESA['telefono_e164']) ?>">
+            <a class="dato" href="tel:<?= e(telefono_enlace()) ?>">
                 <span class="dato__icono"><?= icono('telefono') ?></span>
                 <span><strong>Llámanos</strong><?= e(EMPRESA['telefono']) ?></span>
             </a>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './client';
 import { useApiMutation } from './mutation';
-import type { Cliente, MensajeContacto, Rol, Servicio, TipoCliente, TipoMensaje, Trabajador, Usuario } from '@/types/api';
+import type { Cliente, DatoSitio, MensajeContacto, ProyectoWeb, Rol, Servicio, TipoCliente, TipoMensaje, Trabajador, Usuario } from '@/types/api';
 
 // ---------- Usuarios ----------
 
@@ -200,4 +200,78 @@ export const useMarcarLeido = () =>
   useApiMutation({
     fn: async ({ id, leido }: { id: number; leido: boolean }) => (await api.patch<MensajeContacto>(`/contacto/${id}/leido`, { leido })).data,
     invalidate: [['mensajes']],
+  });
+
+// ---------- Datos de la empresa (web) ----------
+
+export const useDatosSitio = () =>
+  useQuery({
+    queryKey: ['sitio'],
+    queryFn: async () => (await api.get<DatoSitio[]>('/sitio')).data,
+  });
+
+export const useGuardarDatosSitio = () =>
+  useApiMutation({
+    fn: async (datos: Pick<DatoSitio, 'clave' | 'valor' | 'publicado'>[]) => (await api.put<DatoSitio[]>('/sitio', { datos })).data,
+    invalidate: [['sitio']],
+    exito: 'Datos guardados. Se verán en la web al recargar la página.',
+  });
+
+// ---------- Proyectos realizados (web) ----------
+
+export interface ProyectoWebInput {
+  titulo: string;
+  cliente?: string | null;
+  ubicacion?: string | null;
+  anio?: number | null;
+  servicio?: string | null;
+  orden?: number;
+  activo?: boolean;
+}
+
+export const usePortafolio = () =>
+  useQuery({
+    queryKey: ['portafolio'],
+    queryFn: async () => (await api.get<ProyectoWeb[]>('/portafolio')).data,
+  });
+
+export const useCrearProyectoWeb = () =>
+  useApiMutation({
+    fn: async (data: ProyectoWebInput) => (await api.post<ProyectoWeb>('/portafolio', data)).data,
+    invalidate: [['portafolio']],
+    exito: 'Proyecto agregado a la web',
+  });
+
+export const useActualizarProyectoWeb = () =>
+  useApiMutation({
+    fn: async ({ id, ...data }: Partial<ProyectoWebInput> & { id: number }) => (await api.put<ProyectoWeb>(`/portafolio/${id}`, data)).data,
+    invalidate: [['portafolio']],
+    exito: 'Proyecto actualizado',
+  });
+
+export const useOcultarProyectoWeb = () =>
+  useApiMutation({
+    fn: async (id: number) => {
+      await api.delete(`/portafolio/${id}`);
+    },
+    invalidate: [['portafolio']],
+    exito: 'Proyecto ocultado de la web',
+  });
+
+export const useSubirFotoProyectoWeb = () =>
+  useApiMutation({
+    fn: async ({ id, archivo }: { id: number; archivo: File }) => {
+      const form = new FormData();
+      form.append('archivo', archivo);
+      return (await api.post<ProyectoWeb>(`/portafolio/${id}/foto`, form)).data;
+    },
+    invalidate: [['portafolio']],
+    exito: 'Foto actualizada',
+  });
+
+export const useQuitarFotoProyectoWeb = () =>
+  useApiMutation({
+    fn: async (id: number) => (await api.delete<ProyectoWeb>(`/portafolio/${id}/foto`)).data,
+    invalidate: [['portafolio']],
+    exito: 'Foto quitada',
   });

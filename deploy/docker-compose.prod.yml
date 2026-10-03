@@ -55,7 +55,8 @@ services:
       dockerfile: deploy/web.Dockerfile
     restart: unless-stopped
     environment:
-      API_URL: https://${DOMINIO_INTRANET}/api/v1   # la lee web/includes/api.php
+      API_URL: https://${DOMINIO_INTRANET}/api/v1   # la usa el navegador (web/includes/api.php)
+      API_URL_SERVIDOR: http://api:4000/api/v1       # la usa el PHP: red interna de Docker, sin salir a internet
       CONTACTO_EMAIL: ${CONTACTO_EMAIL:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}

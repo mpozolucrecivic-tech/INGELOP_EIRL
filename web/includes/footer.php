@@ -27,10 +27,12 @@
         <div>
             <h2 class="pie__titulo">Contacto</h2>
             <ul class="pie__lista pie__lista--iconos">
-                <?php if (EMPRESA['telefono'] !== ''): ?><li><?= icono('telefono') ?><a href="tel:+<?= e(EMPRESA['telefono_e164']) ?>"><?= e(EMPRESA['telefono']) ?></a></li><?php endif; ?>
+                <?php if (EMPRESA['telefono'] !== ''): ?><li><?= icono('telefono') ?><a href="tel:<?= e(telefono_enlace()) ?>"><?= e(EMPRESA['telefono']) ?></a></li><?php endif; ?>
                 <?php if (EMPRESA['email'] !== ''): ?><li><?= icono('correo') ?><a href="mailto:<?= e(EMPRESA['email']) ?>"><?= e(EMPRESA['email']) ?></a></li><?php endif; ?>
                 <?php if (EMPRESA['direccion'] !== ''): ?><li><?= icono('mapa') ?><span><?= e(direccion_completa()) ?></span></li><?php endif; ?>
                 <?php if (EMPRESA['horario'] !== ''): ?><li><?= icono('reloj') ?><span><?= e(EMPRESA['horario']) ?></span></li><?php endif; ?>
+                <?php if (EMPRESA['facebook'] !== ''): ?><li><?= icono('usuario') ?><a href="<?= e(EMPRESA['facebook']) ?>" target="_blank" rel="noopener">Facebook</a></li><?php endif; ?>
+                <?php if (EMPRESA['linkedin'] !== ''): ?><li><?= icono('usuario') ?><a href="<?= e(EMPRESA['linkedin']) ?>" target="_blank" rel="noopener">LinkedIn</a></li><?php endif; ?>
             </ul>
         </div>
         <?php endif; ?>
@@ -42,7 +44,7 @@
     </div>
 </footer>
 
-<?php if (EMPRESA['telefono_e164'] !== ''): ?>
+<?php if (hay_whatsapp()): ?>
 <a class="whatsapp-flotante" href="<?= e(whatsapp()) ?>" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
     <?= icono('whatsapp') ?>
 </a>

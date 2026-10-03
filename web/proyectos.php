@@ -4,7 +4,10 @@ $titulo = 'Proyectos';
 $descripcion = 'Proyectos de edificaciones, saneamiento, vías, obras electromecánicas e irrigaciones desarrollados por INGELOP en Lambayeque.';
 require __DIR__ . '/includes/header.php';
 
-// Tipos de proyecto por especialidad (se muestran mientras no haya proyectos cargados en config.php)
+// Proyectos realizados (se gestionan en la intranet)
+$proyectos = proyectos_realizados();
+
+// Tipos de proyecto por especialidad (se muestran mientras no haya proyectos realizados publicados)
 $tipos = [
     ['icono' => 'edificio', 'titulo' => 'Edificaciones', 'ejemplos' => ['Instituciones educativas', 'Establecimientos de salud', 'Locales municipales y comunales', 'Viviendas y edificios multifamiliares']],
     ['icono' => 'agua',     'titulo' => 'Saneamiento',   'ejemplos' => ['Agua potable', 'Alcantarillado sanitario', 'Plantas de tratamiento', 'Drenaje pluvial']],
@@ -24,9 +27,9 @@ $tipos = [
 
 <section class="seccion">
     <div class="contenedor">
-        <?php if (PROYECTOS): ?>
+        <?php if ($proyectos): ?>
             <div class="tarjetas tarjetas--3">
-                <?php foreach (PROYECTOS as $p): ?>
+                <?php foreach ($proyectos as $p): ?>
                     <article class="proyecto">
                         <?php if (!empty($p['imagen'])): ?>
                             <img class="proyecto__imagen" src="<?= e($p['imagen']) ?>" alt="<?= e($p['titulo']) ?>" loading="lazy">
@@ -34,10 +37,11 @@ $tipos = [
                             <div class="proyecto__imagen proyecto__imagen--vacia" aria-hidden="true"><?= icono('edificio') ?></div>
                         <?php endif; ?>
                         <div class="proyecto__cuerpo">
-                            <p class="proyecto__meta"><?= e($p['servicio'] ?? '') ?> · <?= e($p['anio'] ?? '') ?></p>
+                            <?php $meta = implode(' · ', array_filter([$p['servicio'], $p['anio']], fn ($v) => $v !== '')); ?>
+                            <?php if ($meta !== ''): ?><p class="proyecto__meta"><?= e($meta) ?></p><?php endif; ?>
                             <h2><?= e($p['titulo']) ?></h2>
-                            <p><?= e($p['cliente'] ?? '') ?></p>
-                            <p class="proyecto__lugar"><?= icono('mapa') ?> <?= e($p['ubicacion'] ?? '') ?></p>
+                            <?php if ($p['cliente'] !== ''): ?><p><?= e($p['cliente']) ?></p><?php endif; ?>
+                            <?php if ($p['ubicacion'] !== ''): ?><p class="proyecto__lugar"><?= icono('mapa') ?> <?= e($p['ubicacion']) ?></p><?php endif; ?>
                         </div>
                     </article>
                 <?php endforeach; ?>

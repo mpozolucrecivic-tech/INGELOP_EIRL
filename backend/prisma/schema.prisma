@@ -403,3 +403,29 @@ model MensajeContacto {
 
   @@index([leido, fecha])
 }
+
+// Datos de contacto de la web, editables desde la intranet.
+// Las claves son fijas (ver src/modules/sitio/sitio.schema.ts); solo se publican las que tienen publicado = true.
+model DatoSitio {
+  clave         String   @id
+  valor         String   @default("")
+  publicado     Boolean  @default(false)
+  actualizadoEn DateTime @updatedAt
+}
+
+// Proyectos realizados que muestra la web (portafolio público, distinto de los proyectos de la intranet)
+model ProyectoWeb {
+  id            Int      @id @default(autoincrement())
+  titulo        String
+  cliente       String?
+  ubicacion     String?
+  anio          Int?
+  servicio      String? // texto libre, ej. "Expediente técnico"
+  foto          String? // key del archivo en UPLOAD_DIR (portafolio/...)
+  orden         Int      @default(0)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@index([activo, orden])
+}

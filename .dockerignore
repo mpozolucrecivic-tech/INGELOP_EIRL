@@ -6,3 +6,4 @@ backend/.env
 deploy/.env
 web/storage/*.csv
 **/*.log
+web/storage/cache

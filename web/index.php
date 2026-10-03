@@ -135,7 +135,7 @@ require __DIR__ . '/includes/header.php';
         </div>
         <div class="cta__acciones">
             <a class="boton boton--primario" href="contacto.php">Escríbenos</a>
-            <a class="boton boton--whatsapp" href="<?= e(whatsapp()) ?>" target="_blank" rel="noopener"><?= icono('whatsapp') ?> WhatsApp</a>
+            <?php if (hay_whatsapp()): ?><a class="boton boton--whatsapp" href="<?= e(whatsapp()) ?>" target="_blank" rel="noopener"><?= icono('whatsapp') ?> WhatsApp</a><?php endif; ?>
         </div>
     </div>
 </section>

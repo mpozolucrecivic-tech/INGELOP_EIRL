@@ -426,6 +426,42 @@ async function main() {
   check('PATCH /contacto/:id/leido', leido.status === 200 && leido.body.leido === true, leido.body);
   expectStatus('USUARIO PATCH /contacto/:id/leido', await call('PATCH', `/contacto/${msgs.body[0]?.id}/leido`, { token: U, json: { leido: false } }), 403);
 
+  seccion('Web pública: datos de la empresa y proyectos realizados');
+  const web0 = await call('GET', '/web');
+  check('GET /web público con datos y proyectos', web0.status === 200 && typeof web0.body.datos === 'object' && Array.isArray(web0.body.proyectos), web0.body);
+  expectStatus('GET /sitio sin token', await call('GET', '/sitio'), 401);
+  expectStatus('USUARIO GET /sitio', await call('GET', '/sitio', { token: U }), 403);
+  const sitioAntes = await call('GET', '/sitio', { token: A });
+  check('GET /sitio devuelve las 8 claves', sitioAntes.status === 200 && sitioAntes.body.length === 8, sitioAntes.body);
+  const original = (clave: string) => sitioAntes.body.find((d: any) => d.clave === clave);
+  expectStatus('PUT /sitio clave desconocida', await call('PUT', '/sitio', { token: A, json: { datos: [{ clave: 'clave', valor: 'x', publicado: false }] } }), 422);
+  expectStatus('PUT /sitio WhatsApp con formato inválido', await call('PUT', '/sitio', { token: A, json: { datos: [{ clave: 'whatsapp', valor: '979660255', publicado: false }] } }), 422);
+  expectStatus('PUT /sitio publicar un dato vacío', await call('PUT', '/sitio', { token: A, json: { datos: [{ clave: 'horario', valor: '', publicado: true }] } }), 422);
+  expectStatus('USUARIO PUT /sitio', await call('PUT', '/sitio', { token: U, json: { datos: [{ clave: 'horario', valor: 'x', publicado: false }] } }), 403);
+  const horarioE2E = `Horario E2E ${sufijo}`;
+  expectStatus('PUT /sitio guardar oculto', await call('PUT', '/sitio', { token: A, json: { datos: [{ clave: 'horario', valor: horarioE2E, publicado: false }] } }), 200);
+  check('dato oculto NO sale en /web', (await call('GET', '/web')).body.datos.horario !== horarioE2E);
+  expectStatus('PUT /sitio publicar', await call('PUT', '/sitio', { token: A, json: { datos: [{ clave: 'horario', valor: horarioE2E, publicado: true }] } }), 200);
+  check('dato publicado sale en /web', (await call('GET', '/web')).body.datos.horario === horarioE2E);
+  // Se restaura el horario como estaba
+  await call('PUT', '/sitio', { token: A, json: { datos: [{ clave: 'horario', valor: original('horario').valor, publicado: original('horario').publicado }] } });
+
+  expectStatus('GET /portafolio sin token', await call('GET', '/portafolio'), 401);
+  expectStatus('USUARIO POST /portafolio', await call('POST', '/portafolio', { token: U, json: { titulo: 'Proyecto de usuario' } }), 403);
+  expectStatus('POST /portafolio inválido', await call('POST', '/portafolio', { token: A, json: { titulo: 'abc', anio: 1990 } }), 422);
+  const pw = await call('POST', '/portafolio', { token: A, json: { titulo: `Proyecto realizado E2E ${sufijo}`, cliente: 'Cliente E2E', anio: 2025, servicio: 'Expediente técnico' } });
+  expectStatus('POST /portafolio', pw, 201);
+  const PW = pw.body.id as number;
+  const fotoPw = new FormData();
+  fotoPw.append('archivo', new Blob([png], { type: 'image/png' }), 'pw.png');
+  const pwFoto = await call('POST', `/portafolio/${PW}/foto`, { token: A, form: fotoPw });
+  expectStatus('POST /portafolio/:id/foto', pwFoto, 200);
+  check('foto del proyecto realizado pública', (await fetch(`${API}${pwFoto.body.fotoUrl}`)).status === 200);
+  check('proyecto realizado sale en /web sin ruta interna', (await call('GET', '/web')).body.proyectos.some((p: any) => p.id === PW && !('foto' in p)));
+  expectStatus('DELETE /portafolio/:id/foto', await call('DELETE', `/portafolio/${PW}/foto`, { token: A }), 200);
+  expectStatus('DELETE /portafolio/:id (ocultar)', await call('DELETE', `/portafolio/${PW}`, { token: A }), 204);
+  check('proyecto oculto no sale en /web', !(await call('GET', '/web')).body.proyectos.some((p: any) => p.id === PW));
+
   seccion('Varios');
   expectStatus('ruta inexistente', await call('GET', '/no-existe', { token: A }), 404);
   const malJson = await fetch(`${API}/proyectos`, { method: 'POST', headers: { Authorization: `Bearer ${A}`, 'Content-Type': 'application/json' }, body: '{malo' });

@@ -17,11 +17,10 @@ Sitio público de **INGELOP Consultores y Ejecutores E.I.R.L.** (Chiclayo), hech
 
 Todo lo que cambia con frecuencia está en **`includes/config.php`**:
 
-- **Datos de contacto visibles** (`telefono`, `email`, `direccion`, `distrito`, `horario`): por ahora están vacíos por seguridad. Lo que quede vacío no se muestra en ninguna página. `telefono_e164` es el número de los botones de WhatsApp y `email_formulario` es el correo que recibe los mensajes del respaldo PHP (no se publica).
+- **Datos de contacto y proyectos realizados:** ya no se editan aquí, sino en la intranet (**Página web → Datos de la empresa / Proyectos realizados**). Solo se muestra lo que esté marcado como *Publicar en la web*; si el WhatsApp está oculto, desaparecen todos sus botones. `email_formulario` es el correo que recibe los mensajes del respaldo PHP (no se publica).
 - La web **no enlaza a la intranet** (se quitó "Acceso del personal"): el personal entra directamente con la dirección de la intranet.
 - **`includes/api.php`:** dirección de la API (`API_URL`). Es el único lugar donde se cambia. Ver "Conexión con la API".
 - **`SERVICIOS`** y **`ESPECIALIDADES_OSCE`:** textos de servicios y especialidades.
-- **`PROYECTOS`:** agrega aquí los proyectos reales. Las fotos van en `assets/img/proyectos/`. Mientras la lista esté vacía, la página muestra los tipos de proyecto que desarrolla la empresa.
 
 ## Conexión con la API
 
@@ -30,6 +29,8 @@ Todo lo que cambia con frecuencia está en **`includes/config.php`**:
 - **Formulario:** `assets/js/contacto.js` lo envía a la API y los mensajes se leen en la intranet (**Mensajes de la web**).
 - Si `API_URL` se deja vacío en `includes/api.php`, la web funciona como antes, solo con PHP.
 - El dominio de la web debe estar en `CORS_ORIGIN` del backend.
+
+- **Datos y proyectos realizados:** el PHP los pide a la API antes de enviar la página (máximo 3 s) y guarda una copia en `storage/cache/web.json`. Si la API no responde, usa la copia y espera 60 s antes de reintentar. La carpeta `storage/` está bloqueada al navegador: comprueba que `storage/cache/web.json` responda 403 en el hosting.
 
 ## Formulario de contacto (respaldo por PHP)
 

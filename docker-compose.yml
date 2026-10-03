@@ -24,6 +24,11 @@ services:
     restart: unless-stopped
     ports:
       - "8080:80"
+    # El PHP lee la API del lado del servidor: dentro del contenedor, la API de tu PC es host.docker.internal
+    environment:
+      API_URL_SERVIDOR: http://host.docker.internal:4000/api/v1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./web:/var/www/html
     command: >

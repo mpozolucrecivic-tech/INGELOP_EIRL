@@ -113,6 +113,7 @@ El seed conserva los usuarios y **recrea** los datos de demo (clientes, proyecto
 | `backend/` | `npm run db:reset` | Borra la BD, reaplica migraciones y ejecuta el seed |
 | `backend/` | `npm run test:e2e` | Prueba end-to-end (requiere la API corriendo) |
 | `backend/` | `npx tsx src/scripts/cargarServicios.ts` | Crea los 6 servicios de la web si faltan, sin tocar nada más (en producción: `node dist/scripts/cargarServicios.js`) |
+| `backend/` | `npx tsx src/scripts/cargarSitio.ts` | Crea los datos de contacto de la web que falten, **vacíos y ocultos** (en producción: `node dist/scripts/cargarSitio.js`) |
 
 ### Variables de entorno (`backend/.env`)
 
@@ -158,11 +159,13 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
 
 | Qué | Dónde se configura |
 |---|---|
-| URL de la API para la **web** | `web/includes/api.php` (constante `API_URL`; o la variable de entorno `API_URL` del servidor) |
+| URL de la API para la **web** | `web/includes/api.php` (constante `API_URL`; o la variable de entorno `API_URL` del servidor). `API_URL_SERVIDOR` solo hace falta en Docker |
 | URL de la API para la **intranet** | `VITE_API_URL` en `frontend/.env` (se fija al compilar con `npm run build`) |
 | Dominios que pueden llamar a la API | `CORS_ORIGIN` en `backend/.env` |
 
 **Servicios.** La web dibuja primero los 6 servicios fijos de `web/includes/config.php` y luego `assets/js/servicios.js` los reemplaza por los de la API (inicio, servicios, pie de página y el `<select>` de contacto), con el mismo HTML. Si la API no responde en 4 s, se quedan los fijos. Si un servicio tiene foto, se muestra en lugar del ícono (clase `.servicio-foto` en `assets/css/conexion-api.css`).
+
+**Datos de la empresa y proyectos realizados.** Se editan en la intranet (**Página web → Datos de la empresa / Proyectos realizados**). Cada dato de contacto tiene **Publicar en la web**: lo oculto queda guardado, pero la API no lo entrega. El PHP pide `GET /web` **antes de enviar la página** (máximo 3 s) y guarda la última respuesta buena en `web/storage/cache/web.json` (bloqueada al navegador y fuera de Git). Si la API no responde, usa esa copia y no vuelve a intentarlo durante 60 s, para que la página cargue rápido aunque Render esté "dormido".
 
 **Contacto.** `assets/js/contacto.js` envía el formulario a `POST /contacto` y muestra el aviso de éxito o los errores por campo. Si la API no responde (sin conexión, más de 8 s o error 5xx), el formulario se envía por PHP como antes: correo con `mail()` y copia en `web/storage/mensajes.csv` (carpeta bloqueada al público). Sin JavaScript también funciona por PHP.
 
@@ -181,8 +184,8 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
    - Start: `npx prisma migrate deploy && npm start`
    - Variables: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, `TRUST_PROXY=1`,
      `CORS_ORIGIN=https://ingelop.wuaze.com,https://<dominio-de-la-intranet>`
-3. Una sola vez, desde la consola (Shell) de Render: `node dist/scripts/crearAdmin.js <correo> "<nombre>"` (con `ADMIN_PASSWORD`) y `node dist/scripts/cargarServicios.js`.
-4. **Web:** en `web/includes/api.php`, cambia `http://localhost:4000/api/v1` por `https://<servicio>.onrender.com/api/v1`.
+3. Una sola vez, desde la consola (Shell) de Render: `node dist/scripts/crearAdmin.js <correo> "<nombre>"` (con `ADMIN_PASSWORD`), `node dist/scripts/cargarServicios.js` y `node dist/scripts/cargarSitio.js`.
+4. **Web:** en `web/includes/api.php`, cambia `http://localhost:4000/api/v1` por `https://<servicio>.onrender.com/api/v1`. Sube también `storage/.htaccess` y comprueba que `https://<tu-web>/storage/cache/web.json` responda **403** (prohibido).
 5. **Intranet:** compila con `VITE_API_URL=https://<servicio>.onrender.com/api/v1`.
 
 > ⚠️ **Archivos en Render:** el disco del plan gratuito se borra en cada despliegue o reinicio, y con él las fotos de servicios y los documentos subidos. Para producción usa un *Persistent Disk* de Render montado en `UPLOAD_DIR`, o lleva los archivos a S3/Cloudinary implementando `StorageProvider` (`src/config/storage.ts`).
@@ -190,6 +193,13 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
 > ⚠️ **HTTPS:** si la web se abre por `https://`, la API también debe usar `https://`; si no, el navegador bloquea las peticiones. Render ya da HTTPS.
 >
 > En el plan gratuito, Render apaga la API tras 15 minutos sin uso y tarda unos 30 s en volver a responder. Mientras tanto la web muestra los servicios fijos, y el formulario se envía por PHP si pasan 8 s sin respuesta.
+
+### Mejoras futuras de la web
+
+- **Textos principales editables** (frase de portada, "Quiénes somos", forma de trabajo): hoy están escritos en cada `.php`.
+- **Especialidades OSCE editables** (`ESPECIALIDADES_OSCE` en `web/includes/config.php`).
+- Leer también los **servicios** desde el servidor PHP (hoy los pide el navegador), con la misma copia de respaldo.
+- Registrar en la **Auditoría** (Fase 4) quién cambia los datos de la web.
 
 ### Avisos por correo desde la API (pendiente)
 
@@ -232,7 +242,9 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | **Clientes** | Entidades públicas, empresas y personas (RUC/DNI, contacto) | — |
 | **Personal y tarifas** | Profesionales con su costo por hora (no necesitan cuenta) | — |
 | **Accesos a la intranet** | Cuentas para iniciar sesión | — |
+| **Datos de la empresa** | Teléfono, WhatsApp, correo, dirección, horario y redes, cada uno con *Publicar en la web* | — |
 | **Servicios** | Servicios de la web: orden, textos, foto, ocultar | — |
+| **Proyectos realizados** | Portafolio de la web: orden, datos, foto, ocultar | — |
 | **Mensajes** | Mensajes del formulario de la web (contador de no leídos en el menú) | — |
 | **Ayuda** | Guías paso a paso | Solo las guías que le aplican |
 | Proyecto → **Resumen** | Planos aprobados, entregables aprobados, plazo, horas, presupuestos, dinero del proyecto | Igual, sin dinero |
@@ -319,6 +331,13 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | **Web pública: contacto** ||||
 | POST | `/contacto` | público | Guarda el mensaje (`nombre`, `correo`, `telefono?`, `tipo`: `CONTACTO` o `CONSULTA_TECNICA`, `entidad?`, `servicio?` = slug, `mensaje`). Límite: `RATE_LIMIT_CONTACTO` por IP |
 | GET | `/contacto` | A | Listar (`?tipo=&leido=&q=`) |
+| **Web pública: datos y portafolio** ||||
+| GET | `/web` | público | `{ datos, proyectos }`: solo los datos **publicados** y los proyectos realizados activos. Lo lee el PHP de la web |
+| GET / PUT | `/sitio` | A | Los 8 datos de contacto con su estado / guardar `{ datos: [{ clave, valor, publicado }] }` (claves fijas, validación por tipo; no se publica un dato vacío) |
+| GET / POST | `/portafolio` | A | Proyectos realizados (todos) / crear (`titulo`, `cliente?`, `ubicacion?`, `anio?`, `servicio?`) |
+| PUT / DELETE | `/portafolio/:id` | A | Editar / ocultar (baja lógica) |
+| POST / DELETE | `/portafolio/:id/foto` | A | Subir foto (JPG, PNG o WEBP) / quitarla |
+| GET | `/portafolio/:id/foto` | público | Foto (solo si el proyecto está visible) |
 | PATCH | `/contacto/:id/leido` | A | `{ "leido": true }` |
 
 > **Materiales (oculto):** los endpoints `/proyectos/:id/materiales` y `/materiales/:id/movimientos` siguen en la API, pero no aparecen en la interfaz ni en los dashboards, porque INGELOP no maneja almacén. Si más adelante ejecutan obras, basta con volver a mostrar la pestaña (`frontend/src/pages/proyecto/MaterialesTab.tsx`).
@@ -352,6 +371,6 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 
 ## Próximos pasos
 
-- Cargar en `web/includes/config.php` los proyectos reales, con fotos.
+- Cargar los proyectos reales, con fotos, desde la intranet (Página web → Proyectos realizados).
 - Despliegue con HTTPS.
 - Opcional: análisis de costos unitarios (ACU) por partida, cronograma de obra, notificaciones por correo al observar o aprobar, refresh tokens.

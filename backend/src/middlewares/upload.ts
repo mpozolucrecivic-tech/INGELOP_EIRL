@@ -108,3 +108,11 @@ export const uploadFotoServicio = crearUpload({
   validar: (file, ext) =>
     TIPOS_FOTO[file.mimetype]?.includes(ext) ? null : 'Formato de foto no permitido. Use JPG, PNG o WEBP',
 });
+
+/** Fotos del portafolio de la web: <UPLOAD_DIR>/portafolio/, mismas reglas que las de servicios */
+export const uploadFotoPortafolio = crearUpload({
+  carpeta: () => 'portafolio',
+  maxMB: env.MAX_FOTO_MB,
+  validar: (file, ext) =>
+    TIPOS_FOTO[file.mimetype]?.includes(ext) ? null : 'Formato de foto no permitido. Use JPG, PNG o WEBP',
+});

@@ -21,6 +21,8 @@ import presupuestosRoutes from './modules/presupuestos/presupuestos.routes';
 import entregablesRoutes from './modules/entregables/entregables.routes';
 import serviciosRoutes, { serviciosPublicRoutes } from './modules/servicios/servicios.routes';
 import contactoRoutes, { contactoPublicRoutes } from './modules/contacto/contacto.routes';
+import sitioRoutes, { sitioPublicRoutes } from './modules/sitio/sitio.routes';
+import portafolioRoutes, { portafolioPublicRoutes } from './modules/portafolio/portafolio.routes';
 
 export const app = express();
 
@@ -38,10 +40,13 @@ app.get('/health', (_req, res) => {
 const api = Router();
 
 // 1) Rutas públicas: POST /auth/login (GET /auth/me aplica verifyToken en su propio router)
-//    y las que usa la web informativa: GET /servicios, GET /servicios/:id/foto y POST /contacto
+//    y las que usa la web informativa: GET /servicios, GET /servicios/:id/foto, POST /contacto,
+//    GET /web (datos publicados + proyectos realizados) y GET /portafolio/:id/foto
 api.use(authRoutes);
 api.use(serviciosPublicRoutes);
 api.use(contactoPublicRoutes);
+api.use(sitioPublicRoutes);
+api.use(portafolioPublicRoutes);
 
 // 2) A partir de aquí TODAS las rutas exigen JWT válido
 api.use(verifyToken);
@@ -60,6 +65,8 @@ api.use(evidenciasRoutes);
 api.use(dashboardRoutes);
 api.use(serviciosRoutes);
 api.use(contactoRoutes);
+api.use(sitioRoutes);
+api.use(portafolioRoutes);
 
 app.use('/api/v1', api);
 

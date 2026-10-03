@@ -416,3 +416,26 @@ export interface MensajeContacto {
   leido: boolean;
   fecha: string;
 }
+
+export type ClaveSitio = 'telefono' | 'whatsapp' | 'email' | 'direccion' | 'distrito' | 'horario' | 'facebook' | 'linkedin';
+
+export interface DatoSitio {
+  clave: ClaveSitio;
+  valor: string;
+  publicado: boolean;
+  actualizadoEn: string | null;
+}
+
+/** Proyecto realizado que muestra la web (portafolio) */
+export interface ProyectoWeb {
+  id: number;
+  titulo: string;
+  cliente: string | null;
+  ubicacion: string | null;
+  anio: number | null;
+  servicio: string | null;
+  /** Relativa a la URL base de la API; null si no tiene foto */
+  fotoUrl: string | null;
+  orden: number;
+  activo: boolean;
+}

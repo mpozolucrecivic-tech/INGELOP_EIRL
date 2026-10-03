@@ -2,39 +2,50 @@
 /**
  * Datos de la empresa usados en todo el sitio.
  * Fuente: Ficha RUC (SUNAT) y Registro Nacional de Proveedores (OSCE), consultados en setiembre de 2026.
- * Para actualizar teléfonos, correo, dirección o proyectos basta con editar este archivo.
+ *
+ * Los datos de contacto y los proyectos realizados se editan desde la INTRANET
+ * (Página web → Datos de la empresa / Proyectos realizados) y llegan por la API (includes/api.php).
+ * Los valores de abajo solo se usan si la API nunca respondió y no hay copia de respaldo.
  */
 
 declare(strict_types=1);
 
 date_default_timezone_set('America/Lima');
 
-// define() (y no const) porque algunos valores se leen de variables de entorno del servidor
-define('EMPRESA', [
+require_once __DIR__ . '/api.php';
+
+/** Datos de contacto que llegan publicados desde la intranet (vacío si no hay API ni copia) */
+function datos_publicados(): array
+{
+    $datos = contenido_web()['datos'] ?? [];
+    $permitidos = ['telefono', 'whatsapp', 'email', 'direccion', 'distrito', 'horario', 'facebook', 'linkedin'];
+    return array_map('strval', array_intersect_key(is_array($datos) ? $datos : [], array_flip($permitidos)));
+}
+
+// define() (y no const) porque los datos de contacto vienen de la API
+define('EMPRESA', array_merge([
     'nombre_corto'   => 'INGELOP',
     'razon_social'   => 'INGELOP Consultores y Ejecutores E.I.R.L.',
     'ruc'            => '20610231676',
     'eslogan'        => 'Ingeniería y arquitectura para obras que transforman Lambayeque',
     'descripcion'    => 'Consultora chiclayana de arquitectura e ingeniería: estudios de preinversión, expedientes técnicos, diseño y supervisión de obras públicas y privadas.',
     'inicio'         => 2023, // inicio de actividades según SUNAT (inscrita el 11/11/2022)
-    // Datos de contacto VISIBLES en la web. Por seguridad están vacíos hasta que la empresa
-    // apruebe qué publicar: lo que quede en '' no se muestra (pie, Contacto, Nosotros y datos para Google).
+    'ciudad'         => 'Chiclayo',
+    'region'         => 'Lambayeque',
+    // Correo que RECIBE los mensajes del formulario cuando se envían por PHP (no se muestra en la web).
+    // En el servidor se puede definir con la variable de entorno CONTACTO_EMAIL.
+    'email_formulario' => getenv('CONTACTO_EMAIL') ?: 'luisalbertolopez19@gmail.com',
+    // Datos de contacto VISIBLES: vienen de la intranet. Lo que esté vacío u oculto no se muestra
+    // en ninguna página (pie, Contacto, Nosotros, botones de WhatsApp y datos para Google).
     'telefono'       => '',
+    'whatsapp'       => '', // formato internacional sin "+": 51 + 9 dígitos
     'email'          => '',
     'direccion'      => '',
     'distrito'       => '',
     'horario'        => '',
-    'ciudad'         => 'Chiclayo',
-    'region'         => 'Lambayeque',
-    // Número para los botones de WhatsApp (formato internacional, sin +). '' oculta los botones.
-    'telefono_e164'  => '51979660255',
-    // Correo que RECIBE los mensajes del formulario cuando se envían por PHP (no se muestra en la web).
-    // En el servidor se puede definir con la variable de entorno CONTACTO_EMAIL.
-    'email_formulario' => getenv('CONTACTO_EMAIL') ?: 'luisalbertolopez19@gmail.com',
-    // Redes sociales: dejar vacío lo que no exista
     'facebook'       => '',
     'linkedin'       => '',
-]);
+], datos_publicados()));
 
 /** Especialidades inscritas en el RNP del OSCE como consultor de obras (categoría entre paréntesis) */
 const ESPECIALIDADES_OSCE = [
@@ -72,12 +83,29 @@ const SERVICIOS = [
 ];
 
 /**
- * Proyectos realizados. Agregar aquí los proyectos reales de la empresa, por ejemplo:
- *   ['titulo' => '...', 'cliente' => '...', 'ubicacion' => 'Chiclayo', 'anio' => 2025,
- *    'servicio' => 'Expediente técnico', 'rubro' => 'Edificaciones', 'imagen' => 'assets/img/proyectos/archivo.jpg'],
- * Mientras esté vacío, la página "Proyectos" muestra los tipos de proyecto que desarrolla la empresa.
+ * Proyectos realizados: se gestionan en la intranet (Página web → Proyectos realizados).
+ * Si no hay ninguno, la página "Proyectos" muestra los tipos de proyecto que desarrolla la empresa.
+ * Devuelve: [['titulo', 'cliente', 'ubicacion', 'anio', 'servicio', 'imagen'], ...]
  */
-const PROYECTOS = [];
+function proyectos_realizados(): array
+{
+    $lista = contenido_web()['proyectos'] ?? [];
+    if (!is_array($lista)) return [];
+    $proyectos = [];
+    foreach ($lista as $p) {
+        if (!is_array($p) || empty($p['titulo'])) continue;
+        $proyectos[] = [
+            'titulo'    => (string) $p['titulo'],
+            'cliente'   => (string) ($p['cliente'] ?? ''),
+            'ubicacion' => (string) ($p['ubicacion'] ?? ''),
+            'anio'      => (string) ($p['anio'] ?? ''),
+            'servicio'  => (string) ($p['servicio'] ?? ''),
+            // La foto la sirve la API (ruta pública); fotoUrl es relativa a API_URL
+            'imagen'    => !empty($p['fotoUrl']) ? API_URL . $p['fotoUrl'] : '',
+        ];
+    }
+    return $proyectos;
+}
 
 /** Escapa texto para HTML */
 function e(string|int|null $texto): string
@@ -85,10 +113,22 @@ function e(string|int|null $texto): string
     return htmlspecialchars((string) $texto, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-/** true si hay al menos un dato de contacto publicado (teléfono, correo, dirección u horario) */
+/** true si hay al menos un dato de contacto publicado */
 function hay_contacto_visible(): bool
 {
-    return EMPRESA['telefono'] !== '' || EMPRESA['email'] !== '' || EMPRESA['direccion'] !== '' || EMPRESA['horario'] !== '';
+    foreach (['telefono', 'email', 'direccion', 'horario', 'facebook', 'linkedin'] as $clave) {
+        if (EMPRESA[$clave] !== '') return true;
+    }
+    return false;
+}
+
+/** Enlace tel: del teléfono publicado (celulares de 9 dígitos con +51; fijos tal cual) */
+function telefono_enlace(): string
+{
+    $digitos = preg_replace('/\D/', '', EMPRESA['telefono']);
+    if (strlen($digitos) === 9 && $digitos[0] === '9') return '+51' . $digitos;
+    if (strlen($digitos) === 11 && str_starts_with($digitos, '51')) return '+' . $digitos;
+    return $digitos;
 }
 
 /** Dirección con distrito y ciudad, omitiendo las partes vacías */
@@ -97,10 +137,16 @@ function direccion_completa(): string
     return implode(', ', array_filter([EMPRESA['direccion'], EMPRESA['distrito'], EMPRESA['ciudad']], fn ($v) => $v !== ''));
 }
 
+/** true si hay un número de WhatsApp publicado (si no, se ocultan todos los botones de WhatsApp) */
+function hay_whatsapp(): bool
+{
+    return EMPRESA['whatsapp'] !== '';
+}
+
 /** Enlace de WhatsApp con mensaje prellenado */
 function whatsapp(string $mensaje = 'Hola INGELOP, quisiera información sobre sus servicios.'): string
 {
-    return 'https://wa.me/' . EMPRESA['telefono_e164'] . '?text=' . rawurlencode($mensaje);
+    return 'https://wa.me/' . EMPRESA['whatsapp'] . '?text=' . rawurlencode($mensaje);
 }
 
 function anios_experiencia(): int

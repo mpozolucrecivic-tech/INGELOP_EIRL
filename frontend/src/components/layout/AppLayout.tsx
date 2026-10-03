@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
-import { Briefcase, Building2, CircleHelp, HardHat, Inbox, KeyRound, Layers, LayoutDashboard, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
+import { Briefcase, Building2, CircleHelp, Contact, HardHat, Images, Inbox, KeyRound, Layers, LayoutDashboard, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
 import { useMensajesSinLeer } from '@/api/admin';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/Display';
@@ -37,7 +37,9 @@ const navGrupos: { titulo?: string; items: NavItem[] }[] = [
   {
     titulo: 'Página web',
     items: [
+      { to: '/datos-empresa', label: 'Datos de la empresa', icon: Contact, admin: true },
       { to: '/servicios', label: 'Servicios', icon: Layers, admin: true },
+      { to: '/proyectos-realizados', label: 'Proyectos realizados', icon: Images, admin: true },
       { to: '/mensajes', label: 'Mensajes', icon: Inbox, admin: true, contador: 'mensajes' },
     ],
   },

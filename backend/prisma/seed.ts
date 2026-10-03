@@ -22,6 +22,7 @@ import {
   TipoServicio,
 } from '@prisma/client';
 import { cargarServiciosIniciales } from '../src/data/serviciosIniciales';
+import { cargarClaves as cargarDatosSitio } from '../src/modules/sitio/sitio.service';
 
 const prisma = new PrismaClient();
 
@@ -70,6 +71,7 @@ async function main() {
 
   // ---------- Servicios de la web (no se borran: se crean solo los que falten) ----------
   console.log(`   Servicios de la web creados: ${await cargarServiciosIniciales(prisma)}`);
+  console.log(`   Datos de contacto de la web creados (vacíos y ocultos): ${await cargarDatosSitio()}`);
 
   // ---------- Usuarios ----------
   const admin = await prisma.usuario.upsert({
