@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { storage } from '../../config/storage';
 import * as planosService from './planos.service';
 import type { ListarPlanosQuery } from './planos.schema';
 
@@ -33,7 +34,7 @@ export async function descargarVersion(req: Request, res: Response) {
   // ?ver=true muestra PDF/imágenes en el navegador; por defecto se descarga (DWG, RVT, ZIP…)
   const disposicion = req.query.ver === 'true' ? 'inline' : 'attachment';
   res.setHeader('Content-Disposition', `${disposicion}; filename*=UTF-8''${encodeURIComponent(nombreDescarga)}`);
-  res.sendFile(ruta);
+  await storage.enviar(res, ruta);
 }
 
 export async function eliminar(req: Request, res: Response) {

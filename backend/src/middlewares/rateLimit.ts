@@ -1,5 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import { env } from '../config/env';
+import { marcar } from '../docs/marcas';
 import { contextoDe, registrarEnSegundoPlano } from '../modules/auditoria/auditoria.service';
 
 const ventanaMs = env.RATE_LIMIT_VENTANA_MIN * 60 * 1000;
@@ -38,3 +39,6 @@ export const limiteLogin = crearLimitador(
   'auth',
   true,
 );
+
+marcar(limiteContacto, { limite: `${env.RATE_LIMIT_CONTACTO} mensajes por IP cada ${env.RATE_LIMIT_VENTANA_MIN} min` });
+marcar(limiteLogin, { limite: `${env.RATE_LIMIT_LOGIN} intentos fallidos por IP cada ${env.RATE_LIMIT_VENTANA_MIN} min; bloqueo por cuenta tras ${env.LOGIN_BLOQUEO_INTENTOS} fallos` });

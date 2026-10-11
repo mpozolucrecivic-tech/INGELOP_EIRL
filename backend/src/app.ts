@@ -1,10 +1,12 @@
 import express, { Router } from 'express';
+import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
 import { corsOptions } from './config/cors';
 import { verifyToken } from './middlewares/auth';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { auditarPeticion, idPeticion } from './middlewares/auditoria';
 import auditoriaRoutes from './modules/auditoria/auditoria.routes';
+import { generarOpenApi } from './docs/openapi';
 import etapasRoutes from './modules/etapas/etapas.routes';
 import documentosRoutes from './modules/documentos/documentos.routes';
 import { env } from './config/env';
@@ -82,6 +84,22 @@ api.use(portafolioRoutes);
 api.use(cmsRoutes);
 
 app.use('/api/v1', api);
+
+// Documentación Swagger: en desarrollo siempre; en producción solo con SWAGGER_HABILITADO=true
+// (muestra todas las rutas de la API, así que por defecto no se publica)
+if (env.NODE_ENV !== 'production' || env.SWAGGER_HABILITADO) {
+  app.get('/api/docs.json', (req, res) => {
+    res.json(generarOpenApi(req.app));
+  });
+  app.use(
+    '/api/docs',
+    swaggerUi.serve,
+    swaggerUi.setup(undefined, {
+      customSiteTitle: 'API INGELOP',
+      swaggerOptions: { url: '/api/docs.json', persistAuthorization: true, docExpansion: 'none', tagsSorter: 'alpha' },
+    }),
+  );
+}
 
 app.use(notFoundHandler);
 app.use(errorHandler);

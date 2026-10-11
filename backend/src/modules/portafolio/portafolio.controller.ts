@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { storage } from '../../config/storage';
 import * as portafolioService from './portafolio.service';
 
 export async function listarTodos(_req: Request, res: Response) {
@@ -23,7 +24,7 @@ export async function verFoto(req: Request, res: Response) {
   const ruta = await portafolioService.obtenerFoto(Number(req.params.id));
   res.setHeader('Cache-Control', 'public, max-age=86400');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.sendFile(ruta);
+  await storage.enviar(res, ruta);
 }
 
 export async function cambiarFoto(req: Request, res: Response) {

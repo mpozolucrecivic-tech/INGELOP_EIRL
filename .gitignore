@@ -17,3 +17,6 @@ deploy/.env
 
 # Copias de seguridad de la base de datos (datos personales): nunca se suben
 backups/
+
+# Configuración del script de respaldo (contiene credenciales)
+deploy/respaldo.env

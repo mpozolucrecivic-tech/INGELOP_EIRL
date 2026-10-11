@@ -5,6 +5,7 @@ import { env } from '../config/env';
 import type { UsuarioAutenticado } from '../types/express';
 import { prisma } from '../config/prisma';
 import { contextoDe, registrarEnSegundoPlano } from '../modules/auditoria/auditoria.service';
+import { marcar } from '../docs/marcas';
 
 /** Exige un JWT válido en el header Authorization: Bearer <token> */
 export async function verifyToken(req: Request, res: Response, next: NextFunction) {
@@ -56,10 +57,15 @@ export async function requireEditorWeb(req: Request, res: Response, next: NextFu
 
 /** Autoriza solo a los roles indicados. Debe ir después de verifyToken. */
 export function requireRole(...rolesPermitidos: Rol[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
-      return res.status(403).json({ message: 'No tienes permiso para esta acción' });
-    }
-    next();
-  };
+  return marcar(
+    (req: Request, res: Response, next: NextFunction) => {
+      if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
+        return res.status(403).json({ message: 'No tienes permiso para esta acción' });
+      }
+      next();
+    },
+    { roles: rolesPermitidos },
+  );
 }
+
+marcar(requireEditorWeb, { editorWeb: true });

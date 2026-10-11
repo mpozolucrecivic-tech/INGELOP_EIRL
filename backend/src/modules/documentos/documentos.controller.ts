@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { storage } from '../../config/storage';
 import * as documentosService from './documentos.service';
 import type { DocumentosProyectoQuery, ListarDocumentosQuery } from './documentos.schema';
 
@@ -23,7 +24,7 @@ export async function descargar(req: Request, res: Response) {
   const { ruta, nombre } = await documentosService.obtenerArchivo(req.usuario, Number(req.params.id));
   const disposicion = req.query.ver === 'true' ? 'inline' : 'attachment';
   res.setHeader('Content-Disposition', `${disposicion}; filename*=UTF-8''${encodeURIComponent(nombre)}`);
-  res.sendFile(ruta);
+  await storage.enviar(res, ruta);
 }
 
 export async function editar(req: Request, res: Response) {

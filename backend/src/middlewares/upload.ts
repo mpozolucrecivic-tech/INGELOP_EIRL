@@ -4,8 +4,10 @@ import crypto from 'node:crypto';
 import type { Request, RequestHandler } from 'express';
 import multer, { MulterError } from 'multer';
 import { env } from '../config/env';
+import { storage, toStorageKey } from '../config/storage';
 import { AppError } from '../utils/AppError';
 import { EXTENSIONES_DOCUMENTO } from '../utils/firmaArchivo';
+import { marcar } from '../docs/marcas';
 
 interface UploadOptions {
   /** Subcarpeta dentro de UPLOAD_DIR para la petición (ej. "proyectos/3/planos") */
@@ -18,9 +20,10 @@ interface UploadOptions {
 
 /**
  * Crea un middleware que recibe un archivo opcional en el campo "archivo" (multipart/form-data).
- * Si la petición termina con error (validación, permisos, BD...), borra el archivo ya guardado
- * para no dejar archivos huérfanos en disco.
- * Para migrar a S3/Cloudinary: reemplazar el diskStorage (p. ej. multer-s3) y el StorageProvider.
+ * Multer lo guarda en disco; con STORAGE_DRIVER=s3 se sube además al bucket ANTES de que el servicio
+ * escriba en la BD (la copia local se conserva hasta el final para que el servicio pueda revisar su firma).
+ * Al terminar la petición: si hubo error (validación, permisos, BD...) se borra el archivo del disco y del
+ * bucket, así nunca quedan archivos huérfanos; en modo s3 la copia local se borra siempre.
  */
 function crearUpload({ carpeta, validar, maxMB = env.MAX_UPLOAD_MB }: UploadOptions): RequestHandler {
   const handler = multer({
@@ -42,17 +45,32 @@ function crearUpload({ carpeta, validar, maxMB = env.MAX_UPLOAD_MB }: UploadOpti
     },
   }).single('archivo');
 
-  return (req, res, next) => {
+  return marcar<RequestHandler>((req, res, next) => {
     res.on('finish', () => {
-      if (res.statusCode >= 400 && req.file?.path) fs.rm(req.file.path, { force: true }, () => {});
+      const archivo = req.file;
+      if (!archivo?.path) return;
+      if (res.statusCode >= 400 || storage.remoto) fs.rm(archivo.path, { force: true }, () => {});
+      if (res.statusCode >= 400 && storage.remoto && res.locals.subidoAlAlmacenamiento) {
+        storage.remove(toStorageKey(archivo.path)).catch((e) => console.error('[ALMACENAMIENTO] No se pudo borrar el archivo huérfano', e));
+      }
     });
     handler(req, res, (err?: unknown) => {
       if (err instanceof MulterError && err.code === 'LIMIT_FILE_SIZE') {
         return next(new AppError(413, `El archivo supera el máximo de ${maxMB} MB`));
       }
-      next(err);
+      if (err || !req.file || !storage.remoto) return next(err);
+      storage
+        .subir(req.file.path, toStorageKey(req.file.path), req.file.mimetype)
+        .then(() => {
+          res.locals.subidoAlAlmacenamiento = true;
+          next();
+        })
+        .catch((e) => {
+          console.error('[ALMACENAMIENTO] No se pudo subir el archivo', e);
+          next(new AppError(502, 'No se pudo guardar el archivo en el almacenamiento. Inténtalo de nuevo.'));
+        });
     });
-  };
+  }, { subida: { maxMB } });
 }
 
 // ---------- Evidencias / documentos ----------

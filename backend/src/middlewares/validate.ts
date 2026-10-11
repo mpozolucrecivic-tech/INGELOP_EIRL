@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import type { ZodTypeAny } from 'zod';
 import { formatZodError } from './errorHandler';
+import { marcar } from '../docs/marcas';
 
 interface ValidationSchemas {
   params?: ZodTypeAny;
@@ -13,9 +14,8 @@ interface ValidationSchemas {
  * Reemplaza cada parte por su versión parseada (tipos coercionados, valores por defecto, campos desconocidos eliminados).
  * Responde 422 con el detalle de los campos inválidos.
  */
-export const validate =
-  (schemas: ValidationSchemas): RequestHandler =>
-  (req, res, next) => {
+export const validate = (schemas: ValidationSchemas): RequestHandler =>
+  marcar<RequestHandler>((req, res, next) => {
     const errors: { campo: string; mensaje: string }[] = [];
 
     for (const key of ['params', 'query', 'body'] as const) {
@@ -37,4 +37,4 @@ export const validate =
       return res.status(422).json({ message: 'Error de validación', errors });
     }
     next();
-  };
+  }, { esquemas: schemas });

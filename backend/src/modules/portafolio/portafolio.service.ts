@@ -48,7 +48,7 @@ export async function ocultar(id: number) {
 export async function obtenerFoto(id: number) {
   const p = await buscar(id);
   if (!p.activo || !p.foto || !(await storage.exists(p.foto))) throw AppError.notFound('El proyecto no tiene foto');
-  return storage.resolve(p.foto);
+  return p.foto; // key del almacenamiento
 }
 
 /** Reemplaza la foto. Si falla la BD, el middleware borra el archivo nuevo; si no, se borra la anterior. */

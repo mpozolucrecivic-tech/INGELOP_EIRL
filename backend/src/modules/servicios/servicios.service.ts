@@ -58,7 +58,7 @@ export async function obtenerFoto(id: number, incluirInactivos = false) {
   if ((!servicio.activo && !incluirInactivos) || !servicio.foto || !(await storage.exists(servicio.foto))) {
     throw AppError.notFound('El servicio no tiene foto');
   }
-  return storage.resolve(servicio.foto);
+  return servicio.foto; // key del almacenamiento
 }
 
 /**

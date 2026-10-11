@@ -147,5 +147,5 @@ export async function archivoMedio(id: number, preview = false) {
       : d.logoId === id);
     if (!usado) throw AppError.notFound('Imagen no publicada');
   }
-  return storage.resolve(medio.archivo);
+  return medio.archivo; // key del almacenamiento
 }

@@ -14,6 +14,16 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().default('uploads'),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(50),
   MAX_FOTO_MB: z.coerce.number().positive().default(5),
+  // Dónde viven los archivos: disco local o un bucket compatible con S3 (Cloudflare R2)
+  STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+  S3_ENDPOINT: z.string().url().optional(), // R2: https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+  S3_REGION: z.string().default('auto'), // R2 usa "auto"
+  S3_BUCKET: z.string().min(1).optional(),
+  S3_ACCESS_KEY_ID: z.string().min(1).optional(),
+  S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  S3_FORCE_PATH_STYLE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'), // true para MinIO
+  // Documentación Swagger en /api/docs: en desarrollo siempre; en producción solo si se habilita
+  SWAGGER_HABILITADO: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   CMS_WEB_URL: z.string().url().default('http://localhost:8080'),
   // Detrás de un proxy (Render, Caddy) hay que confiar en él para conocer la IP real del visitante
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(0),
@@ -27,6 +37,11 @@ const envSchema = z.object({
   // Conservación de la auditoría: mínimo 2 años (Reglamento de la Ley 29733, DS 016-2024-JUS)
   AUDITORIA_RETENCION_DIAS: z.coerce.number().int().min(730, 'Debe ser de al menos 730 días (2 años)').default(730),
 }).superRefine((e, ctx) => {
+  if (e.STORAGE_DRIVER === 's3') {
+    for (const clave of ['S3_ENDPOINT', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'] as const) {
+      if (!e[clave]) ctx.addIssue({ code: 'custom', path: [clave], message: 'Obligatoria cuando STORAGE_DRIVER=s3' });
+    }
+  }
   // En producción, una dirección local dejaría canonical, sitemap y vistas previas apuntando a localhost
   if (e.NODE_ENV === 'production' && /\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(e.CMS_WEB_URL)) {
     ctx.addIssue({ code: 'custom', path: ['CMS_WEB_URL'], message: 'En producción debe ser la dirección pública de la web (ej. https://ingelop.wuaze.com)' });

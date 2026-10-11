@@ -61,7 +61,7 @@ export async function crear(
   return conDescarga(evidencia);
 }
 
-/** Devuelve la ruta local del archivo, verificando acceso al proyecto de la evidencia */
+/** Devuelve la key del archivo, verificando acceso al proyecto de la evidencia */
 export async function obtenerArchivo(usuario: UsuarioAutenticado, id: number) {
   const evidencia = await prisma.evidencia.findUnique({ where: { id } });
   if (!evidencia) throw AppError.notFound('Evidencia no encontrada');
@@ -70,7 +70,7 @@ export async function obtenerArchivo(usuario: UsuarioAutenticado, id: number) {
   if (!evidencia.archivoUrl || !(await storage.exists(evidencia.archivoUrl))) {
     throw AppError.notFound('La evidencia no tiene archivo asociado');
   }
-  const ruta = storage.resolve(evidencia.archivoUrl);
+  const ruta = evidencia.archivoUrl; // key del almacenamiento
   const extension = path.extname(ruta);
   const nombreDescarga = `${evidencia.titulo.replace(/[^\w\-áéíóúñÁÉÍÓÚÑ ]+/g, '').trim() || 'evidencia'}${extension}`;
   return { ruta, nombreDescarga };

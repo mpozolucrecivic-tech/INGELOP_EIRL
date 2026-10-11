@@ -118,6 +118,8 @@ El seed conserva los usuarios y **recrea** los datos de demo (clientes, proyecto
 | `backend/` | `npx tsx src/scripts/cargarSitio.ts` | Crea los datos de contacto de la web que falten, **vacíos y ocultos** (en producción: `node dist/scripts/cargarSitio.js`) |
 | `backend/` | `npx tsx src/scripts/verificarAuditoria.ts` | Comprueba que nadie alteró la auditoría (cadena de huellas) |
 | `backend/` | `npx tsx src/scripts/purgarAuditoria.ts` | Borra registros de auditoría más antiguos que `AUDITORIA_RETENCION_DIAS` |
+| raíz | `powershell -ExecutionPolicy Bypass -File deploy
+espaldo.ps1` | Copia de seguridad de la base de datos y los archivos (ver `docs/ALMACENAMIENTO_Y_RESPALDOS.md`) |
 
 ### Variables de entorno (`backend/.env`)
 
@@ -139,6 +141,8 @@ El seed conserva los usuarios y **recrea** los datos de demo (clientes, proyecto
 | `SEED_USUARIO_PASSWORD` | | Contraseña de los usuarios de demostración del seed |
 | `LOGIN_BLOQUEO_INTENTOS` / `LOGIN_BLOQUEO_MIN` | `5` / `15` | Bloqueo por cuenta: fallos seguidos y minutos de bloqueo |
 | `AUDITORIA_RETENCION_DIAS` | `730` | Conservación de la auditoría (mínimo 730 = 2 años, Ley 29733) |
+| `STORAGE_DRIVER` | `local` | `local` (disco, `UPLOAD_DIR`) o `s3` (Cloudflare R2). Con `s3` son obligatorias `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (`S3_REGION=auto`) |
+| `SWAGGER_HABILITADO` | `false` | Publica `/api/docs` en producción. En desarrollo la documentación siempre está disponible |
 
 ---
 
@@ -191,13 +195,16 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
    - Variables: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, `TRUST_PROXY=1`,
      `CORS_ORIGIN=https://ingelop.wuaze.com,https://<dominio-de-la-intranet>`,
      `CMS_WEB_URL=https://ingelop.wuaze.com` (obligatoria: canonical, sitemap y enlaces de vista previa)
+   - **Archivos en Cloudflare R2** (obligatorio en Render): `STORAGE_DRIVER=s3` y `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Paso a paso en [`docs/ALMACENAMIENTO_Y_RESPALDOS.md`](docs/ALMACENAMIENTO_Y_RESPALDOS.md)
 3. Variables de seguridad: `TRUST_PROXY=1` y, tras el primer despliegue, **verifica la IP real** como indica [`docs/AUDITORIA.md`](docs/AUDITORIA.md#ip-real-detrás-de-un-proxy-render-caddy).
 4. Una sola vez, desde la consola (Shell) de Render: `node dist/scripts/crearAdmin.js <correo> "<nombre>"` (con `ADMIN_PASSWORD`), `node dist/scripts/cargarServicios.js` y `node dist/scripts/cargarSitio.js`.
 5. **Web:** en `web/includes/api.php`, cambia `http://localhost:4000/api/v1` por `https://<servicio>.onrender.com/api/v1`. Sube también `storage/.htaccess` y comprueba que `https://<tu-web>/storage/cache/web.json` responda **403** (prohibido).
 6. **Intranet:** compila con `VITE_API_URL=https://<servicio>.onrender.com/api/v1` y `VITE_WEB_URL=https://ingelop.wuaze.com` (enlace a la política de privacidad en el login).
 7. **Política de privacidad:** `web/privacidad.php` es un borrador técnico; la empresa debe revisarlo antes de publicarlo.
 
-> ⚠️ **Archivos en Render:** el disco del plan gratuito se borra en cada despliegue o reinicio, y con él las fotos de servicios y los documentos subidos. Para producción usa un *Persistent Disk* de Render montado en `UPLOAD_DIR`, o lleva los archivos a S3/Cloudinary implementando `StorageProvider` (`src/config/storage.ts`).
+> ⚠️ **Archivos en Render:** el disco del plan gratuito se borra en cada despliegue o reinicio. Por eso en Render los archivos van a **Cloudflare R2** (`STORAGE_DRIVER=s3`); sin eso se perderían los planos, documentos y fotos.
+>
+> **Copias de seguridad** de Neon + R2: `deploy/respaldo.ps1` (con Docker, programable en el Programador de tareas de Windows) e instrucciones para restaurar en [`docs/ALMACENAMIENTO_Y_RESPALDOS.md`](docs/ALMACENAMIENTO_Y_RESPALDOS.md).
 >
 > ⚠️ **HTTPS:** si la web se abre por `https://`, la API también debe usar `https://`; si no, el navegador bloquea las peticiones. Render ya da HTTPS.
 >
@@ -272,6 +279,12 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen) | — |
 | Proyecto → **Fotos y observaciones** | Galería de actas, informes, fotos y observaciones (evidencias) | Subir y ver |
 | Proyecto → **Ajustes** | Editar el proyecto, dar/quitar acceso, eliminar | — |
+
+## Documentación interactiva (Swagger)
+
+Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 126 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
+
+Para probar rutas protegidas: ejecuta `POST /api/v1/auth/login`, copia el `token`, pulsa **Authorize** y pégalo. En producción está apagada salvo que se defina `SWAGGER_HABILITADO=true` (expone todas las rutas de la API).
 
 ## API (`/api/v1`)
 

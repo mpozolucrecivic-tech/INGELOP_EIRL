@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { storage } from '../../config/storage';
 import * as cms from './cms.service';
 import { contenidoWeb } from '../sitio/sitio.service';
 
@@ -17,7 +18,7 @@ export async function archivoMedio(req: Request, res: Response) {
   const token = typeof req.query.vista_previa === 'string' ? req.query.vista_previa : null;
   const enVistaPrevia = token !== null && (await cms.medioEnVistaPrevia(token, id));
   if (token !== null) res.set('Cache-Control', 'no-store');
-  res.sendFile(await cms.archivoMedio(id, enVistaPrevia));
+  await storage.enviar(res, await cms.archivoMedio(id, enVistaPrevia));
 }
 
 // ---------- Intranet (jefatura o usuarios con permiso de editor web) ----------
@@ -64,5 +65,6 @@ export async function editarMedio(req: Request, res: Response) {
 }
 
 export async function miniatura(req: Request, res: Response) {
-  res.set('Cache-Control', 'no-store').sendFile(await cms.archivoMedio(Number(req.params.id), true));
+  res.set('Cache-Control', 'no-store');
+  await storage.enviar(res, await cms.archivoMedio(Number(req.params.id), true));
 }

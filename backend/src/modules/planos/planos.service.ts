@@ -150,7 +150,7 @@ export async function obtenerArchivoVersion(usuario: UsuarioAutenticado, version
   const letra = revisionLetra(version.revision);
   const ext = path.extname(version.nombreArchivo);
   return {
-    ruta: storage.resolve(version.archivoUrl),
+    ruta: version.archivoUrl, // key del almacenamiento
     nombreDescarga: `${version.plano.codigo}_Rev${letra}${ext}`,
   };
 }

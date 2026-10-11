@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { storage } from '../../config/storage';
 import * as evidenciasService from './evidencias.service';
 import type { ListarEvidenciasQuery } from './evidencias.schema';
 
@@ -15,7 +16,7 @@ export async function descargarArchivo(req: Request, res: Response) {
   const { ruta, nombreDescarga } = await evidenciasService.obtenerArchivo(req.usuario, Number(req.params.id));
   const disposicion = req.query.descargar === 'true' ? 'attachment' : 'inline';
   res.setHeader('Content-Disposition', `${disposicion}; filename*=UTF-8''${encodeURIComponent(nombreDescarga)}`);
-  res.sendFile(ruta);
+  await storage.enviar(res, ruta);
 }
 
 export async function eliminar(req: Request, res: Response) {

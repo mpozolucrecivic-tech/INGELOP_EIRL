@@ -63,6 +63,10 @@ async function main() {
     console.error('   Para crear el administrador usa: node dist/scripts/crearAdmin.js');
     process.exit(1);
   }
+  if (process.env.STORAGE_DRIVER === 's3') {
+    console.error('❌ El seed de demostración escribe archivos en disco: ejecútalo con STORAGE_DRIVER=local.');
+    process.exit(1);
+  }
   if (ADMIN_PASSWORD.length < 8 || USUARIO_PASSWORD.length < 8) {
     console.error('❌ Define SEED_ADMIN_PASSWORD y SEED_USUARIO_PASSWORD en backend/.env (mínimo 8 caracteres).');
     process.exit(1);

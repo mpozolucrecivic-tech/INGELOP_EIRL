@@ -126,7 +126,7 @@ async function documentoPermitido(usuario: UsuarioAutenticado, id: number) {
 export async function obtenerArchivo(usuario: UsuarioAutenticado, id: number) {
   const documento = await documentoPermitido(usuario, id);
   if (!(await storage.exists(documento.ruta))) throw AppError.notFound('El archivo ya no está disponible');
-  return { ruta: storage.resolve(documento.ruta), nombre: documento.nombreArchivo };
+  return { ruta: documento.ruta, nombre: documento.nombreArchivo };
 }
 
 export async function editar(usuario: UsuarioAutenticado, id: number, data: EditarDocumentoInput) {
