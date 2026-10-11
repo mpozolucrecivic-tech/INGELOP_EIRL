@@ -71,6 +71,7 @@ export default function UsuariosPage() {
                     <div className="flex gap-1">
                       {u.rol === 'ADMIN' ? <Badge color="violet">{ROL.ADMIN.label}</Badge> : <Badge>{ROL.USUARIO.label}</Badge>}
                       {!u.activo && <Badge color="red">Inactivo</Badge>}
+                      {u.rol !== 'ADMIN' && u.puedeEditarWeb && <Badge color="blue">Editor web</Badge>}
                     </div>
                   </td>
                   <td className={`${td} text-slate-600`}>
@@ -128,6 +129,7 @@ export default function UsuariosPage() {
 }
 
 const schema = z.object({
+  puedeEditarWeb: z.boolean(),
   nombre: z.string().trim().min(2, 'Mínimo 2 caracteres'),
   email: z.string().trim().email('Correo inválido'),
   password: z.string().max(72).refine((v) => v === '' || v.length >= 8, 'Mínimo 8 caracteres'),
@@ -149,7 +151,7 @@ function UsuarioModal({ state, onClose, esYo }: { state: { usuario?: Usuario } |
 
   useEffect(() => {
     if (!state) return;
-    reset(usuario ? { nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol } : { nombre: '', email: '', password: '', rol: 'USUARIO' });
+    reset(usuario ? { nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, puedeEditarWeb: usuario.puedeEditarWeb } : { nombre: '', email: '', password: '', rol: 'USUARIO', puedeEditarWeb: false });
   }, [state, usuario, reset]);
 
   const onSubmit = async ({ password, ...data }: FormData) => {
@@ -182,6 +184,7 @@ function UsuarioModal({ state, onClose, esYo }: { state: { usuario?: Usuario } |
       }
     >
       <form id="usuario-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" {...register('puedeEditarWeb')} />Puede preparar páginas y gestionar imágenes de la web. La jefatura publica.</label>
         <Input label="Nombre completo" error={errors.nombre?.message} {...register('nombre')} />
         <Input label="Correo" type="email" autoComplete="off" error={errors.email?.message} {...register('email')} />
         <Input

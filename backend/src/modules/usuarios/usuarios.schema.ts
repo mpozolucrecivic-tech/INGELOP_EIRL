@@ -11,6 +11,7 @@ export const crearUsuarioSchema = z.object({
   email: z.string().trim().toLowerCase().email('Email inválido'),
   password,
   rol: z.nativeEnum(Rol).default(Rol.USUARIO),
+  puedeEditarWeb: z.boolean().default(false),
 });
 
 export const actualizarUsuarioSchema = z
@@ -20,6 +21,7 @@ export const actualizarUsuarioSchema = z
     password,
     rol: z.nativeEnum(Rol),
     activo: z.boolean(),
+    puedeEditarWeb: z.boolean(),
   })
   .partial()
   .refine((d) => Object.keys(d).length > 0, { message: 'Debe enviar al menos un campo a actualizar' });

@@ -12,6 +12,7 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   admin: boolean;
+  editor?: boolean;
   end?: boolean;
   /** Muestra la cantidad de mensajes sin leer */
   contador?: 'mensajes';
@@ -37,6 +38,8 @@ const navGrupos: { titulo?: string; items: NavItem[] }[] = [
   {
     titulo: 'Página web',
     items: [
+      { to: '/cms', label: 'Editor de páginas', icon: Layers, admin: false, editor: true },
+      { to: '/biblioteca', label: 'Biblioteca de imágenes', icon: Images, admin: false, editor: true },
       { to: '/datos-empresa', label: 'Datos de la empresa', icon: Contact, admin: true },
       { to: '/servicios', label: 'Servicios', icon: Layers, admin: true },
       { to: '/proyectos-realizados', label: 'Proyectos realizados', icon: Images, admin: true },
@@ -59,10 +62,10 @@ function Logo() {
 }
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { usuario, esAdmin, logout } = useAuth();
+  const { usuario, esAdmin, puedeEditarWeb, logout } = useAuth();
   const { data: sinLeer = 0 } = useMensajesSinLeer(esAdmin);
   const grupos = navGrupos
-    .map((g) => ({ ...g, items: g.items.filter((i) => esAdmin || !i.admin) }))
+    .map((g) => ({ ...g, items: g.items.filter((i) => (!i.admin || esAdmin) && (!i.editor || puedeEditarWeb)) }))
     .filter((g) => g.items.length > 0);
 
   return (

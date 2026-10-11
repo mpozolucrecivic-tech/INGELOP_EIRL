@@ -3,12 +3,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api, setUnauthorizedHandler, tokenStorage } from '@/api/client';
 import type { LoginResponse, Usuario } from '@/types/api';
 
-type UsuarioSesion = Pick<Usuario, 'id' | 'nombre' | 'email' | 'rol'>;
+type UsuarioSesion = Pick<Usuario, 'id' | 'nombre' | 'email' | 'rol' | 'puedeEditarWeb'>;
 
 interface AuthContextValue {
   usuario: UsuarioSesion | null;
   cargando: boolean;
   esAdmin: boolean;
+  puedeEditarWeb: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ usuario, cargando, esAdmin: usuario?.rol === 'ADMIN', login, logout }),
+    () => ({ usuario, cargando, esAdmin: usuario?.rol === 'ADMIN', puedeEditarWeb: usuario?.rol === 'ADMIN' || !!usuario?.puedeEditarWeb, login, logout }),
     [usuario, cargando, login, logout],
   );
 

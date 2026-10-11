@@ -9,3 +9,5 @@
 }
 /* En servicios.php la foto ocupa la columna de 120px, en formato cuadrado */
 .servicio__cabecera .servicio-foto { width: 120px; max-width: 100%; aspect-ratio: 1; margin-bottom: 0; }
+
+.cms-imagen { display: block; max-width: 100%; max-height: 480px; object-fit: contain; border-radius: 12px; margin: 20px 0; }

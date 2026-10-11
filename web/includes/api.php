@@ -36,6 +36,7 @@ define('API_URL_SERVIDOR', rtrim(getenv('API_URL_SERVIDOR') !== false ? (string)
 
 const API_TIEMPO_MAX = 3;          // segundos
 const API_PAUSA_TRAS_FALLO = 60;   // segundos
+const CACHE_MAX_EDAD = 300;       // evita conservar publicaciones retiradas indefinidamente
 define('CACHE_DIR', dirname(__DIR__) . '/storage/cache');
 define('CACHE_WEB', CACHE_DIR . '/web.json');
 define('CACHE_FALLO', CACHE_DIR . '/web.fallo');
@@ -49,6 +50,19 @@ function contenido_web(): ?array
     static $cargado = false, $contenido = null;
     if ($cargado) return $contenido;
     $cargado = true;
+
+    if (isset($_GET['vista_previa'])) {
+        header('Cache-Control: no-store, private');
+        header('Referrer-Policy: no-referrer');
+        header('X-Robots-Tag: noindex, nofollow');
+        $token = (string) $_GET['vista_previa'];
+        $contenido = preg_match('/^[a-zA-Z0-9_.-]{20,2000}$/', $token) ? pedir_api('/cms/vista-previa/' . rawurlencode($token)) : null;
+        if ($contenido === null) {
+            http_response_code(401);
+            exit('La vista previa expiró o no está disponible. Genera un nuevo enlace desde la intranet.');
+        }
+        return $contenido; // los borradores nunca se guardan en la caché pública
+    }
 
     if (API_URL === '') return null;
     if (!is_dir(CACHE_DIR)) @mkdir(CACHE_DIR, 0750, true);
@@ -104,7 +118,7 @@ function guardar_copia(array $contenido): void
 
 function leer_copia(): ?array
 {
-    if (!is_file(CACHE_WEB)) return null;
+    if (!is_file(CACHE_WEB) || time() - (int) @filemtime(CACHE_WEB) > CACHE_MAX_EDAD) return null;
     $json = json_decode((string) @file_get_contents(CACHE_WEB), true);
     return is_array($json) ? $json : null;
 }

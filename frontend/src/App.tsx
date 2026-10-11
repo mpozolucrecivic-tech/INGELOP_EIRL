@@ -18,6 +18,13 @@ const AyudaPage = lazy(() => import('@/pages/AyudaPage'));
 const SitioPage = lazy(() => import('@/pages/SitioPage'));
 const PortafolioPage = lazy(() => import('@/pages/PortafolioPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const CmsPage = lazy(() => import('@/pages/CmsPage'));
+const MediosPage = lazy(() => import('@/pages/MediosPage'));
+
+function RequireEditor() {
+  const { puedeEditarWeb } = useAuth();
+  return puedeEditarWeb ? <Outlet /> : <Navigate to="/proyectos" replace />;
+}
 
 /** Exige sesión iniciada */
 function RequireAuth() {
@@ -43,6 +50,10 @@ export default function App() {
           <Route path="/proyectos" element={<ProyectosPage />} />
           <Route path="/proyectos/:id/*" element={<ProyectoPage />} />
           <Route path="/ayuda" element={<AyudaPage />} />
+          <Route element={<RequireEditor />}>
+            <Route path="/cms" element={<CmsPage />} />
+            <Route path="/biblioteca" element={<MediosPage />} />
+          </Route>
           <Route element={<RequireAdmin />}>
             <Route index element={<DashboardPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />

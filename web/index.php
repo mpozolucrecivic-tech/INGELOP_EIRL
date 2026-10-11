@@ -64,7 +64,7 @@ require __DIR__ . '/includes/header.php';
         <div class="tarjetas tarjetas--3" data-servicios="tarjetas">
             <?php foreach (array_slice(SERVICIOS, 0, 6) as $s): ?>
                 <article class="tarjeta">
-                    <span class="tarjeta__icono"><?= icono($s['icono']) ?></span>
+                    <?php if (!empty($s['foto'])): ?><img class="servicio-foto" src="<?= e($s['foto']) ?>" alt="<?= e($s['titulo']) ?>" loading="lazy"><?php else: ?><span class="tarjeta__icono"><?= icono($s['icono']) ?></span><?php endif; ?>
                     <h3><?= e($s['titulo']) ?></h3>
                     <p><?= e($s['resumen']) ?></p>
                     <a class="enlace" href="servicios.php#<?= e($s['slug']) ?>">Más información <?= icono('flecha') ?></a>

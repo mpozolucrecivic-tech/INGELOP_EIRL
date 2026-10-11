@@ -35,6 +35,7 @@ export interface UsuarioRef {
 }
 
 export interface Usuario {
+  puedeEditarWeb: boolean;
   id: number;
   nombre: string;
   email: string;
@@ -46,7 +47,7 @@ export interface Usuario {
 
 export interface LoginResponse {
   token: string;
-  usuario: Pick<Usuario, 'id' | 'nombre' | 'email' | 'rol'>;
+  usuario: Pick<Usuario, 'id' | 'nombre' | 'email' | 'rol' | 'puedeEditarWeb'>;
 }
 
 export interface Cliente {

@@ -1,6 +1,6 @@
 # Web informativa – INGELOP (PHP)
 
-Sitio público de **INGELOP Consultores y Ejecutores E.I.R.L.** (Chiclayo), hecho en PHP puro. No necesita base de datos ni instalar dependencias.
+Sitio público de **INGELOP Consultores y Ejecutores E.I.R.L.** (Chiclayo), hecho en PHP puro. Consume el CMS de la API; no se conecta directamente a la base de datos ni necesita dependencias PHP adicionales. Puede operar con las plantillas originales al desactivar la API.
 
 ## Páginas
 
@@ -12,25 +12,29 @@ Sitio público de **INGELOP Consultores y Ejecutores E.I.R.L.** (Chiclayo), hech
 | `proyectos.php` | Proyectos realizados (o tipos de proyecto mientras no se carguen) |
 | `contacto.php` | Formulario, WhatsApp, teléfono, correo, dirección y horario |
 | `404.php` | Página de error |
+| `pagina.php?slug=equipo` | Páginas adicionales publicadas desde el CMS |
+| `sitemap.php` | Sitemap de páginas originales y páginas CMS publicadas |
 
 ## Editar contenido
 
-Todo lo que cambia con frecuencia está en **`includes/config.php`**:
+Las páginas, sus textos e imágenes, los metadatos, la marca y el menú se preparan desde **Página web → Editor de páginas**, con borradores, vista previa y publicación separada. Las imágenes se reutilizan desde **Biblioteca de imágenes**. Ver [`../docs/CMS.md`](../docs/CMS.md).
+
+**`includes/config.php`** conserva los datos registrales y las plantillas de respaldo:
 
 - **Datos de contacto y proyectos realizados:** ya no se editan aquí, sino en la intranet (**Página web → Datos de la empresa / Proyectos realizados**). Solo se muestra lo que esté marcado como *Publicar en la web*; si el WhatsApp está oculto, desaparecen todos sus botones. `email_formulario` es el correo que recibe los mensajes del respaldo PHP (no se publica).
 - La web **no enlaza a la intranet** (se quitó "Acceso del personal"): el personal entra directamente con la dirección de la intranet.
 - **`includes/api.php`:** dirección de la API (`API_URL`). Es el único lugar donde se cambia. Ver "Conexión con la API".
-- **`SERVICIOS`** y **`ESPECIALIDADES_OSCE`:** textos de servicios y especialidades.
+- **`SERVICIOS`:** la lista procede de la API; los valores fijos solo se utilizan con `API_URL` vacío. **`ESPECIALIDADES_OSCE`:** datos de las plantillas originales.
 
 ## Conexión con la API
 
-- **Servicios:** las páginas muestran primero los servicios fijos de `config.php` (`SERVICIOS`), y `assets/js/servicios.js` los reemplaza por los que se gestionan en la intranet. Si la API no responde, se quedan los fijos. Conviene mantener `SERVICIOS` parecido a lo que hay en la intranet.
+- **Servicios:** se generan en PHP con la lista de la API, incluidas las fotos. Una lista vacía muestra cero servicios. Si la API falla, se usa la última copia vigente; sin copia no se restauran los servicios fijos.
 - **Foto de servicio:** si el servicio tiene foto, se muestra en lugar del ícono (`assets/css/conexion-api.css`).
 - **Formulario:** `assets/js/contacto.js` lo envía a la API y los mensajes se leen en la intranet (**Mensajes de la web**).
 - Si `API_URL` se deja vacío en `includes/api.php`, la web funciona como antes, solo con PHP.
 - El dominio de la web debe estar en `CORS_ORIGIN` del backend.
 
-- **Datos y proyectos realizados:** el PHP los pide a la API antes de enviar la página (máximo 3 s) y guarda una copia en `storage/cache/web.json`. Si la API no responde, usa la copia y espera 60 s antes de reintentar. La carpeta `storage/` está bloqueada al navegador: comprueba que `storage/cache/web.json` responda 403 en el hosting.
+- **Contenido público:** el PHP pide datos, proyectos, servicios y documentos publicados a la API antes de enviar la página (máximo 3 s) y guarda una copia en `storage/cache/web.json`. Si la API no responde, usa la copia durante un máximo de cinco minutos y espera 60 s antes de reintentar. Las vistas previas nunca se guardan en esta copia. La carpeta `storage/` está bloqueada al navegador: comprueba que `storage/cache/web.json` responda 403 en el hosting.
 
 ## Formulario de contacto (respaldo por PHP)
 

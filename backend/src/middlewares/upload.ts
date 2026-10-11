@@ -101,6 +101,11 @@ const TIPOS_FOTO: Record<string, string[]> = {
   'image/webp': ['.webp'],
 };
 
+export const uploadFotoCms = crearUpload({
+  carpeta: () => 'cms', maxMB: env.MAX_FOTO_MB,
+  validar: (file, ext) => TIPOS_FOTO[file.mimetype]?.includes(ext) ? null : 'Use JPG, PNG o WEBP',
+});
+
 /** Guarda en <UPLOAD_DIR>/servicios/ con tamaño máximo MAX_FOTO_MB */
 export const uploadFotoServicio = crearUpload({
   carpeta: () => 'servicios',

@@ -33,7 +33,7 @@ export async function crear(data: CrearUsuarioInput) {
   await assertEmailLibre(data.email);
   const passwordHash = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
   return prisma.usuario.create({
-    data: { nombre: data.nombre, email: data.email, rol: data.rol, passwordHash },
+    data: { nombre: data.nombre, email: data.email, rol: data.rol, puedeEditarWeb: data.puedeEditarWeb, passwordHash },
     select: usuarioPublicoSelect,
   });
 }

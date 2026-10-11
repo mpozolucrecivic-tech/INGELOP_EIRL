@@ -13,6 +13,7 @@ export const usuarioPublicoSelect = {
   email: true,
   rol: true,
   activo: true,
+  puedeEditarWeb: true,
   creadoEn: true,
 } as const;
 
@@ -34,7 +35,7 @@ export async function login({ email, password }: LoginInput) {
 
   return {
     token,
-    usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+    usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol, puedeEditarWeb: usuario.puedeEditarWeb },
   };
 }
 

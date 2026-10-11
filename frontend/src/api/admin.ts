@@ -6,6 +6,7 @@ import type { Cliente, DatoSitio, MensajeContacto, ProyectoWeb, Rol, Servicio, T
 // ---------- Usuarios ----------
 
 export interface UsuarioInput {
+  puedeEditarWeb?: boolean;
   nombre: string;
   email: string;
   password?: string;

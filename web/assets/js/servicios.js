@@ -2,6 +2,7 @@
 // los servicios fijos que el PHP ya dibujó (config.php), así la página nunca se ve vacía.
 // Cada bloque reproduce exactamente el HTML y las clases del PHP.
 (function () {
+  if (document.body.getAttribute('data-servicios-servidor') === '1') return;
   var API = document.body.getAttribute('data-api');
   var bloques = document.querySelectorAll('[data-servicios]');
   if (!API || !bloques.length || !window.fetch) return;
@@ -116,7 +117,7 @@
   fetch(API + '/servicios', { signal: control ? control.signal : undefined, headers: { Accept: 'application/json' } })
     .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
     .then(function (lista) {
-      if (!Array.isArray(lista) || !lista.length) return; // vacío: se queda el respaldo
+      if (!Array.isArray(lista)) return; // vacío: se queda el respaldo
       bloques.forEach(function (bloque) {
         var fn = render[bloque.getAttribute('data-servicios')];
         if (fn) fn(bloque, lista);

@@ -18,7 +18,7 @@ require __DIR__ . '/includes/header.php';
         <?php foreach (SERVICIOS as $i => $s): ?>
             <article class="servicio" id="<?= e($s['slug']) ?>">
                 <div class="servicio__cabecera">
-                    <span class="tarjeta__icono"><?= icono($s['icono']) ?></span>
+                    <?php if (!empty($s['foto'])): ?><img class="servicio-foto" src="<?= e($s['foto']) ?>" alt="<?= e($s['titulo']) ?>" loading="lazy"><?php else: ?><span class="tarjeta__icono"><?= icono($s['icono']) ?></span><?php endif; ?>
                     <span class="servicio__num"><?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span>
                 </div>
                 <div>

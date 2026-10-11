@@ -23,6 +23,7 @@ import serviciosRoutes, { serviciosPublicRoutes } from './modules/servicios/serv
 import contactoRoutes, { contactoPublicRoutes } from './modules/contacto/contacto.routes';
 import sitioRoutes, { sitioPublicRoutes } from './modules/sitio/sitio.routes';
 import portafolioRoutes, { portafolioPublicRoutes } from './modules/portafolio/portafolio.routes';
+import cmsRoutes, { cmsPublicRoutes } from './modules/cms/cms.routes';
 
 export const app = express();
 
@@ -47,6 +48,7 @@ api.use(serviciosPublicRoutes);
 api.use(contactoPublicRoutes);
 api.use(sitioPublicRoutes);
 api.use(portafolioPublicRoutes);
+api.use(cmsPublicRoutes);
 
 // 2) A partir de aquí TODAS las rutas exigen JWT válido
 api.use(verifyToken);
@@ -67,6 +69,7 @@ api.use(serviciosRoutes);
 api.use(contactoRoutes);
 api.use(sitioRoutes);
 api.use(portafolioRoutes);
+api.use(cmsRoutes);
 
 app.use('/api/v1', api);
 

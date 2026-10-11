@@ -14,6 +14,7 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().default('uploads'),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(50),
   MAX_FOTO_MB: z.coerce.number().positive().default(5),
+  CMS_WEB_URL: z.string().url().default('http://localhost:8080'),
   // Detrás de un proxy (Render, Caddy) hay que confiar en él para conocer la IP real del visitante
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(0),
   // Límite de peticiones: ventana en minutos y máximo por IP

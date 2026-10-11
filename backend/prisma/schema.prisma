@@ -102,6 +102,7 @@ model Usuario {
   passwordHash String
   rol          Rol      @default(USUARIO)
   activo       Boolean  @default(true)
+  puedeEditarWeb Boolean @default(false)
   creadoEn     DateTime @default(now())
 
   proyectosResponsable Proyecto[]           @relation("ProyectoResponsable")
@@ -428,4 +429,36 @@ model ProyectoWeb {
   actualizadoEn DateTime @updatedAt
 
   @@index([activo, orden])
+}
+
+// Documentos editoriales: el borrador nunca se entrega en la API pública.
+model DocumentoCms {
+  clave String @id
+  borrador Json
+  publicado Json?
+  version Int @default(1)
+  publicadoEn DateTime?
+  actualizadoEn DateTime @updatedAt
+  revisiones RevisionCms[]
+}
+
+model RevisionCms {
+  id Int @id @default(autoincrement())
+  documentoClave String
+  documento DocumentoCms @relation(fields: [documentoClave], references: [clave], onDelete: Cascade)
+  contenido Json
+  accion String
+  autorId Int
+  autorNombre String
+  fecha DateTime @default(now())
+  @@index([documentoClave, fecha])
+}
+
+model MedioCms {
+  id Int @id @default(autoincrement())
+  archivo String @unique
+  nombre String
+  textoAlternativo String @default("")
+  tamano Int
+  creadoEn DateTime @default(now())
 }

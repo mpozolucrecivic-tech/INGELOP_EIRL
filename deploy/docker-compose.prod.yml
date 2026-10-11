@@ -46,6 +46,7 @@ services:
       TRUST_PROXY: 1   # detrás de Caddy: IP real del visitante para el límite de peticiones
       UPLOAD_DIR: uploads
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-50}
+      CMS_WEB_URL: https://${DOMINIO_WEB}
     volumes:
       - uploads:/app/uploads   # planos y documentos subidos
 

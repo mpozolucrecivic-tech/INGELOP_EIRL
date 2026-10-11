@@ -3,9 +3,10 @@ import jwt from 'jsonwebtoken';
 import { Rol } from '@prisma/client';
 import { env } from '../config/env';
 import type { UsuarioAutenticado } from '../types/express';
+import { prisma } from '../config/prisma';
 
 /** Exige un JWT válido en el header Authorization: Bearer <token> */
-export function verifyToken(req: Request, res: Response, next: NextFunction) {
+export async function verifyToken(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Token no proporcionado' });
@@ -14,14 +15,17 @@ export function verifyToken(req: Request, res: Response, next: NextFunction) {
   const token = header.split(' ')[1];
   try {
     const payload = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload & Partial<UsuarioAutenticado>;
-    if (typeof payload.id !== 'number' || !Object.values(Rol).includes(payload.rol as Rol)) {
+    if (payload.purpose || typeof payload.id !== 'number' || !Object.values(Rol).includes(payload.rol as Rol)) {
       return res.status(401).json({ message: 'Token inválido o expirado' });
     }
-    req.usuario = { id: payload.id, rol: payload.rol as Rol };
-    next();
   } catch {
     return res.status(401).json({ message: 'Token inválido o expirado' });
   }
+  const payload = jwt.decode(token) as jwt.JwtPayload;
+  const usuario = await prisma.usuario.findUnique({ where: { id: payload.id }, select: { id: true, rol: true, activo: true } });
+  if (!usuario?.activo) return res.status(401).json({ message: 'Usuario inactivo o no encontrado' });
+  req.usuario = { id: usuario.id, rol: usuario.rol };
+  next();
 }
 
 /** Autoriza solo a los roles indicados. Debe ir después de verifyToken. */

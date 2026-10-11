@@ -9,6 +9,7 @@ interface Guia {
   titulo: string;
   /** Solo la ven las jefaturas */
   admin: boolean;
+  editor?: boolean;
   pasos: ReactNode[];
   consejo?: ReactNode;
 }
@@ -16,6 +17,20 @@ interface Guia {
 const enlace = 'font-medium text-brand-700 hover:underline';
 
 const guias: Guia[] = [
+  {
+    icono: <Layers className="size-5" />,
+    titulo: 'Preparar y publicar páginas de la web',
+    admin: false,
+    editor: true,
+    pasos: [
+      <>En <Link to="/biblioteca" className={enlace}>Biblioteca de imágenes</Link>, añade las fotos que quieras reutilizar y su descripción.</>,
+      <>Abre el <Link to="/cms" className={enlace}>Editor de páginas</Link>, elige una página o crea una nueva y añade sus secciones.</>,
+      <>Pulsa <b>Guardar borrador</b> y después <b>Vista previa</b>. Guardar no cambia la versión publicada.</>,
+      <>La jefatura revisa el borrador y pulsa <b>Publicar</b>. Para añadir una página nueva al menú, edita y publica <b>Marca y menú</b>.</>,
+      <>En <b>Historial</b> puedes restaurar una revisión como borrador y revisarla antes de volver a publicar.</>,
+    ],
+    consejo: <>Los servicios, proyectos realizados y datos de contacto conservan su edición directa desde sus pantallas.</>,
+  },
   {
     icono: <Building2 className="size-5" />,
     titulo: 'Crear un proyecto y asignarle personal',
@@ -77,8 +92,8 @@ const guias: Guia[] = [
 ];
 
 export default function AyudaPage() {
-  const { esAdmin } = useAuth();
-  const visibles = guias.filter((g) => esAdmin || !g.admin);
+  const { esAdmin, puedeEditarWeb } = useAuth();
+  const visibles = guias.filter((g) => (!g.admin || esAdmin) && (!g.editor || puedeEditarWeb));
 
   return (
     <>

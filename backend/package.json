@@ -15,7 +15,8 @@
     "prisma:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
-    "test:e2e": "tsx scripts/e2e.ts"
+    "test:e2e": "tsx scripts/e2e.ts",
+    "test:cms": "tsx --test scripts/cms.test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -13,6 +13,7 @@ declare(strict_types=1);
 date_default_timezone_set('America/Lima');
 
 require_once __DIR__ . '/api.php';
+require_once __DIR__ . '/cms.php';
 
 /** Datos de contacto que llegan publicados desde la intranet (vacío si no hay API ni copia) */
 function datos_publicados(): array
@@ -45,7 +46,9 @@ define('EMPRESA', array_merge([
     'horario'        => '',
     'facebook'       => '',
     'linkedin'       => '',
-], datos_publicados()));
+], datos_publicados(), (($marca = cms_documento('configuracion')) !== null ? [
+    'nombre_corto' => $marca['nombre'], 'descripcion' => $marca['descripcion'],
+] : [])));
 
 /** Especialidades inscritas en el RNP del OSCE como consultor de obras (categoría entre paréntesis) */
 const ESPECIALIDADES_OSCE = [
@@ -61,7 +64,7 @@ const ESPECIALIDADES_OSCE = [
      'texto' => 'Canales de riego, bocatomas, reservorios y obras de defensa ribereña.'],
 ];
 
-const SERVICIOS = [
+define('SERVICIOS', servicios_publicados([
     ['slug' => 'preinversion', 'icono' => 'lupa',     'titulo' => 'Estudios de preinversión',
      'resumen' => 'Fichas técnicas y estudios de perfil para proyectos de inversión pública en el marco de Invierte.pe.',
      'items' => ['Diagnóstico y levantamiento de información', 'Planteamiento técnico de alternativas', 'Costos, evaluación social y sostenibilidad']],
@@ -80,7 +83,7 @@ const SERVICIOS = [
     ['slug' => 'consultoria', 'icono' => 'chat',      'titulo' => 'Consultoría técnica',
      'resumen' => 'Asesoría a entidades públicas, empresas y particulares en proyectos de construcción.',
      'items' => ['Evaluación y revisión de expedientes', 'Peritajes e informes técnicos', 'Asesoría en procesos de contratación']],
-];
+]));
 
 /**
  * Proyectos realizados: se gestionan en la intranet (Página web → Proyectos realizados).
@@ -152,4 +155,15 @@ function whatsapp(string $mensaje = 'Hola INGELOP, quisiera información sobre s
 function anios_experiencia(): int
 {
     return max(1, (int) date('Y') - EMPRESA['inicio']);
+}
+
+function servicios_publicados(array $fijos): array
+{
+    $web = contenido_web();
+    if (!is_array($web) || !array_key_exists('servicios', $web)) return API_URL === '' ? $fijos : [];
+    return array_map(fn ($s) => [
+        'slug' => $s['slug'] ?: 'servicio-' . $s['id'], 'icono' => $s['icono'] ?: 'regla',
+        'titulo' => $s['nombre'], 'resumen' => $s['descripcion'], 'items' => $s['items'],
+        'foto' => !empty($s['fotoUrl']) ? API_URL . $s['fotoUrl'] : '',
+    ], $web['servicios']);
 }

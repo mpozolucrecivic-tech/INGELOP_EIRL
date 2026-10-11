@@ -12,6 +12,8 @@ Sistema web de **INGELOP Consultores y Ejecutores E.I.R.L.** (RUC 20610231676, C
 
 ## Stack
 
+El sistema incluye un **CMS editorial** para páginas, marca y menú: editor por bloques, borradores separados de la publicación, vista previa temporal, historial con restauración, biblioteca de imágenes y permiso de editor. Activación y uso en [`docs/CMS.md`](docs/CMS.md). Las páginas originales siguen disponibles hasta publicar su versión editorial.
+
 - **Backend:** Node.js · Express 5 · TypeScript · Prisma 6 · PostgreSQL 16 (Docker) · Zod · JWT + bcrypt · Multer
 - **Frontend:** React 19 · Vite · TypeScript · Tailwind CSS 4 · TanStack Query · React Router 7 · React Hook Form + Zod · Recharts
 
@@ -163,7 +165,7 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
 | URL de la API para la **intranet** | `VITE_API_URL` en `frontend/.env` (se fija al compilar con `npm run build`) |
 | Dominios que pueden llamar a la API | `CORS_ORIGIN` en `backend/.env` |
 
-**Servicios.** La web dibuja primero los 6 servicios fijos de `web/includes/config.php` y luego `assets/js/servicios.js` los reemplaza por los de la API (inicio, servicios, pie de página y el `<select>` de contacto), con el mismo HTML. Si la API no responde en 4 s, se quedan los fijos. Si un servicio tiene foto, se muestra en lugar del ícono (clase `.servicio-foto` en `assets/css/conexion-api.css`).
+**Servicios.** El PHP renderiza los servicios de `GET /web` directamente en inicio, servicios, pie de página y selector de contacto, incluidas sus fotos. Una lista vacía muestra cero servicios. Si la API falla, se usa la última copia válida durante un máximo de cinco minutos; sin copia vigente no reaparecen los servicios fijos. Estos solo se usan al desactivar la API (`API_URL` vacío).
 
 **Datos de la empresa y proyectos realizados.** Se editan en la intranet (**Página web → Datos de la empresa / Proyectos realizados**). Cada dato de contacto tiene **Publicar en la web**: lo oculto queda guardado, pero la API no lo entrega. El PHP pide `GET /web` **antes de enviar la página** (máximo 3 s) y guarda la última respuesta buena en `web/storage/cache/web.json` (bloqueada al navegador y fuera de Git). Si la API no responde, usa esa copia y no vuelve a intentarlo durante 60 s, para que la página cargue rápido aunque Render esté "dormido".
 
@@ -367,7 +369,7 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 5. **Presupuestos versionados:** uno aprobado no se modifica. Para cambiarlo se duplica como nueva versión, que conserva las partidas.
 6. **Costo de horas-hombre:** se calcula con el `costoHora` actual de cada profesional.
 7. **Archivos protegidos:** planos y documentos solo se descargan con JWT y con acceso al proyecto; no hay carpeta pública. Para migrar a S3/Cloudinary hay que implementar `StorageProvider` (`src/config/storage.ts`).
-8. `verifyToken` es stateless: un usuario desactivado conserva su token hasta que expire (máx. 8 h), aunque ya no puede volver a iniciar sesión.
+8. `verifyToken` valida la firma y consulta el usuario en cada petición: desactivar una cuenta o cambiarle el rol retira sus permisos inmediatamente. Las vistas previas usan tokens con un propósito distinto y no sirven para autenticarse en la intranet.
 
 ## Próximos pasos
 
