@@ -251,7 +251,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 |---|---|---|
 | **Resumen general** | "Primeros pasos" (mientras falte algo), proyectos en desarrollo, monto contratado vs gastos, **planos esperando revisión**, **entregables vencidos**, horas trabajadas del mes, estado por proyecto | — |
 | **Proyectos** | Todos, con búsqueda y filtros; crear | Solo los suyos |
-| **Clientes** | Entidades públicas, empresas y personas (RUC/DNI, contacto) | — |
+| **Clientes** | Municipalidades, gobiernos regionales, empresas privadas y personas (RUC/DNI, contacto) | — |
 | **Personal y tarifas** | Profesionales con su costo por hora (no necesitan cuenta) | — |
 | **Accesos a la intranet** | Cuentas para iniciar sesión, con el último acceso (fecha e IP) | — |
 | **Auditoría** | Alertas de seguridad, registro de actividad con filtros, detalle y exportación CSV | — |

@@ -77,8 +77,9 @@ export const RUBRO_OBRA: Record<RubroObra, string> = {
 };
 
 export const TIPO_CLIENTE: Record<TipoCliente, string> = {
-  ENTIDAD_PUBLICA: 'Entidad pública',
-  EMPRESA: 'Empresa',
+  MUNICIPALIDAD: 'Municipalidad',
+  GOBIERNO_REGIONAL: 'Gobierno regional',
+  EMPRESA_PRIVADA: 'Empresa privada',
   PERSONA: 'Persona natural',
 };
 

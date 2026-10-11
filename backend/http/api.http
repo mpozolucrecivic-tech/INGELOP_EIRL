@@ -70,7 +70,7 @@ POST {{baseUrl}}/clientes
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
-{ "tipo": "ENTIDAD_PUBLICA", "nombre": "Municipalidad Distrital de Monsefú", "documento": "20600000011", "contacto": "Sub Gerencia de Obras" }
+{ "tipo": "MUNICIPALIDAD", "nombre": "Municipalidad Distrital de Monsefú", "documento": "20600000011", "contacto": "Sub Gerencia de Obras" }
 
 ###
 PUT {{baseUrl}}/clientes/1

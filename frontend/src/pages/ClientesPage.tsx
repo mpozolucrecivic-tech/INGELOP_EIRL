@@ -82,7 +82,7 @@ export default function ClientesPage() {
                     {c.direccion && <p className="text-xs text-slate-500">{c.direccion}</p>}
                   </td>
                   <td className={td}>
-                    <Badge color={c.tipo === 'ENTIDAD_PUBLICA' ? 'blue' : c.tipo === 'EMPRESA' ? 'violet' : 'slate'}>{TIPO_CLIENTE[c.tipo]}</Badge>
+                    <Badge color={c.tipo === 'MUNICIPALIDAD' ? 'blue' : c.tipo === 'GOBIERNO_REGIONAL' ? 'green' : c.tipo === 'EMPRESA_PRIVADA' ? 'violet' : 'slate'}>{TIPO_CLIENTE[c.tipo]}</Badge>
                   </td>
                   <td className={`${td} tabular-nums`}>{c.documento ?? '—'}</td>
                   <td className={`${td} text-xs text-slate-600`}>
@@ -156,7 +156,7 @@ export default function ClientesPage() {
 
 const opcional = z.string().trim().optional();
 const schema = z.object({
-  tipo: z.enum(['ENTIDAD_PUBLICA', 'EMPRESA', 'PERSONA']),
+  tipo: z.enum(['MUNICIPALIDAD', 'GOBIERNO_REGIONAL', 'EMPRESA_PRIVADA', 'PERSONA']),
   nombre: z.string().trim().min(2, 'Requerido'),
   documento: z
     .string()
@@ -189,7 +189,7 @@ function ClienteModal({ state, onClose }: { state: { cliente?: Cliente } | null;
   useEffect(() => {
     if (!state) return;
     reset({
-      tipo: cliente?.tipo ?? 'ENTIDAD_PUBLICA',
+      tipo: cliente?.tipo ?? 'MUNICIPALIDAD',
       nombre: cliente?.nombre ?? '',
       documento: cliente?.documento ?? '',
       contacto: cliente?.contacto ?? '',
@@ -200,6 +200,7 @@ function ClienteModal({ state, onClose }: { state: { cliente?: Cliente } | null;
   }, [state, cliente, reset]);
 
   const tipo = watch('tipo');
+  const esPublica = tipo === 'MUNICIPALIDAD' || tipo === 'GOBIERNO_REGIONAL';
 
   const onSubmit = async (data: FormData) => {
     // '' -> undefined para campos opcionales
@@ -235,13 +236,13 @@ function ClienteModal({ state, onClose }: { state: { cliente?: Cliente } | null;
         </Select>
         <Input label={tipo === 'PERSONA' ? 'DNI o RUC' : 'RUC'} inputMode="numeric" maxLength={11} error={errors.documento?.message} {...register('documento')} />
         <Input
-          label={tipo === 'PERSONA' ? 'Nombre completo' : tipo === 'ENTIDAD_PUBLICA' ? 'Entidad' : 'Razón social'}
+          label={tipo === 'PERSONA' ? 'Nombre completo' : esPublica ? 'Entidad' : 'Razón social'}
           wrapperClassName="col-span-2"
-          placeholder={tipo === 'ENTIDAD_PUBLICA' ? 'Ej. Municipalidad Distrital de …' : undefined}
+          placeholder={tipo === 'MUNICIPALIDAD' ? 'Ej. Municipalidad Distrital de …' : tipo === 'GOBIERNO_REGIONAL' ? 'Ej. Gobierno Regional de Lambayeque' : undefined}
           error={errors.nombre?.message}
           {...register('nombre')}
         />
-        <Input label="Persona de contacto" wrapperClassName="col-span-2" placeholder={tipo === 'ENTIDAD_PUBLICA' ? 'Ej. Gerencia de Infraestructura' : undefined} {...register('contacto')} />
+        <Input label="Persona de contacto" wrapperClassName="col-span-2" placeholder={esPublica ? 'Ej. Gerencia de Infraestructura' : undefined} {...register('contacto')} />
         <Input label="Teléfono" {...register('telefono')} />
         <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
         <Input label="Dirección" wrapperClassName="col-span-2" {...register('direccion')} />

@@ -97,10 +97,10 @@ async function main() {
 
   seccion('Clientes (ADMIN)');
   const ruc = `20${String(sufijo).slice(-9)}`;
-  const cli = await call('POST', '/clientes', { token: A, json: { tipo: 'EMPRESA', nombre: `Cliente E2E ${sufijo}`, documento: ruc, email: 'contacto@e2e.pe' } });
+  const cli = await call('POST', '/clientes', { token: A, json: { tipo: 'EMPRESA_PRIVADA', nombre: `Cliente E2E ${sufijo}`, documento: ruc, email: 'contacto@e2e.pe' } });
   expectStatus('POST /clientes', cli, 201);
   const C = cli.body.id as number;
-  expectStatus('POST /clientes RUC duplicado', await call('POST', '/clientes', { token: A, json: { tipo: 'EMPRESA', nombre: 'Otro', documento: ruc } }), 409);
+  expectStatus('POST /clientes RUC duplicado', await call('POST', '/clientes', { token: A, json: { tipo: 'EMPRESA_PRIVADA', nombre: 'Otro', documento: ruc } }), 409);
   expectStatus('POST /clientes documento inválido', await call('POST', '/clientes', { token: A, json: { tipo: 'PERSONA', nombre: 'Otro', documento: '123' } }), 422);
   expectStatus('GET /clientes', await call('GET', `/clientes?q=${sufijo}`, { token: A }), 200);
   expectStatus('PUT /clientes/:id', await call('PUT', `/clientes/${C}`, { token: A, json: { contacto: 'Gerencia' } }), 200);

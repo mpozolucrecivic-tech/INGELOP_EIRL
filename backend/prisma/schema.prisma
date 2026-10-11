@@ -50,9 +50,36 @@ enum TipoEvidencia {
 }
 
 enum TipoCliente {
-  ENTIDAD_PUBLICA
-  EMPRESA
-  PERSONA
+  MUNICIPALIDAD
+  GOBIERNO_REGIONAL
+  EMPRESA_PRIVADA
+  PERSONA // particulares (p. ej. quien encarga el diseño de su vivienda)
+}
+
+// Etapas de un proyecto, en este orden
+enum TipoEtapa {
+  PREINVERSION
+  EXPEDIENTE_TECNICO
+  SUPERVISION
+  LIQUIDACION
+}
+
+// En elaboración -> (el responsable envía) En revisión -> la jefatura aprueba u observa con comentario
+// -> Observado -> (el responsable corrige y reenvía) En revisión…
+enum EstadoEtapa {
+  EN_ELABORACION
+  EN_REVISION
+  OBSERVADO
+  APROBADO
+}
+
+enum CategoriaDocumento {
+  MEMORIA
+  PLANOS
+  METRADOS
+  PRESUPUESTO
+  CRONOGRAMA
+  INFORME
 }
 
 // Especialidades de consultoría de obras según el RNP del OSCE
@@ -113,11 +140,13 @@ model Usuario {
   planosResponsable    Plano[]              @relation("PlanoResponsable")
   versionesPlano       PlanoVersion[]
   entregables          Entregable[]         @relation("EntregableResponsable")
+  documentos           Documento[]
+  etapasObservadas     Etapa[]              @relation("EtapaObservadaPor")
 }
 
 model Cliente {
   id        Int         @id @default(autoincrement())
-  tipo      TipoCliente @default(EMPRESA)
+  tipo      TipoCliente @default(EMPRESA_PRIVADA)
   nombre    String // razón social, entidad o nombre completo
   documento String?     @unique // RUC o DNI
   contacto  String? // persona de contacto
@@ -155,6 +184,8 @@ model Proyecto {
   planos         Plano[]
   presupuestos   Presupuesto[]
   entregables    Entregable[]
+  etapas         Etapa[]
+  documentos     Documento[]
 }
 
 // Usuarios (rol USUARIO) asignados a una obra: define qué proyectos pueden ver
@@ -497,4 +528,49 @@ model Auditoria {
   @@index([modulo, fecha])
   @@index([ip, fecha])
   @@index([correo, accion, fecha])
+}
+
+// ---------- Etapas y gestión documental ----------
+
+// Regla: un proyecto empieza en cualquier etapa; para iniciar la siguiente, la anterior debe estar APROBADA.
+model Etapa {
+  id              Int         @id @default(autoincrement())
+  proyectoId      Int
+  proyecto        Proyecto    @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  tipo            TipoEtapa
+  estado          EstadoEtapa @default(EN_ELABORACION)
+  fechaInicio     DateTime    @default(now()) @db.Date
+  fechaFin        DateTime?   @db.Date // fecha prevista de término
+  fechaAprobacion DateTime?
+  observacion     String? // último comentario de la jefatura al observar
+  observadoEn     DateTime?
+  observadoPorId  Int?
+  observadoPor    Usuario?    @relation("EtapaObservadaPor", fields: [observadoPorId], references: [id], onDelete: SetNull)
+  creadoEn        DateTime    @default(now())
+  actualizadoEn   DateTime    @updatedAt
+  documentos      Documento[]
+
+  @@unique([proyectoId, tipo])
+}
+
+model Documento {
+  id            Int                @id @default(autoincrement())
+  proyectoId    Int
+  proyecto      Proyecto           @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  // La API impide borrar una etapa con documentos; Cascade solo actúa al eliminar el proyecto completo
+  etapaId       Int
+  etapa         Etapa              @relation(fields: [etapaId], references: [id], onDelete: Cascade)
+  categoria     CategoriaDocumento
+  nombreArchivo String // nombre original del archivo
+  ruta          String             @unique // key en el almacenamiento (proyectos/<id>/documentos/…)
+  tamano        Int // bytes
+  tipoArchivo   String // MIME
+  descripcion   String?
+  usuarioId     Int
+  usuario       Usuario            @relation(fields: [usuarioId], references: [id])
+  fecha         DateTime           @default(now())
+
+  @@index([proyectoId, etapaId])
+  @@index([usuarioId, fecha])
+  @@index([fecha])
 }

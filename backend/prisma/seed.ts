@@ -115,7 +115,7 @@ async function main() {
   // ---------- Clientes (datos ficticios) ----------
   const municipalidad = await prisma.cliente.create({
     data: {
-      tipo: TipoCliente.ENTIDAD_PUBLICA,
+      tipo: TipoCliente.MUNICIPALIDAD,
       nombre: 'Municipalidad Distrital de La Victoria',
       documento: '20601234567',
       contacto: 'Gerencia de Desarrollo Urbano e Infraestructura',
@@ -126,7 +126,7 @@ async function main() {
   });
   const gobRegional = await prisma.cliente.create({
     data: {
-      tipo: TipoCliente.ENTIDAD_PUBLICA,
+      tipo: TipoCliente.GOBIERNO_REGIONAL,
       nombre: 'Gobierno Regional de Lambayeque',
       documento: '20609876543',
       contacto: 'Sub Gerencia de Obras',
@@ -135,7 +135,7 @@ async function main() {
   });
   const inmobiliaria = await prisma.cliente.create({
     data: {
-      tipo: TipoCliente.EMPRESA,
+      tipo: TipoCliente.EMPRESA_PRIVADA,
       nombre: 'Inmobiliaria Los Parques del Norte S.A.C.',
       documento: '20612345678',
       contacto: 'Gerencia general',
@@ -146,7 +146,7 @@ async function main() {
   });
   const muniPimentel = await prisma.cliente.create({
     data: {
-      tipo: TipoCliente.ENTIDAD_PUBLICA,
+      tipo: TipoCliente.MUNICIPALIDAD,
       nombre: 'Municipalidad Distrital de Pimentel',
       documento: '20605555551',
       contacto: 'Sub Gerencia de Obras Públicas',
