@@ -66,13 +66,23 @@ export function historial(clave: string) {
   return prisma.revisionCms.findMany({ where: { documentoClave: clave }, orderBy: { id: 'desc' }, take: 100 });
 }
 
-export async function publicados() {
+/**
+ * Documentos publicados y válidos. Uno que no cumpla el esquema (p. ej. guardado con una versión
+ * anterior) se omite y se registra: nunca debe dejar sin contenido al resto de la web.
+ */
+export async function publicados(): Promise<Record<string, ContenidoCms>> {
   const documentos = await prisma.documentoCms.findMany({ where: { publicado: { not: Prisma.DbNull } }, select: { clave: true, publicado: true } });
-  return Object.fromEntries(documentos.map((d) => [d.clave, d.publicado]));
+  const validos: Record<string, ContenidoCms> = {};
+  for (const d of documentos) {
+    const r = contenidoSchema.safeParse(d.publicado);
+    if (r.success) validos[d.clave] = r.data;
+    else console.error(`[CMS] Documento publicado inválido omitido: ${d.clave}`);
+  }
+  return validos;
 }
 
 export async function mediosPublicados() {
-  const docs = Object.values(await publicados()).map((d) => contenidoSchema.parse(d));
+  const docs = Object.values(await publicados());
   const ids = docs.flatMap((d) => d.tipo === 'pagina' ? [d.imagenSocialId, ...d.bloques.filter((b) => b.visible).map((b) => b.medioId)] : [d.logoId])
     .filter((id): id is number => id !== null);
   return (await prisma.medioCms.findMany({ where: { id: { in: ids } } })).map(medioPublico);
@@ -120,7 +130,7 @@ export async function archivoMedio(id: number, preview = false) {
   const medio = await prisma.medioCms.findUnique({ where: { id } });
   if (!medio || !(await storage.exists(medio.archivo))) throw AppError.notFound('Imagen no encontrada');
   if (!preview) {
-    const docs = Object.values(await publicados()).map((d) => contenidoSchema.parse(d));
+    const docs = Object.values(await publicados());
     const usado = docs.some((d) => d.tipo === 'pagina'
       ? d.imagenSocialId === id || d.bloques.some((b) => b.visible && b.medioId === id)
       : d.logoId === id);

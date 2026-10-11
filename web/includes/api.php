@@ -36,7 +36,6 @@ define('API_URL_SERVIDOR', rtrim(getenv('API_URL_SERVIDOR') !== false ? (string)
 
 const API_TIEMPO_MAX = 3;          // segundos
 const API_PAUSA_TRAS_FALLO = 60;   // segundos
-const CACHE_MAX_EDAD = 300;       // evita conservar publicaciones retiradas indefinidamente
 define('CACHE_DIR', dirname(__DIR__) . '/storage/cache');
 define('CACHE_WEB', CACHE_DIR . '/web.json');
 define('CACHE_FALLO', CACHE_DIR . '/web.fallo');
@@ -118,7 +117,9 @@ function guardar_copia(array $contenido): void
 
 function leer_copia(): ?array
 {
-    if (!is_file(CACHE_WEB) || time() - (int) @filemtime(CACHE_WEB) > CACHE_MAX_EDAD) return null;
+    // Sin vencimiento: si la API está caída, la web muestra la última versión buena aunque sea antigua.
+    // (Una publicación retirada puede seguir viéndose hasta que la API vuelva a responder.)
+    if (!is_file(CACHE_WEB)) return null;
     $json = json_decode((string) @file_get_contents(CACHE_WEB), true);
     return is_array($json) ? $json : null;
 }

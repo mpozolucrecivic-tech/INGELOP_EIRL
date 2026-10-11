@@ -157,10 +157,14 @@ function anios_experiencia(): int
     return max(1, (int) date('Y') - EMPRESA['inicio']);
 }
 
+/**
+ * Servicios de la API. Si la API no responde y no hay copia de respaldo, se usan los fijos
+ * para que la web nunca se vea vacía. Una lista vacía que SÍ envía la API (todos ocultos) se respeta.
+ */
 function servicios_publicados(array $fijos): array
 {
     $web = contenido_web();
-    if (!is_array($web) || !array_key_exists('servicios', $web)) return API_URL === '' ? $fijos : [];
+    if (!is_array($web) || !is_array($web['servicios'] ?? null)) return $fijos;
     return array_map(fn ($s) => [
         'slug' => $s['slug'] ?: 'servicio-' . $s['id'], 'icono' => $s['icono'] ?: 'regla',
         'titulo' => $s['nombre'], 'resumen' => $s['descripcion'], 'items' => $s['items'],

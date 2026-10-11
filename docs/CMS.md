@@ -12,7 +12,7 @@ npm --prefix backend run prisma:deploy
 npm run build
 ```
 
-Reinicia la API y la intranet. En `backend/.env`, configura `CMS_WEB_URL` con la dirección pública de la web PHP; en local es `http://localhost:8080`. Esta dirección se utiliza para las vistas previas, las URLs canónicas y `sitemap.php`. El despliegue Docker de producción toma el valor de `DOMINIO_WEB` automáticamente y aplica las migraciones al arrancar la API.
+Reinicia la API y la intranet. En `backend/.env`, configura `CMS_WEB_URL` con la dirección pública de la web PHP; en local es `http://localhost:8080` y **en producción es obligatorio** (por ejemplo `https://ingelop.wuaze.com`): si falta, la API no arranca en producción. Esta dirección se utiliza para las vistas previas, las URLs canónicas y `sitemap.php`. El despliegue Docker de producción toma el valor de `DOMINIO_WEB` automáticamente y aplica las migraciones al arrancar la API.
 
 La migración agrega tres tablas y el permiso `Usuario.puedeEditarWeb`; no borra ni transforma los datos operativos existentes. Aplica primero la migración y arranca después la nueva API, porque la autenticación ahora consulta ese campo.
 
@@ -59,9 +59,9 @@ Los módulos existentes **Servicios**, **Proyectos realizados** y **Datos de la 
 
 El PHP lee `GET /api/v1/web` antes de generar HTML. La respuesta contiene datos de contacto, proyectos, servicios, documentos publicados, imágenes referenciadas y URL pública. Los servicios también se renderizan en el servidor, incluidas sus fotos; ya no dependen de un reemplazo posterior por JavaScript.
 
-Una respuesta con `servicios: []` muestra cero servicios. Si la API está configurada pero no responde y no hay copia vigente, no se restauran los servicios fijos. Estos solo se usan cuando `API_URL` se deja vacío para operar la web original sin conexión a la API.
+Una respuesta con `servicios: []` (todos ocultos desde la intranet) muestra cero servicios. Si la API no responde y no hay copia de respaldo, se muestran los servicios fijos de `config.php`, para que la web nunca se vea vacía.
 
-La última respuesta buena puede utilizarse durante un máximo de cinco minutos si la API falla. En ese intervalo puede seguir apareciendo una publicación que se acaba de retirar. Los borradores de vista previa nunca se escriben en esa copia: usan una respuesta privada sin caché, con `noindex` y `Referrer-Policy: no-referrer`.
+Si la API falla, se usa la última respuesta buena, sin importar su antigüedad. Mientras la API siga caída puede verse una publicación que ya se retiró; se corrige sola cuando la API vuelve a responder. Los borradores de vista previa nunca se escriben en esa copia: usan una respuesta privada sin caché, con `noindex` y `Referrer-Policy: no-referrer`.
 
 `sitemap.php` incluye las páginas originales y las páginas adicionales publicadas. No acepta vista previa. Los títulos, descripciones, imagen social y URL canónica se generan en PHP.
 

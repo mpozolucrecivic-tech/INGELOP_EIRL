@@ -165,7 +165,7 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
 | URL de la API para la **intranet** | `VITE_API_URL` en `frontend/.env` (se fija al compilar con `npm run build`) |
 | Dominios que pueden llamar a la API | `CORS_ORIGIN` en `backend/.env` |
 
-**Servicios.** El PHP renderiza los servicios de `GET /web` directamente en inicio, servicios, pie de página y selector de contacto, incluidas sus fotos. Una lista vacía muestra cero servicios. Si la API falla, se usa la última copia válida durante un máximo de cinco minutos; sin copia vigente no reaparecen los servicios fijos. Estos solo se usan al desactivar la API (`API_URL` vacío).
+**Servicios.** El PHP renderiza los servicios de `GET /web` directamente en inicio, servicios, pie de página y selector de contacto, incluidas sus fotos. Una lista vacía muestra cero servicios. Si la API falla, se usa la última copia válida (sin vencimiento); si no hay copia, se muestran los servicios fijos de `config.php`, para que la web nunca se vea vacía.
 
 **Datos de la empresa y proyectos realizados.** Se editan en la intranet (**Página web → Datos de la empresa / Proyectos realizados**). Cada dato de contacto tiene **Publicar en la web**: lo oculto queda guardado, pero la API no lo entrega. El PHP pide `GET /web` **antes de enviar la página** (máximo 3 s) y guarda la última respuesta buena en `web/storage/cache/web.json` (bloqueada al navegador y fuera de Git). Si la API no responde, usa esa copia y no vuelve a intentarlo durante 60 s, para que la página cargue rápido aunque Render esté "dormido".
 
@@ -185,7 +185,8 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
    - Build: `npm ci --include=dev && npx prisma generate && npm run build` (`--include=dev` porque TypeScript es dependencia de desarrollo)
    - Start: `npx prisma migrate deploy && npm start`
    - Variables: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, `TRUST_PROXY=1`,
-     `CORS_ORIGIN=https://ingelop.wuaze.com,https://<dominio-de-la-intranet>`
+     `CORS_ORIGIN=https://ingelop.wuaze.com,https://<dominio-de-la-intranet>`,
+     `CMS_WEB_URL=https://ingelop.wuaze.com` (obligatoria: canonical, sitemap y enlaces de vista previa)
 3. Una sola vez, desde la consola (Shell) de Render: `node dist/scripts/crearAdmin.js <correo> "<nombre>"` (con `ADMIN_PASSWORD`), `node dist/scripts/cargarServicios.js` y `node dist/scripts/cargarSitio.js`.
 4. **Web:** en `web/includes/api.php`, cambia `http://localhost:4000/api/v1` por `https://<servicio>.onrender.com/api/v1`. Sube también `storage/.htaccess` y comprueba que `https://<tu-web>/storage/cache/web.json` responda **403** (prohibido).
 5. **Intranet:** compila con `VITE_API_URL=https://<servicio>.onrender.com/api/v1`.

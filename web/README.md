@@ -28,13 +28,13 @@ Las páginas, sus textos e imágenes, los metadatos, la marca y el menú se prep
 
 ## Conexión con la API
 
-- **Servicios:** se generan en PHP con la lista de la API, incluidas las fotos. Una lista vacía muestra cero servicios. Si la API falla, se usa la última copia vigente; sin copia no se restauran los servicios fijos.
+- **Servicios:** se generan en PHP con la lista de la API, incluidas las fotos. Una lista vacía muestra cero servicios. Si la API falla, se usa la última copia; sin copia se muestran los servicios fijos de `config.php`.
 - **Foto de servicio:** si el servicio tiene foto, se muestra en lugar del ícono (`assets/css/conexion-api.css`).
 - **Formulario:** `assets/js/contacto.js` lo envía a la API y los mensajes se leen en la intranet (**Mensajes de la web**).
 - Si `API_URL` se deja vacío en `includes/api.php`, la web funciona como antes, solo con PHP.
 - El dominio de la web debe estar en `CORS_ORIGIN` del backend.
 
-- **Contenido público:** el PHP pide datos, proyectos, servicios y documentos publicados a la API antes de enviar la página (máximo 3 s) y guarda una copia en `storage/cache/web.json`. Si la API no responde, usa la copia durante un máximo de cinco minutos y espera 60 s antes de reintentar. Las vistas previas nunca se guardan en esta copia. La carpeta `storage/` está bloqueada al navegador: comprueba que `storage/cache/web.json` responda 403 en el hosting.
+- **Contenido público:** el PHP pide datos, proyectos, servicios y documentos publicados a la API antes de enviar la página (máximo 3 s) y guarda una copia en `storage/cache/web.json`. Si la API no responde, usa la copia (sin vencimiento) y espera 60 s antes de reintentar. Las vistas previas nunca se guardan en esta copia. La carpeta `storage/` está bloqueada al navegador: comprueba que `storage/cache/web.json` responda 403 en el hosting.
 
 ## Formulario de contacto (respaldo por PHP)
 

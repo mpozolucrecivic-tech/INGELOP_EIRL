@@ -21,6 +21,11 @@ const envSchema = z.object({
   RATE_LIMIT_VENTANA_MIN: z.coerce.number().positive().default(15),
   RATE_LIMIT_CONTACTO: z.coerce.number().int().positive().default(5),
   RATE_LIMIT_LOGIN: z.coerce.number().int().positive().default(10),
+}).superRefine((e, ctx) => {
+  // En producción, una dirección local dejaría canonical, sitemap y vistas previas apuntando a localhost
+  if (e.NODE_ENV === 'production' && /\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(e.CMS_WEB_URL)) {
+    ctx.addIssue({ code: 'custom', path: ['CMS_WEB_URL'], message: 'En producción debe ser la dirección pública de la web (ej. https://ingelop.wuaze.com)' });
+  }
 });
 
 const parsed = envSchema.safeParse(process.env);

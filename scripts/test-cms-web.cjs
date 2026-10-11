@@ -81,10 +81,16 @@ test('Web PHP: páginas CMS, contacto, SEO, imágenes, publicación vacía y cac
     const fallaPreview = await fetch(url + '/pagina.php?slug=equipo&vista_previa=' + 'a'.repeat(30));
     assert.equal(fallaPreview.status, 401);
     const cachePath = path.join(temporal, 'storage/cache/web.json');
-    const vieja = new Date(Date.now() - 301000);
+    // API caída: se usa la copia de respaldo aunque sea antigua (no vence)
+    const vieja = new Date(Date.now() - 24 * 3600 * 1000);
     fs.utimesSync(cachePath, vieja, vieja);
-    const sinCache = await fetch(url + '/pagina.php?slug=equipo');
-    assert.equal(sinCache.status, 404);
+    const conCopia = await fetch(url + '/pagina.php?slug=equipo');
+    assert.equal(conCopia.status, 200);
+    // API caída y sin copia: los servicios fijos evitan que la web se vea vacía
+    fs.rmSync(cachePath);
+    fs.rmSync(path.join(temporal, 'storage/cache/web.fallo'), { force: true });
+    const sinCopia = await (await fetch(url + '/servicios.php')).text();
+    assert.ok(sinCopia.includes('Estudios de preinversión'));
     assert.ok(!logs.includes('PHP Warning') && !logs.includes('PHP Fatal'), logs);
   } finally {
     if (proc.exitCode === null && !spawnError) { const cerrado = new Promise((r) => proc.once('exit', r)); proc.kill(); await cerrado; }
