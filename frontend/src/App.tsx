@@ -15,6 +15,7 @@ const TrabajadoresPage = lazy(() => import('@/pages/TrabajadoresPage'));
 const ServiciosPage = lazy(() => import('@/pages/ServiciosPage'));
 const MensajesPage = lazy(() => import('@/pages/MensajesPage'));
 const AuditoriaPage = lazy(() => import('@/pages/AuditoriaPage'));
+const DocumentosPage = lazy(() => import('@/pages/DocumentosPage'));
 const AyudaPage = lazy(() => import('@/pages/AyudaPage'));
 const SitioPage = lazy(() => import('@/pages/SitioPage'));
 const PortafolioPage = lazy(() => import('@/pages/PortafolioPage'));
@@ -50,6 +51,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/proyectos" element={<ProyectosPage />} />
           <Route path="/proyectos/:id/*" element={<ProyectoPage />} />
+          <Route path="/mis-documentos" element={<DocumentosPage modo="mios" />} />
           <Route path="/ayuda" element={<AyudaPage />} />
           <Route element={<RequireEditor />}>
             <Route path="/cms" element={<CmsPage />} />
@@ -63,6 +65,7 @@ export default function App() {
             <Route path="/servicios" element={<ServiciosPage />} />
             <Route path="/mensajes" element={<MensajesPage />} />
             <Route path="/auditoria" element={<AuditoriaPage />} />
+            <Route path="/documentos" element={<DocumentosPage modo="todos" />} />
             <Route path="/datos-empresa" element={<SitioPage />} />
             <Route path="/proyectos-realizados" element={<PortafolioPage />} />
           </Route>

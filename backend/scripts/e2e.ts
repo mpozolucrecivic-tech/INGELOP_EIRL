@@ -462,6 +462,68 @@ async function main() {
   expectStatus('DELETE /portafolio/:id (ocultar)', await call('DELETE', `/portafolio/${PW}`, { token: A }), 204);
   check('proyecto oculto no sale en /web', !(await call('GET', '/web')).body.proyectos.some((p: any) => p.id === PW));
 
+  seccion('Etapas');
+  expectStatus('USUARIO no inicia etapas', await call('POST', `/proyectos/${P}/etapas`, { token: U, json: { tipo: 'EXPEDIENTE_TECNICO' } }), 403);
+  const et1 = await call('POST', `/proyectos/${P}/etapas`, { token: A, json: { tipo: 'EXPEDIENTE_TECNICO' } });
+  expectStatus('iniciar primera etapa (cualquiera)', et1, 201);
+  const E1 = et1.body.id as number;
+  check('nace en elaboración', et1.body.estado === 'EN_ELABORACION');
+  expectStatus('no se repite la misma etapa', await call('POST', `/proyectos/${P}/etapas`, { token: A, json: { tipo: 'EXPEDIENTE_TECNICO' } }), 409);
+  expectStatus('no se vuelve a una etapa anterior', await call('POST', `/proyectos/${P}/etapas`, { token: A, json: { tipo: 'PREINVERSION' } }), 409);
+  const sinAprobar = await call('POST', `/proyectos/${P}/etapas`, { token: A, json: { tipo: 'SUPERVISION' } });
+  check('no se inicia la siguiente sin aprobar la anterior -> 409', sinAprobar.status === 409 && /aprobarse/.test(sinAprobar.body.message), sinAprobar.body);
+  expectStatus('USUARIO ve las etapas de su proyecto', await call('GET', `/proyectos/${P}/etapas`, { token: U }), 200);
+  expectStatus('USUARIO no aprueba', await call('POST', `/etapas/${E1}/aprobar`, { token: U }), 403);
+  expectStatus('responsable envía a revisión', await call('POST', `/etapas/${E1}/enviar`, { token: U }), 200);
+  expectStatus('no se envía dos veces', await call('POST', `/etapas/${E1}/enviar`, { token: U }), 409);
+  expectStatus('observar sin comentario', await call('POST', `/etapas/${E1}/observar`, { token: A, json: { observacion: '' } }), 422);
+  const obsEtapa = await call('POST', `/etapas/${E1}/observar`, { token: A, json: { observacion: 'Falta el plano de cortes' } });
+  check('jefatura observa con comentario', obsEtapa.status === 200 && obsEtapa.body.estado === 'OBSERVADO' && obsEtapa.body.observacion === 'Falta el plano de cortes' && obsEtapa.body.observadoPor?.id, obsEtapa.body);
+  expectStatus('responsable corrige y reenvía', await call('POST', `/etapas/${E1}/enviar`, { token: U }), 200);
+
+  seccion('Documentos');
+  const archivoDoc = (nombre: string, contenido: Buffer | string, categoria = 'MEMORIA') => {
+    const f = new FormData();
+    f.append('categoria', categoria);
+    f.append('descripcion', 'Documento de prueba');
+    f.append('archivo', new Blob([typeof contenido === 'string' ? contenido : new Uint8Array(contenido)]), nombre);
+    return f;
+  };
+  const pdfDoc = Buffer.from('%PDF-1.4\n1 0 obj << >> endobj\ntrailer << >>\n%%EOF');
+  const rutaDocs = `/proyectos/${P}/etapas/${E1}/documentos`;
+  expectStatus('formato no permitido (.exe)', await call('POST', rutaDocs, { token: U, form: archivoDoc('virus.exe', 'MZ') }), 400);
+  expectStatus('PDF falso (texto renombrado)', await call('POST', rutaDocs, { token: U, form: archivoDoc('falso.pdf', 'no soy un pdfDoc') }), 400);
+  expectStatus('categoría inválida', await call('POST', rutaDocs, { token: U, form: archivoDoc('memoria.pdf', pdfDoc, 'OTRA') }), 422);
+  const docU = await call('POST', rutaDocs, { token: U, form: archivoDoc('memoria.pdf', pdfDoc) });
+  expectStatus('USUARIO sube un PDF', docU, 201);
+  check('guarda quién lo subió y sin ruta interna', docU.body.usuario?.id === usuarioId && !('ruta' in docU.body) && docU.body.descargaUrl, docU.body);
+  const docA = await call('POST', rutaDocs, { token: A, form: archivoDoc('plano.dwg', Buffer.from('AC1032' + '\0'.repeat(20)), 'PLANOS') });
+  expectStatus('jefatura sube un DWG', docA, 201);
+  const vistosU = await call('GET', `/proyectos/${P}/documentos`, { token: U });
+  check('USUARIO ve solo sus documentos dentro del proyecto', vistosU.body.length === 1 && vistosU.body[0].id === docU.body.id, vistosU.body.map((d: any) => d.id));
+  check('jefatura ve todos', (await call('GET', `/proyectos/${P}/documentos`, { token: A })).body.length === 2);
+  expectStatus('USUARIO no descarga el de otro', await call('GET', `/documentos/${docA.body.id}/archivo`, { token: U }), 403);
+  const bajada = await fetch(`${API}/documentos/${docU.body.id}/archivo`, { headers: { Authorization: `Bearer ${U}` } });
+  check('USUARIO descarga el suyo', bajada.status === 200 && (await bajada.text()).startsWith('%PDF'));
+  expectStatus('USUARIO GET /documentos (global)', await call('GET', '/documentos', { token: U }), 403);
+  const mios = await call('GET', '/documentos/mios', { token: U });
+  check('Mis documentos: solo los suyos', mios.status === 200 && mios.body.total >= 1 && mios.body.documentos.every((d: any) => d.usuario.id === usuarioId), mios.body);
+  const filtradosDoc = await call('GET', `/documentos?proyectoId=${P}&etapa=EXPEDIENTE_TECNICO&categoria=PLANOS`, { token: A });
+  check('jefatura filtra por proyecto, etapa y categoría', filtradosDoc.body.total === 1 && filtradosDoc.body.documentos[0].id === docA.body.id, filtradosDoc.body);
+  expectStatus('USUARIO edita la descripción del suyo', await call('PATCH', `/documentos/${docU.body.id}`, { token: U, json: { descripcion: 'Memoria corregida' } }), 200);
+  expectStatus('USUARIO no elimina', await call('DELETE', `/documentos/${docU.body.id}`, { token: U }), 403);
+  expectStatus('no se elimina una etapa con documentos', await call('DELETE', `/etapas/${E1}`, { token: A }), 409);
+
+  // Aprobar y avanzar
+  expectStatus('jefatura aprueba', await call('POST', `/etapas/${E1}/aprobar`, { token: A }), 200);
+  expectStatus('etapa aprobada no admite documentos', await call('POST', rutaDocs, { token: U, form: archivoDoc('tarde.pdf', pdfDoc) }), 409);
+  const et2 = await call('POST', `/proyectos/${P}/etapas`, { token: A, json: { tipo: 'SUPERVISION' } });
+  expectStatus('con la anterior aprobada, se inicia la siguiente', et2, 201);
+  expectStatus('no se reabre una etapa aprobada con otra posterior', await call('POST', `/etapas/${E1}/observar`, { token: A, json: { observacion: 'Reabrir por error' } }), 409);
+  expectStatus('la última etapa sin documentos se puede eliminar', await call('DELETE', `/etapas/${et2.body.id}`, { token: A }), 204);
+  expectStatus('jefatura elimina un documento', await call('DELETE', `/documentos/${docA.body.id}`, { token: A }), 204);
+  expectStatus('documento eliminado ya no existe', await call('GET', `/documentos/${docA.body.id}/archivo`, { token: A }), 404);
+
   seccion('Auditoría');
   await new Promise((r) => setTimeout(r, 400)); // los eventos se guardan al terminar cada petición
   expectStatus('USUARIO GET /auditoria', await call('GET', '/auditoria', { token: U }), 403);
@@ -471,6 +533,12 @@ async function main() {
   const denegados = await call('GET', '/auditoria?accion=ACCESO_DENEGADO&porPagina=50', { token: A });
   check('acceso denegado registrado con el usuario', denegados.body.registros.some((r: any) => r.usuarioId === usuarioId && r.codigoHttp === 403));
   const permisos = await call('GET', `/auditoria?accion=CAMBIO_PERMISOS&porPagina=50`, { token: A });
+  const subidas = await call('GET', '/auditoria?accion=SUBIR&modulo=documentos&porPagina=20', { token: A });
+  check('subida de documento auditada con usuario e IP', subidas.body.registros.some((r: any) => r.usuarioId === usuarioId && r.ip && r.detalle?.archivo?.nombre === 'memoria.pdf'), subidas.body.registros?.[0]);
+  const observadas = await call('GET', '/auditoria?accion=OBSERVAR&porPagina=20', { token: A });
+  check('observación de etapa auditada', observadas.body.registros.some((r: any) => r.modulo === 'etapas' && r.registroId === String(E1)));
+  const descargas = await call('GET', '/auditoria?accion=DESCARGAR&modulo=documentos&porPagina=20', { token: A });
+  check('descarga de documento auditada', descargas.body.registros.some((r: any) => r.usuarioId === usuarioId));
   check('creación de usuario registrada como cambio de permisos', permisos.body.registros.some((r: any) => r.registroId === String(usuarioId)));
   const todo = await call('GET', '/auditoria?porPagina=200', { token: A });
   check('ningún registro guarda contraseñas', !JSON.stringify(todo.body).includes('Clave12345') && !JSON.stringify(todo.body).includes(ADMIN_PASSWORD));

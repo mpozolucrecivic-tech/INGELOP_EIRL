@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { Building2, FileStack, Inbox, KeyRound, Layers, Lightbulb } from 'lucide-react';
+import { Building2, FileStack, FolderOpen, Inbox, KeyRound, Layers, Lightbulb } from 'lucide-react';
 import { Card, PageHeader } from '@/components/ui/Display';
 import { useAuth } from '@/context/AuthContext';
 
@@ -54,6 +54,19 @@ const guias: Guia[] = [
       <>Envíale su correo y su contraseña para que inicie sesión.</>,
     ],
     consejo: <>Si alguien deja la empresa, desactiva su acceso: no se borra nada de lo que subió.</>,
+  },
+  {
+    icono: <FolderOpen className="size-5" />,
+    titulo: 'Etapas del proyecto y sus documentos',
+    admin: false,
+    pasos: [
+      <>En el proyecto, abre <b>Etapas y documentos</b>. La jefatura pulsa <b>Iniciar primera etapa</b> (preinversión, expediente técnico, supervisión o liquidación).</>,
+      <>Dentro de la etapa, pulsa <b>Subir documento</b>, elige la categoría (memoria, planos, metrados, presupuesto, cronograma o informe) y el archivo.</>,
+      <>Cuando la etapa esté lista, el responsable pulsa <b>Enviar a revisión</b>.</>,
+      <>La jefatura la <b>aprueba</b> o la <b>observa</b> con un comentario. Si está observada, corrige y pulsa <b>Reenviar a revisión</b>.</>,
+      <>Con la etapa aprobada, la jefatura puede iniciar la siguiente. Una etapa aprobada ya no admite documentos nuevos.</>,
+    ],
+    consejo: <>Cada arquitecto o ingeniero ve solo los documentos que él subió; su historial está en <Link to="/mis-documentos" className={enlace}>Mis documentos</Link>. La jefatura ve todos en <b>Documentos</b>.</>,
   },
   {
     icono: <FileStack className="size-5" />,

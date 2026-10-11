@@ -251,6 +251,8 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 |---|---|---|
 | **Resumen general** | "Primeros pasos" (mientras falte algo), proyectos en desarrollo, monto contratado vs gastos, **planos esperando revisión**, **entregables vencidos**, horas trabajadas del mes, estado por proyecto | — |
 | **Proyectos** | Todos, con búsqueda y filtros; crear | Solo los suyos |
+| **Documentos** | Todos los documentos de todos los proyectos, con filtros (proyecto, etapa, categoría, persona, fechas); descargar y eliminar | — |
+| **Mis documentos** | — | Historial de lo que subió |
 | **Clientes** | Municipalidades, gobiernos regionales, empresas privadas y personas (RUC/DNI, contacto) | — |
 | **Personal y tarifas** | Profesionales con su costo por hora (no necesitan cuenta) | — |
 | **Accesos a la intranet** | Cuentas para iniciar sesión, con el último acceso (fecha e IP) | — |
@@ -261,13 +263,14 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | **Mensajes** | Mensajes del formulario de la web (contador de no leídos en el menú) | — |
 | **Ayuda** | Guías paso a paso | Solo las guías que le aplican |
 | Proyecto → **Resumen** | Planos aprobados, entregables aprobados, plazo, horas, presupuestos, dinero del proyecto | Igual, sin dinero |
+| Proyecto → **Etapas y documentos** | Iniciar etapas, aprobar u observar con comentario; ver y eliminar todos los documentos | Ver el estado de cada etapa, enviar o reenviar a revisión, subir documentos y ver **solo los suyos** |
 | Proyecto → **Planos** | Por especialidad; aprobar/observar, historial de revisiones | Registrar, subir revisiones, descargar |
 | Proyecto → **Presupuestos** | Editor de partidas, versiones, aprobar/observar, Excel, PDF | Editar y enviar a revisión |
 | Proyecto → **Entregables** | Checklist del expediente, plantilla, fechas límite | Solo lectura |
 | Proyecto → **Tareas** | Tareas por periodo de trabajo (en la API: *sprints*), arrastrando tarjetas | Solo lectura |
 | Proyecto → **Equipo y horas** | Asignar profesionales, registrar horas por tarea, horas trabajadas y costo | — |
 | Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen) | — |
-| Proyecto → **Documentos** | Galería de actas, informes, fotos y observaciones | Subir y ver |
+| Proyecto → **Fotos y observaciones** | Galería de actas, informes, fotos y observaciones (evidencias) | Subir y ver |
 | Proyecto → **Ajustes** | Editar el proyecto, dar/quitar acceso, eliminar | — |
 
 ## API (`/api/v1`)
@@ -327,7 +330,23 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | GET / POST | `/proyectos/:id/gastos` | A | Gastos del servicio |
 | GET | `/proyectos/:id/gastos/resumen` | A/U | Frente al monto del contrato (margen), por categoría y por mes |
 | PUT / DELETE | `/gastos/:id` | A | |
-| **Documentos** ||||
+| **Etapas** (orden: preinversión → expediente técnico → supervisión → liquidación) ||||
+| GET | `/proyectos/:id/etapas` | A/U | Etapas y su estado (todos los asignados las ven) |
+| POST | `/proyectos/:id/etapas` | A | Iniciar etapa (`tipo`, `fechaInicio?`, `fechaFin?`). La primera es libre; la siguiente exige la anterior **aprobada**; nunca hacia atrás |
+| PATCH | `/etapas/:id` | A | Fechas |
+| POST | `/etapas/:id/enviar` | A/U | En elaboración u observada → en revisión |
+| POST | `/etapas/:id/aprobar` | A | Aprobar (ya no admite documentos nuevos) |
+| POST | `/etapas/:id/observar` | A | Observar con `observacion` obligatoria; no se reabre si ya existe una etapa posterior |
+| DELETE | `/etapas/:id` | A | Solo la última y sin documentos |
+| **Documentos de las etapas** ||||
+| GET | `/proyectos/:id/documentos` | A/U | Jefatura: todos. Arquitecto o ingeniero: **solo los que subió** (`?etapaId=&categoria=`) |
+| POST | `/proyectos/:id/etapas/:etapaId/documentos` | A/U | multipart: `archivo`, `categoria` (MEMORIA, PLANOS, METRADOS, PRESUPUESTO, CRONOGRAMA, INFORME), `descripcion?`. PDF, Word, Excel, imágenes, DWG, DXF o ZIP; se verifica la firma real del archivo |
+| GET | `/documentos` | A | Todos, con filtros `proyectoId, etapa, categoria, usuarioId, desde, hasta, q` y paginación |
+| GET | `/documentos/mios` | A/U | Historial propio |
+| GET | `/documentos/:id/archivo` | A/U | Descarga (dueño o jefatura); `?ver=true` para abrir en el navegador |
+| PATCH | `/documentos/:id` | A/U | Categoría o descripción (dueño o jefatura) |
+| DELETE | `/documentos/:id` | A | El archivo pasa a una papelera: si falla la BD vuelve a su lugar; si no, se borra |
+| **Fotos y observaciones (evidencias)** ||||
 | GET / POST | `/proyectos/:id/evidencias` | A/U | Documentos, fotos y observaciones (multipart) |
 | GET | `/evidencias/:id/archivo` | A/U | Archivo protegido |
 | DELETE | `/evidencias/:id` | A | |

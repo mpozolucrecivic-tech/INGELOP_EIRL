@@ -14,6 +14,7 @@ import EntregablesTab from './EntregablesTab';
 import EquipoTab from './EquipoTab';
 import GastosTab from './GastosTab';
 import EvidenciasTab from './EvidenciasTab';
+import EtapasTab from './EtapasTab';
 import AjustesTab from './AjustesTab';
 
 export default function ProyectoPage() {
@@ -27,14 +28,16 @@ export default function ProyectoPage() {
 
   const base = `/proyectos/${id}`;
   const tabs = [
+    // Ordenadas por uso: lo documental primero, lo administrativo al final
     { to: base, label: 'Resumen', end: true },
+    { to: `${base}/etapas`, label: 'Etapas y documentos' },
     { to: `${base}/planos`, label: 'Planos' },
-    { to: `${base}/presupuestos`, label: 'Presupuestos' },
+    { to: `${base}/fotos`, label: 'Fotos y observaciones' },
     { to: `${base}/entregables`, label: 'Entregables' },
-    { to: `${base}/tablero`, label: 'Tareas' },
+    { to: `${base}/presupuestos`, label: 'Presupuestos' },
     ...(esAdmin ? [{ to: `${base}/equipo`, label: 'Equipo y horas' }] : []),
     ...(esAdmin ? [{ to: `${base}/gastos`, label: 'Gastos' }] : []),
-    { to: `${base}/documentos`, label: 'Documentos' },
+    { to: `${base}/tablero`, label: 'Tareas' },
     ...(esAdmin ? [{ to: `${base}/ajustes`, label: 'Ajustes' }] : []),
   ];
 
@@ -98,7 +101,10 @@ export default function ProyectoPage() {
         <Route path="presupuestos" element={<PresupuestosTab proyectoId={id} />} />
         <Route path="entregables" element={<EntregablesTab proyectoId={id} />} />
         <Route path="tablero" element={<TableroTab proyectoId={id} />} />
-        <Route path="documentos" element={<EvidenciasTab proyectoId={id} />} />
+        <Route path="etapas" element={<EtapasTab proyectoId={id} />} />
+        <Route path="fotos" element={<EvidenciasTab proyectoId={id} />} />
+        {/* Dirección anterior de "Fotos y observaciones" */}
+        <Route path="documentos" element={<Navigate to={`${base}/fotos`} replace />} />
         {esAdmin && (
           <>
             <Route path="equipo" element={<EquipoTab proyectoId={id} />} />

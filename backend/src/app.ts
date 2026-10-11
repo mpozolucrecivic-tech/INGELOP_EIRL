@@ -5,6 +5,8 @@ import { verifyToken } from './middlewares/auth';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { auditarPeticion, idPeticion } from './middlewares/auditoria';
 import auditoriaRoutes from './modules/auditoria/auditoria.routes';
+import etapasRoutes from './modules/etapas/etapas.routes';
+import documentosRoutes from './modules/documentos/documentos.routes';
 import { env } from './config/env';
 
 import authRoutes from './modules/auth/auth.routes';
@@ -70,6 +72,8 @@ api.use(entregablesRoutes);
 api.use(personalRoutes);
 api.use(gastosRoutes);
 api.use(evidenciasRoutes);
+api.use(etapasRoutes);
+api.use(documentosRoutes);
 api.use(dashboardRoutes);
 api.use(serviciosRoutes);
 api.use(contactoRoutes);

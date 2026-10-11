@@ -5,6 +5,7 @@ import type { Request, RequestHandler } from 'express';
 import multer, { MulterError } from 'multer';
 import { env } from '../config/env';
 import { AppError } from '../utils/AppError';
+import { EXTENSIONES_DOCUMENTO } from '../utils/firmaArchivo';
 
 interface UploadOptions {
   /** Subcarpeta dentro de UPLOAD_DIR para la petición (ej. "proyectos/3/planos") */
@@ -120,4 +121,18 @@ export const uploadFotoPortafolio = crearUpload({
   maxMB: env.MAX_FOTO_MB,
   validar: (file, ext) =>
     TIPOS_FOTO[file.mimetype]?.includes(ext) ? null : 'Formato de foto no permitido. Use JPG, PNG o WEBP',
+});
+
+// ---------- Documentos de las etapas (gestión documental) ----------
+
+/**
+ * Guarda en <UPLOAD_DIR>/proyectos/<id>/documentos/. Aquí se filtra por extensión (los navegadores envían
+ * DWG/DXF como application/octet-stream); el servicio verifica además la firma real del archivo.
+ */
+export const uploadDocumento = crearUpload({
+  carpeta: (req) => path.join('proyectos', String(Number(req.params.id)), 'documentos'),
+  validar: (_file, ext) =>
+    EXTENSIONES_DOCUMENTO.includes(ext)
+      ? null
+      : `Formato no permitido (${ext || 'sin extensión'}). Use PDF, Word, Excel, imágenes, DWG, DXF o ZIP`,
 });

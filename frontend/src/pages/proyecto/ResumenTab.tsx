@@ -220,7 +220,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
       )}
 
       <Card>
-        <CardHeader title="Últimos documentos" subtitle={`${evidencias.total} en total`} action={<Link to={`${base}/documentos`} className={link}>Ver todos</Link>} />
+        <CardHeader title="Últimas fotos y observaciones" subtitle={`${evidencias.total} en total`} action={<Link to={`${base}/fotos`} className={link}>Ver todas</Link>} />
         {evidencias.ultimas.length ? (
           <ul className="divide-y divide-slate-100">
             {evidencias.ultimas.map((e) => (

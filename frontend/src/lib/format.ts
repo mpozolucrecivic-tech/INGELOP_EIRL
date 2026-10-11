@@ -1,4 +1,4 @@
-import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, TipoServicio } from '@/types/api';
+import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, TipoServicio, TipoEtapa, EstadoEtapa, CategoriaDocumento } from '@/types/api';
 
 const soles = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
 const solesCorto = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', notation: 'compact', maximumFractionDigits: 1 });
@@ -185,4 +185,32 @@ export const ACCION_AUDITORIA: Record<string, { label: string; color: 'slate' | 
   CONTACTO_BLOQUEADO: { label: 'Formulario bloqueado (spam)', color: 'amber' },
   CONSULTA_AUDITORIA: { label: 'Consulta de auditoría', color: 'slate' },
   PURGA_AUDITORIA: { label: 'Limpieza de registros antiguos', color: 'violet' },
+  ENVIAR_REVISION: { label: 'Enviar a revisión', color: 'blue' },
+  APROBAR: { label: 'Aprobar', color: 'green' },
+  OBSERVAR: { label: 'Observar', color: 'amber' },
 };
+
+/** Etapas de un proyecto, en orden */
+export const ORDEN_ETAPAS: TipoEtapa[] = ['PREINVERSION', 'EXPEDIENTE_TECNICO', 'SUPERVISION', 'LIQUIDACION'];
+export const TIPO_ETAPA: Record<TipoEtapa, string> = {
+  PREINVERSION: 'Preinversión',
+  EXPEDIENTE_TECNICO: 'Expediente técnico',
+  SUPERVISION: 'Supervisión',
+  LIQUIDACION: 'Liquidación',
+};
+export const ESTADO_ETAPA: Record<EstadoEtapa, { label: string; color: 'slate' | 'blue' | 'amber' | 'green' }> = {
+  EN_ELABORACION: { label: 'En elaboración', color: 'slate' },
+  EN_REVISION: { label: 'En revisión', color: 'blue' },
+  OBSERVADO: { label: 'Observado', color: 'amber' },
+  APROBADO: { label: 'Aprobado', color: 'green' },
+};
+export const CATEGORIA_DOCUMENTO: Record<CategoriaDocumento, string> = {
+  MEMORIA: 'Memoria descriptiva',
+  PLANOS: 'Planos',
+  METRADOS: 'Metrados',
+  PRESUPUESTO: 'Presupuesto',
+  CRONOGRAMA: 'Cronograma',
+  INFORME: 'Informe',
+};
+/** Formatos que acepta la API (se verifica también el contenido real del archivo) */
+export const FORMATOS_DOCUMENTO = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.dwg,.dxf,.zip';

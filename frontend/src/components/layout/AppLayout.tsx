@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
-import { Briefcase, Building2, CircleHelp, Contact, HardHat, Images, Inbox, KeyRound, ShieldCheck, Layers, LayoutDashboard, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
+import { Briefcase, Building2, CircleHelp, Contact, FileText, FolderOpen, HardHat, Images, Inbox, KeyRound, ShieldCheck, Layers, LayoutDashboard, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
 import { useMensajesSinLeer } from '@/api/admin';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/Display';
@@ -14,6 +14,8 @@ interface NavItem {
   admin: boolean;
   editor?: boolean;
   end?: boolean;
+  /** Solo para quien NO es jefatura (la jefatura ya ve todo en "Documentos") */
+  noAdmin?: boolean;
   /** Muestra la cantidad de mensajes sin leer */
   contador?: 'mensajes';
 }
@@ -25,6 +27,8 @@ const navGrupos: { titulo?: string; items: NavItem[] }[] = [
     titulo: 'Trabajo',
     items: [
       { to: '/proyectos', label: 'Proyectos', icon: Building2, admin: false },
+      { to: '/documentos', label: 'Documentos', icon: FolderOpen, admin: true },
+      { to: '/mis-documentos', label: 'Mis documentos', icon: FileText, admin: false, noAdmin: true },
       { to: '/clientes', label: 'Clientes', icon: Briefcase, admin: true },
     ],
   },
@@ -66,7 +70,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { usuario, esAdmin, puedeEditarWeb, logout } = useAuth();
   const { data: sinLeer = 0 } = useMensajesSinLeer(esAdmin);
   const grupos = navGrupos
-    .map((g) => ({ ...g, items: g.items.filter((i) => (!i.admin || esAdmin) && (!i.editor || puedeEditarWeb)) }))
+    .map((g) => ({ ...g, items: g.items.filter((i) => (!i.admin || esAdmin) && (!i.editor || puedeEditarWeb) && (!i.noAdmin || !esAdmin)) }))
     .filter((g) => g.items.length > 0);
 
   return (

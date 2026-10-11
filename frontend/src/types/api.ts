@@ -484,3 +484,46 @@ export interface UltimoAcceso {
   fecha: string;
   ip: string | null;
 }
+
+// ---------- Etapas y gestión documental ----------
+
+export type TipoEtapa = 'PREINVERSION' | 'EXPEDIENTE_TECNICO' | 'SUPERVISION' | 'LIQUIDACION';
+export type EstadoEtapa = 'EN_ELABORACION' | 'EN_REVISION' | 'OBSERVADO' | 'APROBADO';
+export type CategoriaDocumento = 'MEMORIA' | 'PLANOS' | 'METRADOS' | 'PRESUPUESTO' | 'CRONOGRAMA' | 'INFORME';
+
+export interface Etapa {
+  id: number;
+  proyectoId: number;
+  tipo: TipoEtapa;
+  estado: EstadoEtapa;
+  fechaInicio: string;
+  fechaFin: string | null;
+  fechaAprobacion: string | null;
+  observacion: string | null;
+  observadoEn: string | null;
+  observadoPor: { id: number; nombre: string } | null;
+}
+
+export interface Documento {
+  id: number;
+  proyectoId: number;
+  etapaId: number;
+  categoria: CategoriaDocumento;
+  nombreArchivo: string;
+  tamano: number;
+  tipoArchivo: string;
+  descripcion: string | null;
+  fecha: string;
+  usuario: { id: number; nombre: string };
+  etapa: { id: number; tipo: TipoEtapa; estado: EstadoEtapa };
+  proyecto: { id: number; nombre: string };
+  /** Ruta protegida con JWT (/api/v1/documentos/:id/archivo) */
+  descargaUrl: string;
+}
+
+export interface PaginaDocumentos {
+  total: number;
+  pagina: number;
+  porPagina: number;
+  documentos: Documento[];
+}

@@ -17,13 +17,17 @@ const ACCIONES_ESPECIALES: Record<string, string> = {
   restaurar: 'RESTAURAR',
   'vista-previa': 'VISTA_PREVIA',
   duplicar: 'CREAR',
+  enviar: 'ENVIAR_REVISION',
+  aprobar: 'APROBAR',
+  observar: 'OBSERVAR',
 };
 const CAMPO_SENSIBLE = /pass|token|secret|clave_?acceso/i;
 
 /** Módulo a partir de la plantilla: /proyectos/:id/evidencias -> evidencias; /planos/:id -> planos */
 function moduloDe(ruta: string): string {
-  const literales = ruta.split('/').filter((s) => s && !s.startsWith(':'));
-  if (literales[0] === 'proyectos' && literales[1]) return literales[1];
+  const literales = ruta.split('/').filter((s) => s && !s.startsWith(':') && !(s in ACCIONES_ESPECIALES));
+  // Dentro de un proyecto manda el recurso más específico: /proyectos/:id/etapas/:id/documentos -> documentos
+  if (literales[0] === 'proyectos' && literales.length > 1) return literales[literales.length - 1];
   return literales[0] ?? 'desconocido';
 }
 

@@ -13,6 +13,8 @@ export interface StorageProvider {
   resolve(key: string): string;
   exists(key: string): Promise<boolean>;
   remove(key: string): Promise<void>;
+  /** Mueve un archivo (se usa para la papelera al eliminar documentos) */
+  move(from: string, to: string): Promise<void>;
   removePrefix(prefix: string): Promise<void>;
 }
 
@@ -35,6 +37,11 @@ const localStorageProvider: StorageProvider = {
   },
   async remove(key) {
     await fs.promises.rm(safeJoin(key), { force: true });
+  },
+  async move(from, to) {
+    const destino = safeJoin(to);
+    await fs.promises.mkdir(path.dirname(destino), { recursive: true });
+    await fs.promises.rename(safeJoin(from), destino);
   },
   async removePrefix(prefix) {
     await fs.promises.rm(safeJoin(prefix), { recursive: true, force: true });
