@@ -3,6 +3,8 @@ import type { Rol } from '@prisma/client';
 export interface UsuarioAutenticado {
   id: number;
   rol: Rol;
+  /** Nombre (lo carga verifyToken desde la BD; se usa en la auditoría) */
+  nombre?: string;
 }
 
 declare global {
@@ -12,6 +14,8 @@ declare global {
       usuario: UsuarioAutenticado;
       /** Proyecto destino de un archivo cuando la ruta no lo trae en :id (ej. /planos/:id/versiones) */
       proyectoIdUpload?: number;
+      /** Identificador único de la petición (auditoría y cabecera X-Request-Id) */
+      idPeticion: string;
     }
   }
 }

@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
-import { Briefcase, Building2, CircleHelp, Contact, HardHat, Images, Inbox, KeyRound, Layers, LayoutDashboard, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
+import { Briefcase, Building2, CircleHelp, Contact, HardHat, Images, Inbox, KeyRound, ShieldCheck, Layers, LayoutDashboard, LogOut, Menu, X, type LucideIcon } from 'lucide-react';
 import { useMensajesSinLeer } from '@/api/admin';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/Display';
@@ -33,6 +33,7 @@ const navGrupos: { titulo?: string; items: NavItem[] }[] = [
     items: [
       { to: '/trabajadores', label: 'Personal y tarifas', icon: HardHat, admin: true },
       { to: '/usuarios', label: 'Accesos a la intranet', icon: KeyRound, admin: true },
+      { to: '/auditoria', label: 'Auditoría', icon: ShieldCheck, admin: true },
     ],
   },
   {

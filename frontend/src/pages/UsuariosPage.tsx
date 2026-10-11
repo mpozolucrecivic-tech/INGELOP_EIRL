@@ -4,12 +4,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Pencil, Plus, UserX, Users } from 'lucide-react';
 import { useActualizarUsuario, useCrearUsuario, useDesactivarUsuario, useUsuarios } from '@/api/admin';
+import { useUltimosAccesos } from '@/api/auditoria';
 import { Button, IconButton } from '@/components/ui/Button';
 import { Badge, Card, EmptyState, ErrorState, PageHeader, Spinner, Table, td, th } from '@/components/ui/Display';
 import { Input, Select } from '@/components/ui/Field';
 import { Modal, useConfirm } from '@/components/ui/Modal';
 import { useAuth } from '@/context/AuthContext';
-import { formatFecha, ROL } from '@/lib/format';
+import { formatFecha, formatFechaHora, ROL } from '@/lib/format';
 import type { Usuario } from '@/types/api';
 
 export default function UsuariosPage() {
@@ -17,6 +18,8 @@ export default function UsuariosPage() {
   const [verInactivos, setVerInactivos] = useState(false);
   const [modal, setModal] = useState<{ usuario?: Usuario } | null>(null);
   const { data: usuarios, isLoading, error, refetch } = useUsuarios(verInactivos ? {} : { activo: true });
+  const { data: accesos } = useUltimosAccesos();
+  const ultimoAcceso = new Map((accesos ?? []).map((a) => [a.usuarioId, a]));
   const desactivar = useDesactivarUsuario();
   const reactivar = useActualizarUsuario();
   const { confirm, dialog } = useConfirm();
@@ -55,6 +58,7 @@ export default function UsuariosPage() {
                 <th className={th}>Rol</th>
                 <th className={th}>Proyectos asignados</th>
                 <th className={th}>Alta</th>
+                <th className={th}>Último acceso</th>
                 <th className={th} />
               </tr>
             </thead>
@@ -84,6 +88,16 @@ export default function UsuariosPage() {
                     )}
                   </td>
                   <td className={`${td} whitespace-nowrap text-xs text-slate-500`}>{formatFecha(u.creadoEn)}</td>
+                  <td className={`${td} whitespace-nowrap text-xs text-slate-500`}>
+                    {ultimoAcceso.get(u.id) ? (
+                      <>
+                        {formatFechaHora(ultimoAcceso.get(u.id)!.fecha)}
+                        <p className="font-mono">{ultimoAcceso.get(u.id)!.ip ?? ''}</p>
+                      </>
+                    ) : (
+                      'Nunca'
+                    )}
+                  </td>
                   <td className={td}>
                     <div className="flex justify-end">
                       {u.activo ? (

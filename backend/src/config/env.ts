@@ -21,6 +21,11 @@ const envSchema = z.object({
   RATE_LIMIT_VENTANA_MIN: z.coerce.number().positive().default(15),
   RATE_LIMIT_CONTACTO: z.coerce.number().int().positive().default(5),
   RATE_LIMIT_LOGIN: z.coerce.number().int().positive().default(10),
+  // Bloqueo por CUENTA (además del límite por IP): N fallos seguidos bloquean ese correo M minutos
+  LOGIN_BLOQUEO_INTENTOS: z.coerce.number().int().min(3).default(5),
+  LOGIN_BLOQUEO_MIN: z.coerce.number().int().positive().default(15),
+  // Conservación de la auditoría: mínimo 2 años (Reglamento de la Ley 29733, DS 016-2024-JUS)
+  AUDITORIA_RETENCION_DIAS: z.coerce.number().int().min(730, 'Debe ser de al menos 730 días (2 años)').default(730),
 }).superRefine((e, ctx) => {
   // En producción, una dirección local dejaría canonical, sitemap y vistas previas apuntando a localhost
   if (e.NODE_ENV === 'production' && /\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(e.CMS_WEB_URL)) {

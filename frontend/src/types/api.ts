@@ -440,3 +440,47 @@ export interface ProyectoWeb {
   orden: number;
   activo: boolean;
 }
+
+// ---------- Auditoría ----------
+
+export interface RegistroAuditoria {
+  id: number;
+  fecha: string;
+  accion: string;
+  modulo: string;
+  registroId: string | null;
+  resultado: 'EXITO' | 'FALLO';
+  codigoHttp: number | null;
+  usuarioId: number | null;
+  usuarioNombre: string | null;
+  correo: string | null;
+  ip: string | null;
+  cadenaIp: string | null;
+  navegador: string | null;
+  metodo: string | null;
+  ruta: string | null;
+  idPeticion: string | null;
+  detalle: Record<string, unknown> | null;
+}
+
+export interface PaginaAuditoria {
+  total: number;
+  pagina: number;
+  porPagina: number;
+  registros: RegistroAuditoria[];
+}
+
+export interface AlertasAuditoria {
+  loginsFallidos: number;
+  bloqueos: number;
+  accesosDenegados: number;
+  tokensAlterados: number;
+  ipsSospechosas: { ip: string | null; eventos: number }[];
+  accesosNuevos: Pick<RegistroAuditoria, 'id' | 'fecha' | 'usuarioId' | 'usuarioNombre' | 'ip' | 'navegador' | 'detalle'>[];
+}
+
+export interface UltimoAcceso {
+  usuarioId: number;
+  fecha: string;
+  ip: string | null;
+}

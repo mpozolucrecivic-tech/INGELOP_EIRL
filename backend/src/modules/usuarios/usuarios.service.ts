@@ -38,6 +38,11 @@ export async function crear(data: CrearUsuarioInput) {
   });
 }
 
+/** Rol, estado y permiso web actuales (para registrar el antes/después en la auditoría) */
+export function permisos(id: number) {
+  return prisma.usuario.findUnique({ where: { id }, select: { rol: true, activo: true, puedeEditarWeb: true } });
+}
+
 export async function actualizar(id: number, data: ActualizarUsuarioInput, solicitanteId: number) {
   const usuario = await prisma.usuario.findUnique({ where: { id } });
   if (!usuario) throw AppError.notFound('Usuario no encontrado');

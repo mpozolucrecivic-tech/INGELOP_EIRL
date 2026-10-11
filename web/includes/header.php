@@ -81,7 +81,7 @@ $jsonLd = array_filter($jsonLd, fn ($v) => $v !== null);
     <link rel="stylesheet" href="assets/css/conexion-api.css?v=1">
     <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 </head>
-<body data-servicios-servidor="1" class="pagina-<?= e($pagina) ?>"<?= API_URL !== '' ? ' data-api="' . e(API_URL) . '"' : '' ?>>
+<body class="pagina-<?= e($pagina) ?>"<?= API_URL !== '' ? ' data-api="' . e(API_URL) . '"' : '' ?>>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
 <header class="cabecera" id="cabecera">

@@ -6,6 +6,12 @@ AddDefaultCharset UTF-8
 # Página 404 propia
 ErrorDocument 404 /404.php
 
+# robots.txt se genera con PHP para incluir la URL completa del sitemap
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^robots\.txt$ robots.php [L]
+</IfModule>
+
 # Bloquea el acceso directo a includes y a la carpeta de mensajes
 RedirectMatch 404 ^/(includes|storage)(/|$)
 

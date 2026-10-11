@@ -162,3 +162,26 @@ export const COLORES_CATEGORIA: Record<CategoriaGasto, string> = {
   EQUIPOS: '#7c3aed',
   OTROS: '#64748b',
 };
+
+/** Acciones de la auditoría en lenguaje claro (las claves son las que guarda la API) */
+export const ACCION_AUDITORIA: Record<string, { label: string; color: 'slate' | 'blue' | 'amber' | 'green' | 'red' | 'violet' }> = {
+  LOGIN_OK: { label: 'Inicio de sesión', color: 'green' },
+  LOGIN_FALLIDO: { label: 'Inicio de sesión fallido', color: 'amber' },
+  LOGIN_BLOQUEADO: { label: 'Inicio de sesión bloqueado', color: 'red' },
+  SESION_RECHAZADA: { label: 'Sesión rechazada', color: 'red' },
+  TOKEN_ALTERADO: { label: 'Sesión alterada', color: 'red' },
+  ACCESO_DENEGADO: { label: 'Acceso denegado', color: 'red' },
+  CAMBIO_PERMISOS: { label: 'Cambio de permisos', color: 'violet' },
+  CREAR: { label: 'Crear', color: 'blue' },
+  EDITAR: { label: 'Editar', color: 'blue' },
+  ELIMINAR: { label: 'Eliminar', color: 'amber' },
+  SUBIR: { label: 'Subir archivo', color: 'blue' },
+  DESCARGAR: { label: 'Descargar archivo', color: 'slate' },
+  PUBLICAR: { label: 'Publicar en la web', color: 'green' },
+  RETIRAR: { label: 'Retirar de la web', color: 'amber' },
+  RESTAURAR: { label: 'Restaurar versión', color: 'blue' },
+  VISTA_PREVIA: { label: 'Vista previa', color: 'slate' },
+  CONTACTO_BLOQUEADO: { label: 'Formulario bloqueado (spam)', color: 'amber' },
+  CONSULTA_AUDITORIA: { label: 'Consulta de auditoría', color: 'slate' },
+  PURGA_AUDITORIA: { label: 'Limpieza de registros antiguos', color: 'violet' },
+};

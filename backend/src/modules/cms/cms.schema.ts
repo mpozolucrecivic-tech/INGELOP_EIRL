@@ -28,6 +28,9 @@ export const paginaSchema = z.object({
   const contactos = p.bloques.filter((b) => b.tipo === 'contacto' && b.visible).length;
   if (contactos > 1 || (contactos && p.slug !== 'contacto'))
     ctx.addIssue({ code: 'custom', path: ['bloques'], message: 'El formulario solo puede aparecer una vez en la página contacto' });
+  // Sin el formulario, los clientes no podrían escribir a la empresa desde la web
+  if (p.slug === 'contacto' && contactos === 0)
+    ctx.addIssue({ code: 'custom', path: ['bloques'], message: 'La página de contacto debe incluir el formulario visible' });
 });
 export const configuracionSchema = z.object({
   tipo: z.literal('configuracion'),

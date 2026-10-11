@@ -68,7 +68,7 @@
                     </div>
                 </div>
                 <button class="boton boton--primario" type="submit">Enviar mensaje <?= icono('flecha') ?></button>
-                <p class="nota">Tus datos solo se usan para responder tu consulta.</p>
+                <p class="nota">Tus datos solo se usan para responder tu consulta. <a href="privacidad.php">Política de privacidad</a>.</p>
             </form>
         </div>
 

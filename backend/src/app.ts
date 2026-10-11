@@ -3,6 +3,8 @@ import cors from 'cors';
 import { corsOptions } from './config/cors';
 import { verifyToken } from './middlewares/auth';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
+import { auditarPeticion, idPeticion } from './middlewares/auditoria';
+import auditoriaRoutes from './modules/auditoria/auditoria.routes';
 import { env } from './config/env';
 
 import authRoutes from './modules/auth/auth.routes';
@@ -30,7 +32,8 @@ export const app = express();
 app.disable('x-powered-by');
 // En Render o detrás de Caddy: req.ip toma la IP real del visitante (límite de peticiones)
 app.set('trust proxy', env.TRUST_PROXY);
-app.use(cors(corsOptions));
+app.use(cors({ ...corsOptions, exposedHeaders: [...((corsOptions.exposedHeaders as string[]) ?? []), 'X-Request-Id'] }));
+app.use(idPeticion);
 app.use(express.json({ limit: '1mb' }));
 
 // Healthcheck (sin datos, sin autenticación)
@@ -52,6 +55,9 @@ api.use(cmsPublicRoutes);
 
 // 2) A partir de aquí TODAS las rutas exigen JWT válido
 api.use(verifyToken);
+// Registra en la auditoría todas las modificaciones, descargas y accesos denegados de la intranet
+api.use(auditarPeticion);
+api.use(auditoriaRoutes);
 api.use(usuariosRoutes);
 api.use(clientesRoutes);
 api.use(proyectosRoutes);

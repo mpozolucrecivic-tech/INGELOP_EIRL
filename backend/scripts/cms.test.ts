@@ -23,6 +23,11 @@ test('Enlaces y formularios rechazan contenido peligroso o ambiguo', () => {
   if (pagina.tipo !== 'pagina') return;
   pagina.bloques.push({ ...pagina.bloques[0] });
   assert.equal(contenidoSchema.safeParse(pagina).success, false);
+  // La página de contacto no puede quedarse sin formulario (ni quitándolo ni ocultándolo)
+  const sinFormulario = structuredClone(predeterminados['pagina.contacto']);
+  if (sinFormulario.tipo !== 'pagina') return;
+  assert.equal(contenidoSchema.safeParse({ ...sinFormulario, bloques: [] }).success, false);
+  assert.equal(contenidoSchema.safeParse({ ...sinFormulario, bloques: sinFormulario.bloques.map((b) => ({ ...b, visible: false })) }).success, false);
 });
 
 // Prueba HTTP con persistencia simulada: no necesita una BD ni toca datos reales.
@@ -69,6 +74,15 @@ test('API CMS: permisos, aislamiento de borradores, publicación, conflictos, hi
   Object.assign(prisma.servicio, { findMany: async () => [] });
   Object.assign(prisma.medioCms, { findMany: async () => [], count: async () => 0 });
   (prisma as any).$transaction = async (fn: any) => fn(prisma);
+  // Auditoría simulada: se comprueba qué eventos registra la API
+  const auditoria: any[] = [];
+  (prisma as any).$queryRaw = async () => [];
+  (prisma as any).$executeRaw = async () => 0;
+  Object.assign(prisma.auditoria, {
+    findFirst: async () => (auditoria.length ? { hash: auditoria[auditoria.length - 1].hash } : null),
+    create: async ({ data }: any) => { auditoria.push(data); return data; },
+    count: async () => 0,
+  });
   const { app } = await import('../src/app');
   const server = app.listen(0, '127.0.0.1');
   await new Promise<void>((resolve) => server.once('listening', resolve));
@@ -113,6 +127,15 @@ test('API CMS: permisos, aislamiento de borradores, publicación, conflictos, hi
     assert.equal((await call('/usuarios', 'GET', undefined, tokens[0])).status, 403);
     usuarios.get(3).activo = false;
     assert.equal((await call('/proyectos', 'GET', undefined, tokens[2])).status, 401);
+    // Auditoría: accesos denegados, publicación, token de vista previa usado como sesión y cuenta desactivada
+    await new Promise((r) => setTimeout(r, 50));
+    const acciones = auditoria.map((e) => e.accion);
+    assert.ok(acciones.includes('ACCESO_DENEGADO'), acciones.join(','));
+    assert.ok(auditoria.some((e) => e.accion === 'PUBLICAR' && e.registroId === 'pagina.prueba' && e.usuarioId === 1), acciones.join(','));
+    assert.ok(acciones.includes('TOKEN_ALTERADO'), acciones.join(','));
+    assert.ok(acciones.includes('SESION_RECHAZADA'), acciones.join(','));
+    assert.ok(auditoria.every((e, i) => e.hashAnterior === (i === 0 ? '0'.repeat(64) : auditoria[i - 1].hash)), 'cadena de huellas');
+    assert.ok(auditoria.every((e) => !String(e.ruta).includes(token)), 'la ruta nunca guarda el token de vista previa');
   } finally {
     await new Promise<void>((resolve, reject) => server.close((e) => e ? reject(e) : resolve()));
     await prisma.$disconnect();

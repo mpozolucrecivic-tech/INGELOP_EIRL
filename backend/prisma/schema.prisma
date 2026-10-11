@@ -96,14 +96,14 @@ enum EstadoRevision {
 }
 
 model Usuario {
-  id           Int      @id @default(autoincrement())
-  nombre       String
-  email        String   @unique
-  passwordHash String
-  rol          Rol      @default(USUARIO)
-  activo       Boolean  @default(true)
-  puedeEditarWeb Boolean @default(false)
-  creadoEn     DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  nombre         String
+  email          String   @unique
+  passwordHash   String
+  rol            Rol      @default(USUARIO)
+  activo         Boolean  @default(true)
+  puedeEditarWeb Boolean  @default(false)
+  creadoEn       DateTime @default(now())
 
   proyectosResponsable Proyecto[]           @relation("ProyectoResponsable")
   proyectosAsignados   UsuarioProyecto[]
@@ -433,32 +433,68 @@ model ProyectoWeb {
 
 // Documentos editoriales: el borrador nunca se entrega en la API pública.
 model DocumentoCms {
-  clave String @id
-  borrador Json
-  publicado Json?
-  version Int @default(1)
-  publicadoEn DateTime?
-  actualizadoEn DateTime @updatedAt
-  revisiones RevisionCms[]
+  clave         String        @id
+  borrador      Json
+  publicado     Json?
+  version       Int           @default(1)
+  publicadoEn   DateTime?
+  actualizadoEn DateTime      @updatedAt
+  revisiones    RevisionCms[]
 }
 
 model RevisionCms {
-  id Int @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   documentoClave String
-  documento DocumentoCms @relation(fields: [documentoClave], references: [clave], onDelete: Cascade)
-  contenido Json
-  accion String
-  autorId Int
-  autorNombre String
-  fecha DateTime @default(now())
+  documento      DocumentoCms @relation(fields: [documentoClave], references: [clave], onDelete: Cascade)
+  contenido      Json
+  accion         String
+  autorId        Int
+  autorNombre    String
+  fecha          DateTime     @default(now())
+
   @@index([documentoClave, fecha])
 }
 
 model MedioCms {
-  id Int @id @default(autoincrement())
-  archivo String @unique
-  nombre String
-  textoAlternativo String @default("")
-  tamano Int
-  creadoEn DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  archivo          String   @unique
+  nombre           String
+  textoAlternativo String   @default("")
+  tamano           Int
+  creadoEn         DateTime @default(now())
+}
+
+// ---------- Auditoría ----------
+
+// Registro de seguridad: solo se agregan filas. Un trigger de PostgreSQL impide UPDATE/DELETE/TRUNCATE
+// (salvo la purga por antigüedad) y cada fila guarda la huella de la anterior (cadena de hashes):
+// si alguien altera la tabla a mano, scripts/verificarAuditoria lo detecta. Sin FK a Usuario a propósito:
+// el registro se conserva aunque el usuario cambie o se elimine.
+model Auditoria {
+  id            Int      @id @default(autoincrement())
+  fecha         DateTime @default(now())
+  accion        String // LOGIN_OK, LOGIN_FALLIDO, LOGIN_BLOQUEADO, ACCESO_DENEGADO, CREAR, EDITAR, ELIMINAR, SUBIR, DESCARGAR…
+  modulo        String // auth, usuarios, planos, evidencias, cms…
+  registroId    String? // registro afectado
+  resultado     String // EXITO | FALLO
+  codigoHttp    Int?
+  usuarioId     Int?
+  usuarioNombre String?
+  correo        String? // solo en eventos de inicio de sesión (nunca la contraseña)
+  ip            String?
+  cadenaIp      String? // X-Forwarded-For completo + IP del socket, para verificar la IP real detrás del proxy
+  navegador     String?
+  metodo        String?
+  ruta          String? // plantilla de la ruta (/planos/:id), nunca la URL real con parámetros
+  idPeticion    String?
+  detalle       Json? // qué campos cambiaron, antes/después de permisos; nunca valores sensibles
+  hashAnterior  String
+  hash          String   @unique
+
+  @@index([fecha])
+  @@index([usuarioId, fecha])
+  @@index([accion, fecha])
+  @@index([modulo, fecha])
+  @@index([ip, fecha])
+  @@index([correo, accion, fecha])
 }

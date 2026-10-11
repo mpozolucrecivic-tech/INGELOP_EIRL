@@ -15,4 +15,5 @@ foreach ((contenido_web()['cms'] ?? []) as $doc) {
 foreach (array_unique($slugs) as $slug) {
     echo '<url><loc>' . htmlspecialchars(rtrim($base, '/') . '/' . cms_url($slug), ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</loc></url>';
 }
+echo '<url><loc>' . htmlspecialchars(rtrim($base, '/') . '/privacidad.php', ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</loc></url>';
 echo '</urlset>';

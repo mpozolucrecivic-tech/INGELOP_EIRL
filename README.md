@@ -116,6 +116,8 @@ El seed conserva los usuarios y **recrea** los datos de demo (clientes, proyecto
 | `backend/` | `npm run test:e2e` | Prueba end-to-end (requiere la API corriendo) |
 | `backend/` | `npx tsx src/scripts/cargarServicios.ts` | Crea los 6 servicios de la web si faltan, sin tocar nada más (en producción: `node dist/scripts/cargarServicios.js`) |
 | `backend/` | `npx tsx src/scripts/cargarSitio.ts` | Crea los datos de contacto de la web que falten, **vacíos y ocultos** (en producción: `node dist/scripts/cargarSitio.js`) |
+| `backend/` | `npx tsx src/scripts/verificarAuditoria.ts` | Comprueba que nadie alteró la auditoría (cadena de huellas) |
+| `backend/` | `npx tsx src/scripts/purgarAuditoria.ts` | Borra registros de auditoría más antiguos que `AUDITORIA_RETENCION_DIAS` |
 
 ### Variables de entorno (`backend/.env`)
 
@@ -135,6 +137,8 @@ El seed conserva los usuarios y **recrea** los datos de demo (clientes, proyecto
 | `MAX_FOTO_MB` | `5` | Tamaño máximo de la foto de un servicio (JPG, PNG o WEBP) |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | | Credenciales del admin que crea el seed |
 | `SEED_USUARIO_PASSWORD` | | Contraseña de los usuarios de demostración del seed |
+| `LOGIN_BLOQUEO_INTENTOS` / `LOGIN_BLOQUEO_MIN` | `5` / `15` | Bloqueo por cuenta: fallos seguidos y minutos de bloqueo |
+| `AUDITORIA_RETENCION_DIAS` | `730` | Conservación de la auditoría (mínimo 730 = 2 años, Ley 29733) |
 
 ---
 
@@ -187,9 +191,11 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
    - Variables: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, `TRUST_PROXY=1`,
      `CORS_ORIGIN=https://ingelop.wuaze.com,https://<dominio-de-la-intranet>`,
      `CMS_WEB_URL=https://ingelop.wuaze.com` (obligatoria: canonical, sitemap y enlaces de vista previa)
-3. Una sola vez, desde la consola (Shell) de Render: `node dist/scripts/crearAdmin.js <correo> "<nombre>"` (con `ADMIN_PASSWORD`), `node dist/scripts/cargarServicios.js` y `node dist/scripts/cargarSitio.js`.
-4. **Web:** en `web/includes/api.php`, cambia `http://localhost:4000/api/v1` por `https://<servicio>.onrender.com/api/v1`. Sube también `storage/.htaccess` y comprueba que `https://<tu-web>/storage/cache/web.json` responda **403** (prohibido).
-5. **Intranet:** compila con `VITE_API_URL=https://<servicio>.onrender.com/api/v1`.
+3. Variables de seguridad: `TRUST_PROXY=1` y, tras el primer despliegue, **verifica la IP real** como indica [`docs/AUDITORIA.md`](docs/AUDITORIA.md#ip-real-detrás-de-un-proxy-render-caddy).
+4. Una sola vez, desde la consola (Shell) de Render: `node dist/scripts/crearAdmin.js <correo> "<nombre>"` (con `ADMIN_PASSWORD`), `node dist/scripts/cargarServicios.js` y `node dist/scripts/cargarSitio.js`.
+5. **Web:** en `web/includes/api.php`, cambia `http://localhost:4000/api/v1` por `https://<servicio>.onrender.com/api/v1`. Sube también `storage/.htaccess` y comprueba que `https://<tu-web>/storage/cache/web.json` responda **403** (prohibido).
+6. **Intranet:** compila con `VITE_API_URL=https://<servicio>.onrender.com/api/v1` y `VITE_WEB_URL=https://ingelop.wuaze.com` (enlace a la política de privacidad en el login).
+7. **Política de privacidad:** `web/privacidad.php` es un borrador técnico; la empresa debe revisarlo antes de publicarlo.
 
 > ⚠️ **Archivos en Render:** el disco del plan gratuito se borra en cada despliegue o reinicio, y con él las fotos de servicios y los documentos subidos. Para producción usa un *Persistent Disk* de Render montado en `UPLOAD_DIR`, o lleva los archivos a S3/Cloudinary implementando `StorageProvider` (`src/config/storage.ts`).
 >
@@ -202,7 +208,6 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
 - **Textos principales editables** (frase de portada, "Quiénes somos", forma de trabajo): hoy están escritos en cada `.php`.
 - **Especialidades OSCE editables** (`ESPECIALIDADES_OSCE` en `web/includes/config.php`).
 - Leer también los **servicios** desde el servidor PHP (hoy los pide el navegador), con la misma copia de respaldo.
-- Registrar en la **Auditoría** (Fase 4) quién cambia los datos de la web.
 
 ### Avisos por correo desde la API (pendiente)
 
@@ -212,6 +217,10 @@ Hoy, cuando un mensaje entra por la API, solo se ve en la intranet (**Mensajes d
 2. Agrega a `backend/.env` y a `src/config/env.ts`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` y `CONTACTO_EMAIL` (opcionales: sin `SMTP_HOST` no se envía nada).
 3. Crea `src/config/mailer.ts` con `nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } })`.
 4. En `contacto.service.ts`, después de `prisma.mensajeContacto.create(...)`, llama a `transport.sendMail({ from, to: CONTACTO_EMAIL, replyTo: correo, subject, text })` **sin `await`** y con `.catch(console.error)`. Así una falla del correo no hace perder el mensaje ni demora la respuesta.
+
+## Auditoría y seguridad de accesos
+
+La intranet registra inicios de sesión (correctos, fallidos y bloqueados), accesos denegados, credenciales alteradas y **toda** creación, edición, eliminación, subida y descarga, con fecha, persona, **IP**, navegador y registro afectado. Los registros no se pueden editar ni borrar (trigger de PostgreSQL + cadena de huellas verificable). Incluye bloqueo por cuenta tras 5 fallos, alertas de seguridad (IP sospechosas, accesos desde una IP o navegador nuevo) y el último acceso de cada usuario. Detalle, conservación legal y cómo verificar la IP real en Render: [`docs/AUDITORIA.md`](docs/AUDITORIA.md).
 
 ## Roles
 
@@ -244,7 +253,8 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | **Proyectos** | Todos, con búsqueda y filtros; crear | Solo los suyos |
 | **Clientes** | Entidades públicas, empresas y personas (RUC/DNI, contacto) | — |
 | **Personal y tarifas** | Profesionales con su costo por hora (no necesitan cuenta) | — |
-| **Accesos a la intranet** | Cuentas para iniciar sesión | — |
+| **Accesos a la intranet** | Cuentas para iniciar sesión, con el último acceso (fecha e IP) | — |
+| **Auditoría** | Alertas de seguridad, registro de actividad con filtros, detalle y exportación CSV | — |
 | **Datos de la empresa** | Teléfono, WhatsApp, correo, dirección, horario y redes, cada uno con *Publicar en la web* | — |
 | **Servicios** | Servicios de la web: orden, textos, foto, ocultar | — |
 | **Proyectos realizados** | Portafolio de la web: orden, datos, foto, ocultar | — |
@@ -341,6 +351,11 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | PUT / DELETE | `/portafolio/:id` | A | Editar / ocultar (baja lógica) |
 | POST / DELETE | `/portafolio/:id/foto` | A | Subir foto (JPG, PNG o WEBP) / quitarla |
 | GET | `/portafolio/:id/foto` | público | Foto (solo si el proyecto está visible) |
+| **Auditoría** ||||
+| GET | `/auditoria` | A | Registros (`?desde=&hasta=&usuarioId=&modulo=&accion=&resultado=&ip=&pagina=&porPagina=`) |
+| GET | `/auditoria/exportar` | A | Los mismos filtros en CSV (máx. 10 000 filas) |
+| GET | `/auditoria/alertas` | A | Fallos, bloqueos, accesos denegados y credenciales alteradas (24 h); IP sospechosas; accesos nuevos (7 días) |
+| GET | `/auditoria/ultimos-accesos` | A | Último inicio de sesión de cada usuario (fecha e IP) |
 | PATCH | `/contacto/:id/leido` | A | `{ "leido": true }` |
 
 > **Materiales (oculto):** los endpoints `/proyectos/:id/materiales` y `/materiales/:id/movimientos` siguen en la API, pero no aparecen en la interfaz ni en los dashboards, porque INGELOP no maneja almacén. Si más adelante ejecutan obras, basta con volver a mostrar la pestaña (`frontend/src/pages/proyecto/MaterialesTab.tsx`).
@@ -359,7 +374,7 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | 409 | Conflicto: duplicados (email, RUC, DNI, código de plano), presupuesto aprobado, horas > 24 en el día, cliente con proyectos… |
 | 413 | Archivo demasiado grande |
 | 422 | Error de validación en body/params/query |
-| 429 | Demasiadas peticiones (formulario de contacto o intentos de login fallidos) |
+| 429 | Demasiadas peticiones (formulario de contacto o intentos de login fallidos) o cuenta bloqueada temporalmente |
 
 ## Decisiones de diseño
 

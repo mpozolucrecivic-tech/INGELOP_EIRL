@@ -462,6 +462,35 @@ async function main() {
   expectStatus('DELETE /portafolio/:id (ocultar)', await call('DELETE', `/portafolio/${PW}`, { token: A }), 204);
   check('proyecto oculto no sale en /web', !(await call('GET', '/web')).body.proyectos.some((p: any) => p.id === PW));
 
+  seccion('Auditoría');
+  await new Promise((r) => setTimeout(r, 400)); // los eventos se guardan al terminar cada petición
+  expectStatus('USUARIO GET /auditoria', await call('GET', '/auditoria', { token: U }), 403);
+  expectStatus('GET /auditoria sin token', await call('GET', '/auditoria'), 401);
+  const fallidos = await call('GET', '/auditoria?accion=LOGIN_FALLIDO&porPagina=50', { token: A });
+  check('login fallido registrado con correo, IP y motivo (sin contraseña)', fallidos.status === 200 && fallidos.body.registros.some((r: any) => r.correo === ADMIN_EMAIL && r.ip && r.detalle?.motivo === 'credenciales'), fallidos.body.registros?.[0]);
+  const denegados = await call('GET', '/auditoria?accion=ACCESO_DENEGADO&porPagina=50', { token: A });
+  check('acceso denegado registrado con el usuario', denegados.body.registros.some((r: any) => r.usuarioId === usuarioId && r.codigoHttp === 403));
+  const permisos = await call('GET', `/auditoria?accion=CAMBIO_PERMISOS&porPagina=50`, { token: A });
+  check('creación de usuario registrada como cambio de permisos', permisos.body.registros.some((r: any) => r.registroId === String(usuarioId)));
+  const todo = await call('GET', '/auditoria?porPagina=200', { token: A });
+  check('ningún registro guarda contraseñas', !JSON.stringify(todo.body).includes('Clave12345') && !JSON.stringify(todo.body).includes(ADMIN_PASSWORD));
+  check('las rutas se guardan como plantilla (/x/:id)', todo.body.registros.filter((r: any) => r.ruta).every((r: any) => !/\/\d+(\/|$)/.test(r.ruta)));
+  // Bloqueo por cuenta: tras LOGIN_BLOQUEO_INTENTOS fallos seguidos, el correo queda bloqueado (aunque no exista)
+  const correoBloqueo = `bloqueo.${sufijo}@ejemplo.com`;
+  const intentos: number[] = [];
+  for (let i = 0; i < 5; i++) intentos.push((await call('POST', '/auth/login', { json: { email: correoBloqueo, password: 'incorrecta' } })).status);
+  check('5 intentos fallidos -> 401', intentos.every((c) => c === 401), intentos);
+  expectStatus('6.º intento con la cuenta bloqueada', await call('POST', '/auth/login', { json: { email: correoBloqueo, password: 'incorrecta' } }), 429);
+  await new Promise((r) => setTimeout(r, 300));
+  const bloqueos = await call('GET', `/auditoria?accion=LOGIN_BLOQUEADO&porPagina=20`, { token: A });
+  check('bloqueo registrado', bloqueos.body.registros.some((r: any) => r.correo === correoBloqueo));
+  const alertasSeg = await call('GET', '/auditoria/alertas', { token: A });
+  check('GET /auditoria/alertas', alertasSeg.status === 200 && alertasSeg.body.loginsFallidos >= 5 && alertasSeg.body.bloqueos >= 1, alertasSeg.body);
+  const accesos = await call('GET', '/auditoria/ultimos-accesos', { token: A });
+  check('GET /auditoria/ultimos-accesos incluye al usuario de prueba', accesos.status === 200 && accesos.body.some((a: any) => a.usuarioId === usuarioId));
+  const csv = await fetch(`${API}/auditoria/exportar?accion=LOGIN_OK`, { headers: { Authorization: `Bearer ${A}` } });
+  check('GET /auditoria/exportar devuelve CSV', csv.status === 200 && (csv.headers.get('content-type') ?? '').includes('text/csv'));
+
   seccion('Varios');
   expectStatus('ruta inexistente', await call('GET', '/no-existe', { token: A }), 404);
   const malJson = await fetch(`${API}/proyectos`, { method: 'POST', headers: { Authorization: `Bearer ${A}`, 'Content-Type': 'application/json' }, body: '{malo' });

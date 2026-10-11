@@ -111,6 +111,17 @@ export async function leerVistaPrevia(token: string) {
   return { clave: doc.clave, contenido: doc.borrador };
 }
 
+/** true si la imagen está en el borrador de una vista previa válida (sin import dinámico) */
+export async function medioEnVistaPrevia(token: string, id: number) {
+  const { contenido } = await leerVistaPrevia(token);
+  const c = contenidoSchema.parse(contenido);
+  return c.tipo === 'pagina' ? c.imagenSocialId === id || c.bloques.some((b) => b.medioId === id) : c.logoId === id;
+}
+
+export async function editarMedio(id: number, textoAlternativo: string) {
+  await prisma.medioCms.update({ where: { id }, data: { textoAlternativo } }); // inexistente -> P2025 -> 404
+}
+
 const medioPublico = ({ archivo, ...m }: { archivo: string; id: number; nombre: string; textoAlternativo: string; tamano: number; creadoEn: Date }) =>
   ({ ...m, url: `/cms/medios/${m.id}/archivo` });
 export async function medios() {

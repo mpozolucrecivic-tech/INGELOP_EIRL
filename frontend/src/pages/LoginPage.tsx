@@ -92,6 +92,18 @@ export default function LoginPage() {
               Ingresar
             </Button>
           </form>
+          <p className="mt-6 text-xs leading-relaxed text-slate-500">
+            Por seguridad, registramos la fecha, la dirección IP y el navegador de cada inicio de sesión y de las acciones realizadas en la
+            intranet. Se conservan al menos 2 años.
+            {import.meta.env.VITE_WEB_URL && (
+              <>
+                {' '}
+                <a className="font-medium text-brand-700 hover:underline" href={`${import.meta.env.VITE_WEB_URL}/privacidad.php`} target="_blank" rel="noopener noreferrer">
+                  Política de privacidad
+                </a>
+              </>
+            )}
+          </p>
         </div>
       </div>
     </div>

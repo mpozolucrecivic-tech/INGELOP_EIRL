@@ -40,6 +40,7 @@
     <div class="pie__base">
         <div class="contenedor pie__base-fila">
             <span>© <?= date('Y') ?> <?= e(EMPRESA['razon_social']) ?>. Chiclayo, Lambayeque – Perú.</span>
+            <a href="privacidad.php">Política de privacidad</a>
         </div>
     </div>
 </footer>
@@ -50,17 +51,11 @@
 </a>
 <?php endif; ?>
 
-<?php if (API_URL !== ''): ?>
-<!-- Íconos que usa assets/js/servicios.js al dibujar los servicios recibidos de la API -->
-<template id="iconos-api">
-    <?php foreach (ICONOS_SERVICIO as $nombreIcono): ?><span data-icono="<?= e($nombreIcono) ?>"><?= icono($nombreIcono) ?></span><?php endforeach; ?>
-</template>
-<?php endif; ?>
-
 <script src="assets/js/main.js?v=1" defer></script>
-<?php if (API_URL !== ''): ?>
-<script src="assets/js/servicios.js?v=1" defer></script>
-<?php if ($pagina === 'contacto'): ?><script src="assets/js/contacto.js?v=1" defer></script><?php endif; ?>
+<?php if (API_URL !== '' && $pagina === 'contacto'): ?>
+<!-- Ícono que usa assets/js/contacto.js en el aviso de "Mensaje enviado" -->
+<template id="iconos-api"><span data-icono="check"><?= icono('check') ?></span></template>
+<script src="assets/js/contacto.js?v=1" defer></script>
 <?php endif; ?>
 </body>
 </html>
