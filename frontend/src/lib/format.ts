@@ -54,7 +54,21 @@ export const CATEGORIA_GASTO: Record<CategoriaGasto, string> = {
   TRANSPORTE: 'Transporte y viáticos',
   EQUIPOS: 'Equipos y software',
   OTROS: 'Estudios, trámites y otros',
+  ALQUILER: 'Alquiler',
+  SERVICIOS_BASICOS: 'Luz, agua, internet y teléfono',
+  SUELDOS: 'Sueldos y honorarios',
+  SOFTWARE: 'Software y licencias',
+  IMPUESTOS: 'Impuestos y trámites',
+  UTILES_OFICINA: 'Útiles y oficina',
 };
+
+/** En los gastos de la empresa, OTROS no son «estudios ni trámites» de una obra */
+export const CATEGORIA_GASTO_EMPRESA: Record<CategoriaGasto, string> = { ...CATEGORIA_GASTO, OTROS: 'Otros' };
+export const etiquetasCategoria = (empresa: boolean) => (empresa ? CATEGORIA_GASTO_EMPRESA : CATEGORIA_GASTO);
+
+/** Las de un proyecto y las de la empresa (Otros sirve para ambos); igual que en la API */
+export const CATEGORIAS_PROYECTO: CategoriaGasto[] = ['MATERIALES', 'MANO_DE_OBRA', 'TRANSPORTE', 'EQUIPOS', 'OTROS'];
+export const CATEGORIAS_EMPRESA: CategoriaGasto[] = ['ALQUILER', 'SERVICIOS_BASICOS', 'SUELDOS', 'SOFTWARE', 'IMPUESTOS', 'UTILES_OFICINA', 'OTROS'];
 
 export const TIPO_SERVICIO: Record<TipoServicio, string> = {
   ESTUDIO_PREINVERSION: 'Estudio de preinversión',
@@ -162,6 +176,12 @@ export const COLORES_CATEGORIA: Record<CategoriaGasto, string> = {
   TRANSPORTE: '#0d9488',
   EQUIPOS: '#7c3aed',
   OTROS: '#64748b',
+  ALQUILER: '#b45309',
+  SERVICIOS_BASICOS: '#0284c7',
+  SUELDOS: '#4f46e5',
+  SOFTWARE: '#9333ea',
+  IMPUESTOS: '#dc2626',
+  UTILES_OFICINA: '#16a34a',
 };
 
 /** Acciones de la auditoría en lenguaje claro (las claves son las que guarda la API) */
@@ -188,6 +208,9 @@ export const ACCION_AUDITORIA: Record<string, { label: string; color: 'slate' | 
   ENVIAR_REVISION: { label: 'Enviar a revisión', color: 'blue' },
   APROBAR: { label: 'Aprobar', color: 'green' },
   OBSERVAR: { label: 'Observar', color: 'amber' },
+  IMPORTAR: { label: 'Importar Excel', color: 'blue' },
+  VERIFICAR: { label: 'Revisar importación', color: 'slate' },
+  DESHACER_IMPORTACION: { label: 'Deshacer importación', color: 'red' },
 };
 
 /** Etapas de un proyecto, en orden */

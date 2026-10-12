@@ -3,11 +3,11 @@ import { AlertTriangle, Briefcase, CheckCircle2, ChevronRight, Circle, Clock, Fi
 import clsx from 'clsx';
 import { useUsuarios } from '@/api/admin';
 import { useDashboardGeneral } from '@/api/proyectos';
-import { GastoCategoriaChart, GastoMensualChart } from '@/components/Charts';
+import { GastoCategoriaChart, GastoMensualApiladoChart } from '@/components/Charts';
 import { EstadoProyectoBadge } from '@/components/Common';
 import { Badge, Card, CardHeader, ErrorState, PageHeader, ProgressBar, Spinner, StatCard, Table, td, th } from '@/components/ui/Display';
 import { useAuth } from '@/context/AuthContext';
-import { ESPECIALIDAD, formatFecha, formatNumero, formatPorcentaje, formatSoles, RUBRO_OBRA, TIPO_SERVICIO } from '@/lib/format';
+import { CATEGORIA_GASTO_EMPRESA, ESPECIALIDAD, formatFecha, formatNumero, formatPorcentaje, formatSoles, RUBRO_OBRA, TIPO_SERVICIO } from '@/lib/format';
 import type { DashboardGeneral } from '@/types/api';
 
 /** Guía para empezar: se muestra mientras falte alguno de los pasos básicos */
@@ -83,8 +83,9 @@ export default function DashboardPage() {
             <div className="space-y-1.5">
               <ProgressBar value={finanzas.porcentajeEjecutado} />
               <span>
-                Gastos {formatSoles(finanzas.gastoTotal)} ({formatPorcentaje(finanzas.porcentajeEjecutado)}) · margen {formatSoles(finanzas.margen)}
+                Gastos de obra {formatSoles(finanzas.gastoTotal)} ({formatPorcentaje(finanzas.porcentajeEjecutado)}) · margen {formatSoles(finanzas.margen)}
               </span>
+              {finanzas.gastoEmpresa > 0 && <span className="block">Gastos de la empresa {formatSoles(finanzas.gastoEmpresa)}</span>}
             </div>
           }
         />
@@ -218,17 +219,30 @@ export default function DashboardPage() {
         </Table>
       </Card>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-5">
-        <Card className="xl:col-span-3">
-          <CardHeader title="Gasto mensual" subtitle="Últimos 12 meses, todos los proyectos" />
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <Card className="xl:col-span-2">
+          <CardHeader title="Gasto mensual" subtitle="Últimos 12 meses: gastos de las obras y de la oficina" />
           <div className="p-4">
-            <GastoMensualChart data={finanzas.porMes} />
+            <GastoMensualApiladoChart data={finanzas.porMes} />
           </div>
         </Card>
-        <Card className="xl:col-span-2">
-          <CardHeader title="Gasto por categoría" />
+        <Card>
+          <CardHeader title="Gastos de obra por categoría" />
           <div className="p-5">
             <GastoCategoriaChart data={finanzas.porCategoria} />
+          </div>
+        </Card>
+        <Card>
+          <CardHeader
+            title="Gastos de la empresa por categoría"
+            action={
+              <Link to="/gastos-empresa" className="text-sm font-medium text-brand-700 hover:underline">
+                Ver gastos
+              </Link>
+            }
+          />
+          <div className="p-5">
+            <GastoCategoriaChart data={finanzas.porCategoriaEmpresa} etiquetas={CATEGORIA_GASTO_EMPRESA} />
           </div>
         </Card>
       </div>

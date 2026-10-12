@@ -20,6 +20,8 @@ const ACCIONES_ESPECIALES: Record<string, string> = {
   enviar: 'ENVIAR_REVISION',
   aprobar: 'APROBAR',
   observar: 'OBSERVAR',
+  importar: 'IMPORTAR',
+  verificar: 'VERIFICAR',
 };
 const CAMPO_SENSIBLE = /pass|token|secret|clave_?acceso/i;
 

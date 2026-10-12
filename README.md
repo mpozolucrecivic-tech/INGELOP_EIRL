@@ -256,11 +256,12 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 
 | Pantalla | ADMIN | USUARIO |
 |---|---|---|
-| **Resumen general** | "Primeros pasos" (mientras falte algo), proyectos en desarrollo, monto contratado vs gastos, **planos esperando revisión**, **entregables vencidos**, horas trabajadas del mes, estado por proyecto | — |
+| **Resumen general** | "Primeros pasos" (mientras falte algo), proyectos en desarrollo, monto contratado vs gastos de obra, gastos de la empresa, **planos esperando revisión**, **entregables vencidos**, horas trabajadas del mes, estado por proyecto, gasto mensual (obras y oficina) | — |
 | **Proyectos** | Todos, con búsqueda y filtros; crear | Solo los suyos |
 | **Documentos** | Todos los documentos de todos los proyectos, con filtros (proyecto, etapa, categoría, persona, fechas); descargar y eliminar | — |
 | **Mis documentos** | — | Historial de lo que subió |
 | **Clientes** | Municipalidades, gobiernos regionales, empresas privadas y personas (RUC/DNI, contacto) | — |
+| **Gastos de la empresa** | Gastos que no son de una obra (alquiler, servicios, sueldos, licencias, impuestos, útiles); **importar desde Excel** con columna *Obra* opcional | — |
 | **Personal y tarifas** | Profesionales con su costo por hora (no necesitan cuenta) | — |
 | **Accesos a la intranet** | Cuentas para iniciar sesión, con el último acceso (fecha e IP) | — |
 | **Auditoría** | Alertas de seguridad, registro de actividad con filtros, detalle y exportación CSV | — |
@@ -276,7 +277,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Proyecto → **Entregables** | Checklist del expediente, plantilla, fechas límite | Solo lectura |
 | Proyecto → **Tareas** | Tareas por periodo de trabajo (en la API: *sprints*), arrastrando tarjetas | Solo lectura |
 | Proyecto → **Equipo y horas** | Asignar profesionales, registrar horas por tarea, horas trabajadas y costo | — |
-| Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen) | — |
+| Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen); **importar desde Excel** y deshacer importaciones | — |
 | Proyecto → **Fotos y observaciones** | Galería de actas, informes, fotos y observaciones (evidencias) | Subir y ver |
 | Proyecto → **Ajustes** | Editar el proyecto, dar/quitar acceso, eliminar | — |
 
@@ -342,7 +343,13 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | **Gastos** ||||
 | GET / POST | `/proyectos/:id/gastos` | A | Gastos del servicio |
 | GET | `/proyectos/:id/gastos/resumen` | A/U | Frente al monto del contrato (margen), por categoría y por mes |
-| PUT / DELETE | `/gastos/:id` | A | |
+| PUT / DELETE | `/gastos/:id` | A | La categoría debe corresponder al tipo de gasto (obra o empresa) |
+| GET / POST | `/gastos/empresa` | A | Gastos de la empresa (sin proyecto) |
+| GET | `/gastos/empresa/resumen` | A | Total, por categoría y por mes (`?desde&hasta`) |
+| POST | `/gastos/importar/verificar` | A | Marca filas que parecen repetidas (ya existen o se repiten en el archivo) |
+| POST | `/gastos/importar` | A | Importa hasta 1000 filas en una transacción (todo o nada); cada error indica la fila del Excel |
+| GET | `/gastos/importaciones` | A | Historial (`?proyectoId`; sin él, las de la empresa) |
+| DELETE | `/gastos/importaciones/:id` | A | Deshace la importación: borra sus gastos |
 | **Etapas** (orden: preinversión → expediente técnico → supervisión → liquidación) ||||
 | GET | `/proyectos/:id/etapas` | A/U | Etapas y su estado (todos los asignados las ven) |
 | POST | `/proyectos/:id/etapas` | A | Iniciar etapa (`tipo`, `fechaInicio?`, `fechaFin?`). La primera es libre; la siguiente exige la anterior **aprobada**; nunca hacia atrás |

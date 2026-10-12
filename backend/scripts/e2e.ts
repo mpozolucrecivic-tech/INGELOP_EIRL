@@ -249,6 +249,71 @@ async function main() {
   check('resumen: 5 categorías y 2 meses', resumen.body.porCategoria?.length === 5 && resumen.body.porMes?.length === 2);
   expectStatus('PUT /gastos/:id', await call('PUT', `/gastos/${gasto.body.id}`, { token: A, json: { descripcion: 'Compra de cemento Sol' } }), 200);
 
+  seccion('Gastos de la empresa e importación desde Excel');
+  const gEmp = await call('POST', '/gastos/empresa', { token: A, json: { categoria: 'ALQUILER', descripcion: 'Alquiler de oficina setiembre', monto: 1500, fecha: '2026-09-01' } });
+  expectStatus('POST /gastos/empresa', gEmp, 201);
+  check('gasto de la empresa sin proyecto', gEmp.body.proyectoId === null, gEmp.body);
+  expectStatus('POST /gastos/empresa con categoría de proyecto', await call('POST', '/gastos/empresa', { token: A, json: { categoria: 'MATERIALES', descripcion: 'Malo', monto: 5, fecha: '2026-09-01' } }), 400);
+  expectStatus('POST gasto de proyecto con categoría de empresa', await call('POST', `/proyectos/${P}/gastos`, { token: A, json: { categoria: 'ALQUILER', descripcion: 'Malo', monto: 5, fecha: '2026-09-01' } }), 400);
+  expectStatus('PUT gasto de empresa a categoría de proyecto', await call('PUT', `/gastos/${gEmp.body.id}`, { token: A, json: { categoria: 'MATERIALES' } }), 400);
+  expectStatus('PUT gasto de empresa (OTROS sirve para ambos)', await call('PUT', `/gastos/${gEmp.body.id}`, { token: A, json: { categoria: 'OTROS' } }), 200);
+  await call('PUT', `/gastos/${gEmp.body.id}`, { token: A, json: { categoria: 'ALQUILER' } });
+  expectStatus('USUARIO GET /gastos/empresa', await call('GET', '/gastos/empresa', { token: U }), 403);
+  const listaEmp = await call('GET', '/gastos/empresa?categoria=ALQUILER', { token: A });
+  check('GET /gastos/empresa lista solo gastos sin proyecto', listaEmp.status === 200 && listaEmp.body.some((g: any) => g.id === gEmp.body.id) && listaEmp.body.every((g: any) => g.proyectoId === null));
+  const resEmp = await call('GET', '/gastos/empresa/resumen?desde=2026-09-01&hasta=2026-09-30', { token: A });
+  check('resumen de la empresa: 7 categorías e incluye el alquiler', resEmp.status === 200 && resEmp.body.porCategoria?.length === 7 && resEmp.body.total >= 1500, resEmp.body);
+
+  const fila = (n: number, extra: Record<string, unknown>) => ({ fila: n, proyectoId: P, categoria: 'TRANSPORTE', descripcion: `Movilidad e2e ${sufijo}`, monto: 80, fecha: '2026-09-20', ...extra });
+  const verif = await call('POST', '/gastos/importar/verificar', {
+    token: A,
+    json: { filas: [fila(2, { categoria: 'MATERIALES', descripcion: '  compra de CEMENTO sol ', monto: 12500.75, fecha: '2026-09-05' }), fila(3, {}), fila(4, {})] },
+  });
+  check(
+    'verificar: detecta gasto existente (sin importar mayúsculas/espacios) y repetido en el archivo',
+    verif.status === 200 && verif.body[0]?.duplicado === 'EXISTE' && verif.body[0]?.gastoId === gasto.body.id && verif.body[1]?.duplicado === null && verif.body[2]?.duplicado === 'ARCHIVO',
+    verif.body,
+  );
+  const ajena = await call('POST', '/gastos/importar', { token: A, json: { nombreArchivo: 'x.xlsx', origenProyectoId: P, filas: [fila(2, {}), fila(3, { proyectoId: null, categoria: 'ALQUILER' })] } });
+  check('importar desde un proyecto rechaza filas de otro destino e indica la fila', ajena.status === 400 && ajena.body.details?.some((d: any) => d.fila === 3), ajena.body);
+  const malaCat = await call('POST', '/gastos/importar', { token: A, json: { nombreArchivo: 'x.xlsx', origenProyectoId: P, filas: [fila(7, { categoria: 'SUELDOS' })] } });
+  check('importar rechaza categoría de empresa en un proyecto (fila 7)', malaCat.status === 400 && malaCat.body.details?.[0]?.fila === 7, malaCat.body);
+  expectStatus('importar fila con monto 0', await call('POST', '/gastos/importar', { token: A, json: { nombreArchivo: 'x.xlsx', origenProyectoId: P, filas: [fila(2, { monto: 0 })] } }), 422);
+  expectStatus('importar más de 1000 filas', await call('POST', '/gastos/importar', { token: A, json: { nombreArchivo: 'x.xlsx', origenProyectoId: null, filas: Array.from({ length: 1001 }, (_, i) => fila(i + 2, {})) } }), 422);
+  expectStatus('importar a proyecto inexistente', await call('POST', '/gastos/importar', { token: A, json: { nombreArchivo: 'x.xlsx', origenProyectoId: null, filas: [fila(2, { proyectoId: 99999999 })] } }), 400);
+  expectStatus('USUARIO POST /gastos/importar', await call('POST', '/gastos/importar', { token: U, json: {} }), 403);
+  const antesImp = (await call('GET', `/proyectos/${P}/gastos/resumen`, { token: A })).body.totalGastado;
+
+  const impP = await call('POST', '/gastos/importar', { token: A, json: { nombreArchivo: 'gastos-obra.xlsx', origenProyectoId: P, filas: [fila(2, {}), fila(3, { monto: 120.5, categoria: 'OTROS' })] } });
+  expectStatus('POST /gastos/importar (desde el proyecto)', impP, 201);
+  check('importación: 2 filas, total 200.50', impP.body.cantidad === 2 && impP.body.total === 200.5, impP.body);
+  const impMixta = await call('POST', '/gastos/importar', {
+    token: A,
+    json: { nombreArchivo: 'gastos-mezclados.xlsx', origenProyectoId: null, filas: [fila(2, { monto: 50 }), fila(3, { proyectoId: null, categoria: 'SERVICIOS_BASICOS', descripcion: 'Luz oficina', monto: 230.4 })] },
+  });
+  expectStatus('POST /gastos/importar (mezcla obra y empresa)', impMixta, 201);
+  const trasImp = (await call('GET', `/proyectos/${P}/gastos/resumen`, { token: A })).body.totalGastado;
+  check('los gastos importados suman al proyecto (200.50 + 50)', Math.abs(trasImp - antesImp - 250.5) < 0.001, { antesImp, trasImp });
+  const histP = await call('GET', `/gastos/importaciones?proyectoId=${P}`, { token: A });
+  check('historial del proyecto: la importación con 2 gastos vigentes y quién la hizo', histP.status === 200 && histP.body[0]?.id === impP.body.id && histP.body[0]?.gastosVigentes === 2 && histP.body[0]?.usuario?.id === payload.id, histP.body[0]);
+  const histEmp = await call('GET', '/gastos/importaciones', { token: A });
+  check('historial de la empresa: incluye la mixta y no la del proyecto', histEmp.body.some((i: any) => i.id === impMixta.body.id) && !histEmp.body.some((i: any) => i.id === impP.body.id));
+  const generalEmp = await call('GET', '/dashboard/general?meses=36', { token: A });
+  const septiembre = generalEmp.body.finanzas?.porMes?.find((m: any) => m.mes === '2026-09');
+  check(
+    'dashboard general separa obras y empresa',
+    generalEmp.body.finanzas?.gastoEmpresa >= 1730.4 && generalEmp.body.finanzas?.porCategoriaEmpresa?.length === 7 && generalEmp.body.finanzas?.porCategoria?.length === 5 && septiembre?.empresa >= 1730.4 && septiembre?.obras > 0,
+    generalEmp.body.finanzas,
+  );
+  const deshacer = await call('DELETE', `/gastos/importaciones/${impP.body.id}`, { token: A });
+  check('deshacer importación borra sus 2 gastos', deshacer.status === 200 && deshacer.body.gastosEliminados === 2, deshacer.body);
+  expectStatus('deshacer dos veces', await call('DELETE', `/gastos/importaciones/${impP.body.id}`, { token: A }), 409);
+  expectStatus('USUARIO deshacer importación', await call('DELETE', `/gastos/importaciones/${impMixta.body.id}`, { token: U }), 403);
+  check('deshecha queda en el historial', (await call('GET', `/gastos/importaciones?proyectoId=${P}`, { token: A })).body[0]?.deshechaEn != null);
+  expectStatus('deshacer la importación mixta', await call('DELETE', `/gastos/importaciones/${impMixta.body.id}`, { token: A }), 200);
+  check('el proyecto vuelve a su total anterior', (await call('GET', `/proyectos/${P}/gastos/resumen`, { token: A })).body.totalGastado === antesImp);
+  expectStatus('DELETE gasto de la empresa', await call('DELETE', `/gastos/${gEmp.body.id}`, { token: A }), 204);
+
   seccion('Evidencias (multipart)');
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
   const formFoto = () => {
@@ -540,6 +605,10 @@ async function main() {
   const descargas = await call('GET', '/auditoria?accion=DESCARGAR&modulo=documentos&porPagina=20', { token: A });
   check('descarga de documento auditada', descargas.body.registros.some((r: any) => r.usuarioId === usuarioId));
   check('creación de usuario registrada como cambio de permisos', permisos.body.registros.some((r: any) => r.registroId === String(usuarioId)));
+  const importaciones = await call('GET', '/auditoria?accion=IMPORTAR&modulo=gastos&porPagina=20', { token: A });
+  check('importación de gastos auditada con archivo y filas', importaciones.body.registros.some((r: any) => r.registroId === String(impP.body.id) && r.detalle?.archivo === 'gastos-obra.xlsx' && r.detalle?.filas === 2), importaciones.body.registros?.[0]);
+  const deshechas = await call('GET', '/auditoria?accion=DESHACER_IMPORTACION&porPagina=20', { token: A });
+  check('deshacer importación auditado', deshechas.body.registros.some((r: any) => r.registroId === String(impP.body.id) && r.detalle?.gastosEliminados === 2));
   const todo = await call('GET', '/auditoria?porPagina=200', { token: A });
   check('ningún registro guarda contraseñas', !JSON.stringify(todo.body).includes('Clave12345') && !JSON.stringify(todo.body).includes(ADMIN_PASSWORD));
   check('las rutas se guardan como plantilla (/x/:id)', todo.body.registros.filter((r: any) => r.ruta).every((r: any) => !/\/\d+(\/|$)/.test(r.ruta)));

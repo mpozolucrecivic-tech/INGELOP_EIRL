@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { Building2, FileStack, FolderOpen, Inbox, KeyRound, Layers, Lightbulb } from 'lucide-react';
+import { Building2, FileSpreadsheet, FileStack, FolderOpen, Inbox, KeyRound, Layers, Lightbulb } from 'lucide-react';
 import { Card, PageHeader } from '@/components/ui/Display';
 import { useAuth } from '@/context/AuthContext';
 
@@ -42,6 +42,19 @@ const guias: Guia[] = [
       <>Desde esa misma pestaña se registran las horas trabajadas de cada profesional.</>,
     ],
     consejo: <>Los profesionales se registran antes en <Link to="/trabajadores" className={enlace}>Personal y tarifas</Link>, con su costo por hora.</>,
+  },
+  {
+    icono: <FileSpreadsheet className="size-5" />,
+    titulo: 'Importar gastos desde un Excel',
+    admin: true,
+    pasos: [
+      <>Los gastos de una obra se importan desde el proyecto (<b>Recursos</b> → <b>Gastos</b>). Los de la oficina, o un Excel que mezcla obras y oficina, desde <Link to="/gastos-empresa" className={enlace}>Gastos de la empresa</Link>.</>,
+      <>Pulsa <b>Importar desde Excel</b> y elige el archivo (.xlsx o .csv). El sistema detecta solo la fila de títulos; si no acierta, haz clic en la fila correcta.</>,
+      <>Indica qué columna es la fecha, la descripción y el monto (y, si las tienes, la categoría y la obra). La próxima vez lo recordará.</>,
+      <>Revisa: las filas con error dicen por qué, los totales y filas vacías se ignoran, y los posibles duplicados vienen desmarcados. Pulsa <b>Importar</b>.</>,
+      <>Si algo salió mal, en <b>Importaciones desde Excel</b> pulsa <b>Deshacer</b>: se borran los gastos de esa importación.</>,
+    ],
+    consejo: <>¿No tienes un formato? Usa <b>Descargar plantilla de Excel</b> dentro del asistente: trae las columnas y la lista de categorías.</>,
   },
   {
     icono: <KeyRound className="size-5" />,

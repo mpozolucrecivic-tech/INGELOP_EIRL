@@ -4,7 +4,18 @@ export type Rol = 'ADMIN' | 'USUARIO';
 export type EstadoProyecto = 'PLANIFICADA' | 'EN_EJECUCION' | 'FINALIZADA';
 export type EstadoActividad = 'BACKLOG' | 'POR_HACER' | 'EN_PROCESO' | 'EN_REVISION' | 'COMPLETADA';
 export type TipoMovimiento = 'ENTRADA' | 'SALIDA';
-export type CategoriaGasto = 'MATERIALES' | 'MANO_DE_OBRA' | 'TRANSPORTE' | 'EQUIPOS' | 'OTROS';
+export type CategoriaGasto =
+  | 'MATERIALES'
+  | 'MANO_DE_OBRA'
+  | 'TRANSPORTE'
+  | 'EQUIPOS'
+  | 'OTROS'
+  | 'ALQUILER'
+  | 'SERVICIOS_BASICOS'
+  | 'SUELDOS'
+  | 'SOFTWARE'
+  | 'IMPUESTOS'
+  | 'UTILES_OFICINA';
 export type TipoEvidencia = 'FOTO' | 'INFORME' | 'DOCUMENTO' | 'OBSERVACION';
 export type TipoCliente = 'MUNICIPALIDAD' | 'GOBIERNO_REGIONAL' | 'EMPRESA_PRIVADA' | 'PERSONA';
 export type TipoServicio =
@@ -176,11 +187,32 @@ export interface ResumenHoras {
 
 export interface Gasto {
   id: number;
-  proyectoId: number;
+  /** null = gasto de la empresa */
+  proyectoId: number | null;
   categoria: CategoriaGasto;
   descripcion: string;
   monto: number;
   fecha: string;
+  importacionId: number | null;
+}
+
+export interface ResumenGastosEmpresa {
+  cantidadGastos: number;
+  total: number;
+  porCategoria: { categoria: CategoriaGasto; monto: number; porcentaje: number }[];
+  porMes: { mes: string; monto: number }[];
+}
+
+export interface ImportacionGasto {
+  id: number;
+  proyectoId: number | null;
+  nombreArchivo: string;
+  cantidad: number;
+  total: number;
+  creadoEn: string;
+  deshechaEn: string | null;
+  gastosVigentes: number;
+  usuario: UsuarioRef | null;
 }
 
 export interface ResumenGastos {
@@ -351,7 +383,9 @@ export interface DashboardGeneral {
     margen: number;
     porcentajeEjecutado: number;
     porCategoria: { categoria: CategoriaGasto; monto: number; porcentaje: number }[];
-    porMes: { mes: string; monto: number }[];
+    gastoEmpresa: number;
+    porCategoriaEmpresa: { categoria: CategoriaGasto; monto: number; porcentaje: number }[];
+    porMes: { mes: string; obras: number; empresa: number }[];
   };
   planosPorRevisar: {
     id: number;

@@ -29,8 +29,45 @@ export function GastoMensualChart({ data }: { data: { mes: string; monto: number
   );
 }
 
+/** Barras apiladas de gasto mensual: obras y empresa (oficina) */
+export function GastoMensualApiladoChart({ data }: { data: { mes: string; obras: number; empresa: number }[] }) {
+  return (
+    <div>
+      <ResponsiveContainer width="100%" height={260}>
+        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid vertical={false} stroke="#e2e8f0" />
+          <XAxis dataKey="mes" tickFormatter={formatMes} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+          <YAxis tickFormatter={(v: number) => formatSolesCorto(v)} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} width={72} />
+          <Tooltip
+            cursor={{ fill: '#f1f5f9' }}
+            contentStyle={tooltipStyle}
+            labelFormatter={(l) => formatMes(String(l))}
+            formatter={(v, n) => [formatSoles(Number(v)), n === 'obras' ? 'Obras' : 'Empresa']}
+          />
+          <Bar dataKey="obras" stackId="g" fill="#559f27" maxBarSize={40} />
+          <Bar dataKey="empresa" stackId="g" fill="#64748b" radius={[4, 4, 0, 0]} maxBarSize={40} />
+        </BarChart>
+      </ResponsiveContainer>
+      <div className="mt-2 flex justify-center gap-5 text-xs text-slate-600">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[#559f27]" /> Obras
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[#64748b]" /> Empresa (oficina)
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /** Dona de gasto por categoría con leyenda propia */
-export function GastoCategoriaChart({ data }: { data: { categoria: CategoriaGasto; monto: number; porcentaje: number }[] }) {
+export function GastoCategoriaChart({
+  data,
+  etiquetas = CATEGORIA_GASTO,
+}: {
+  data: { categoria: CategoriaGasto; monto: number; porcentaje: number }[];
+  etiquetas?: Record<CategoriaGasto, string>;
+}) {
   const conDatos = data.filter((d) => d.monto > 0);
   if (!conDatos.length) {
     return <p className="py-16 text-center text-sm text-slate-500">Aún no hay gastos registrados.</p>;
@@ -47,7 +84,7 @@ export function GastoCategoriaChart({ data }: { data: { categoria: CategoriaGast
             </Pie>
             <Tooltip
               contentStyle={tooltipStyle}
-              formatter={(v, n) => [formatSoles(Number(v)), CATEGORIA_GASTO[n as CategoriaGasto]]}
+              formatter={(v, n) => [formatSoles(Number(v)), etiquetas[n as CategoriaGasto]]}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -56,7 +93,7 @@ export function GastoCategoriaChart({ data }: { data: { categoria: CategoriaGast
         {data.map((d) => (
           <li key={d.categoria} className="flex items-center gap-2">
             <span className="size-2.5 shrink-0 rounded-full" style={{ background: COLORES_CATEGORIA[d.categoria] }} />
-            <span className="min-w-0 flex-1 truncate text-slate-600">{CATEGORIA_GASTO[d.categoria]}</span>
+            <span className="min-w-0 flex-1 truncate text-slate-600">{etiquetas[d.categoria]}</span>
             <span className="font-medium tabular-nums text-slate-900">{formatSoles(d.monto)}</span>
             <span className="w-12 text-right text-xs tabular-nums text-slate-500">{d.porcentaje}%</span>
           </li>

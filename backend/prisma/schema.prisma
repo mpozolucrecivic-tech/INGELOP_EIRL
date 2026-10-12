@@ -34,12 +34,19 @@ enum TipoMovimiento {
   SALIDA
 }
 
+// Las cinco primeras son de proyecto; las demás, de la empresa (OTROS sirve para ambos)
 enum CategoriaGasto {
   MATERIALES
   MANO_DE_OBRA
   TRANSPORTE
   EQUIPOS
   OTROS
+  ALQUILER
+  SERVICIOS_BASICOS
+  SUELDOS
+  SOFTWARE
+  IMPUESTOS
+  UTILES_OFICINA
 }
 
 enum TipoEvidencia {
@@ -142,6 +149,7 @@ model Usuario {
   entregables          Entregable[]         @relation("EntregableResponsable")
   documentos           Documento[]
   etapasObservadas     Etapa[]              @relation("EtapaObservadaPor")
+  importacionesGasto   ImportacionGasto[]
 }
 
 model Cliente {
@@ -174,18 +182,19 @@ model Proyecto {
   responsable   Usuario        @relation("ProyectoResponsable", fields: [responsableId], references: [id])
   creadoEn      DateTime       @default(now())
 
-  usuarios       UsuarioProyecto[]
-  sprints        Sprint[]
-  materiales     Material[]
-  gastos         Gasto[]
-  evidencias     Evidencia[]
-  asignaciones   Asignacion[]
-  registrosHoras RegistroHoras[]
-  planos         Plano[]
-  presupuestos   Presupuesto[]
-  entregables    Entregable[]
-  etapas         Etapa[]
-  documentos     Documento[]
+  usuarios           UsuarioProyecto[]
+  sprints            Sprint[]
+  materiales         Material[]
+  gastos             Gasto[]
+  importacionesGasto ImportacionGasto[]
+  evidencias         Evidencia[]
+  asignaciones       Asignacion[]
+  registrosHoras     RegistroHoras[]
+  planos             Plano[]
+  presupuestos       Presupuesto[]
+  entregables        Entregable[]
+  etapas             Etapa[]
+  documentos         Documento[]
 }
 
 // Usuarios (rol USUARIO) asignados a una obra: define qué proyectos pueden ver
@@ -283,14 +292,38 @@ model RegistroHoras {
   @@index([proyectoId, fecha])
 }
 
+// Sin proyecto = gasto de la empresa (alquiler, servicios, licencias…)
 model Gasto {
-  id          Int            @id @default(autoincrement())
-  proyectoId  Int
-  proyecto    Proyecto       @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
-  categoria   CategoriaGasto
-  descripcion String
-  monto       Decimal        @db.Decimal(12, 2)
-  fecha       DateTime
+  id            Int               @id @default(autoincrement())
+  proyectoId    Int?
+  proyecto      Proyecto?         @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  categoria     CategoriaGasto
+  descripcion   String
+  monto         Decimal           @db.Decimal(12, 2)
+  fecha         DateTime
+  importacionId Int?
+  importacion   ImportacionGasto? @relation(fields: [importacionId], references: [id], onDelete: SetNull)
+
+  @@index([proyectoId, fecha])
+  @@index([importacionId])
+}
+
+// Cada importación desde Excel: permite revisarla y deshacerla
+model ImportacionGasto {
+  id            Int       @id @default(autoincrement())
+  // Desde dónde se importó: un proyecto, o null = página "Gastos de la empresa"
+  proyectoId    Int?
+  proyecto      Proyecto? @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  usuarioId     Int?
+  usuario       Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  nombreArchivo String
+  cantidad      Int
+  total         Decimal   @db.Decimal(14, 2)
+  creadoEn      DateTime  @default(now())
+  deshechaEn    DateTime?
+  gastos        Gasto[]
+
+  @@index([proyectoId, creadoEn])
 }
 
 model Evidencia {

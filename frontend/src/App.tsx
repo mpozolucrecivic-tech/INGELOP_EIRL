@@ -23,6 +23,7 @@ const PortafolioPage = lazy(() => import('@/pages/PortafolioPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const CmsPage = lazy(() => import('@/pages/CmsPage'));
 const MediosPage = lazy(() => import('@/pages/MediosPage'));
+const GastosEmpresaPage = lazy(() => import('@/pages/GastosEmpresaPage'));
 
 function RequireEditor() {
   const { puedeEditarWeb } = useAuth();
@@ -67,6 +68,7 @@ export default function App() {
           <Route element={<RequireAdmin />}>
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/clientes" element={<ClientesPage />} />
+            <Route path="/gastos-empresa" element={<GastosEmpresaPage />} />
             <Route path="/trabajadores" element={<TrabajadoresPage />} />
             <Route path="/servicios" element={<ServiciosPage />} />
             <Route path="/mensajes" element={<MensajesPage />} />

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './client';
+import { invalidarGastosDe } from './gastos';
 import { useApiMutation } from './mutation';
 import { keys } from './proyectos';
 import type {
@@ -152,28 +153,27 @@ export const useResumenGastos = (proyectoId: number) =>
     queryFn: async () => (await api.get<ResumenGastos>(`/proyectos/${proyectoId}/gastos/resumen`)).data,
   });
 
-const invalidarGastos = (p: number) => [rk.gastos(p), keys.dashboardProyecto(p), keys.dashboardGeneral];
-
 export const useCrearGasto = (proyectoId: number) =>
   useApiMutation({
     fn: async (data: GastoInput) => (await api.post<Gasto>(`/proyectos/${proyectoId}/gastos`, data)).data,
-    invalidate: invalidarGastos(proyectoId),
+    invalidate: invalidarGastosDe(proyectoId),
     exito: 'Gasto registrado',
   });
 
-export const useActualizarGasto = (proyectoId: number) =>
+/** proyectoId null = gasto de la empresa */
+export const useActualizarGasto = (proyectoId: number | null) =>
   useApiMutation({
     fn: async ({ id, ...data }: Partial<GastoInput> & { id: number }) => (await api.put<Gasto>(`/gastos/${id}`, data)).data,
-    invalidate: invalidarGastos(proyectoId),
+    invalidate: invalidarGastosDe(proyectoId),
     exito: 'Gasto actualizado',
   });
 
-export const useEliminarGasto = (proyectoId: number) =>
+export const useEliminarGasto = (proyectoId: number | null) =>
   useApiMutation({
     fn: async (id: number) => {
       await api.delete(`/gastos/${id}`);
     },
-    invalidate: invalidarGastos(proyectoId),
+    invalidate: invalidarGastosDe(proyectoId),
     exito: 'Gasto eliminado',
   });
 

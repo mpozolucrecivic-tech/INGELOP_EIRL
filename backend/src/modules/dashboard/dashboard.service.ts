@@ -1,8 +1,9 @@
-import { CategoriaGasto, Especialidad, EstadoProyecto, EstadoRevision, RubroObra, TipoEvidencia, TipoServicio } from '@prisma/client';
+import { Especialidad, EstadoProyecto, EstadoRevision, RubroObra, TipoEvidencia, TipoServicio } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { claveMes, porcentaje, round2, toNumber } from '../../utils/helpers';
 import { listarPorProyecto as listarEntregables } from '../entregables/entregables.service';
+import { CATEGORIAS_EMPRESA, CATEGORIAS_PROYECTO } from '../gastos/gastos.schema';
 import { resumen as resumenGastos } from '../gastos/gastos.service';
 import { resumenHoras } from '../personal/personal.service';
 import { listarPorProyecto as listarPresupuestos } from '../presupuestos/presupuestos.service';
@@ -138,6 +139,7 @@ export async function dashboardGeneral(meses: number) {
     proyectos,
     gastosPorProyecto,
     gastosPorCategoria,
+    gastosEmpresaPorCategoria,
     gastosVentana,
     actividades,
     planosPorRevisar,
@@ -163,9 +165,11 @@ export async function dashboardGeneral(meses: number) {
       },
       orderBy: { fechaInicio: 'desc' },
     }),
-    prisma.gasto.groupBy({ by: ['proyectoId'], _sum: { monto: true } }),
-    prisma.gasto.groupBy({ by: ['categoria'], _sum: { monto: true } }),
-    prisma.gasto.findMany({ where: { fecha: { gte: inicioVentana } }, select: { fecha: true, monto: true } }),
+    // Gastos de proyecto (con proyecto) y de la empresa (sin proyecto) se suman por separado
+    prisma.gasto.groupBy({ by: ['proyectoId'], where: { proyectoId: { not: null } }, _sum: { monto: true } }),
+    prisma.gasto.groupBy({ by: ['categoria'], where: { proyectoId: { not: null } }, _sum: { monto: true } }),
+    prisma.gasto.groupBy({ by: ['categoria'], where: { proyectoId: null }, _sum: { monto: true } }),
+    prisma.gasto.findMany({ where: { fecha: { gte: inicioVentana } }, select: { fecha: true, monto: true, proyectoId: true } }),
     prisma.actividad.findMany({ select: { estado: true, avance: true, sprint: { select: { proyectoId: true } } } }),
     prisma.plano.findMany({
       where: { estado: EstadoRevision.EN_REVISION },
@@ -196,15 +200,19 @@ export async function dashboardGeneral(meses: number) {
   const montoTotal = round2(proyectos.reduce((s, p) => s + toNumber(p.montoContrato), 0));
   const gastoTotal = round2([...gastadoPorProyecto.values()].reduce((s, n) => s + n, 0));
 
-  // Serie mensual continua (incluye meses sin gasto) para gráficos
-  const porMes = new Map<string, number>();
+  // Serie mensual continua (incluye meses sin gasto) para gráficos, separando obras y empresa
+  const porMes = new Map<string, { obras: number; empresa: number }>();
   for (let i = 0; i < meses; i++) {
-    porMes.set(claveMes(new Date(Date.UTC(inicioVentana.getUTCFullYear(), inicioVentana.getUTCMonth() + i, 1))), 0);
+    porMes.set(claveMes(new Date(Date.UTC(inicioVentana.getUTCFullYear(), inicioVentana.getUTCMonth() + i, 1))), { obras: 0, empresa: 0 });
   }
   for (const g of gastosVentana) {
-    const mes = claveMes(g.fecha);
-    if (porMes.has(mes)) porMes.set(mes, porMes.get(mes)! + toNumber(g.monto));
+    const mes = porMes.get(claveMes(g.fecha));
+    if (!mes) continue;
+    if (g.proyectoId === null) mes.empresa += toNumber(g.monto);
+    else mes.obras += toNumber(g.monto);
   }
+  const categoriasEmpresa = new Map(gastosEmpresaPorCategoria.map((g) => [g.categoria, toNumber(g._sum.monto)]));
+  const gastoEmpresa = round2([...categoriasEmpresa.values()].reduce((s, n) => s + n, 0));
 
   const porEstado = ceros(Object.values(EstadoProyecto));
   const porTipoServicio = ceros(Object.values(TipoServicio));
@@ -226,12 +234,19 @@ export async function dashboardGeneral(meses: number) {
       gastoTotal,
       margen: round2(montoTotal - gastoTotal),
       porcentajeEjecutado: porcentaje(gastoTotal, montoTotal),
-      porCategoria: Object.values(CategoriaGasto).map((c) => ({
+      porCategoria: CATEGORIAS_PROYECTO.map((c) => ({
         categoria: c,
         monto: round2(categorias.get(c) ?? 0),
         porcentaje: porcentaje(categorias.get(c) ?? 0, gastoTotal),
       })),
-      porMes: [...porMes.entries()].map(([mes, monto]) => ({ mes, monto: round2(monto) })),
+      // Gastos de la empresa (alquiler, servicios…): no se restan del margen de los contratos
+      gastoEmpresa,
+      porCategoriaEmpresa: CATEGORIAS_EMPRESA.map((c) => ({
+        categoria: c,
+        monto: round2(categoriasEmpresa.get(c) ?? 0),
+        porcentaje: porcentaje(categoriasEmpresa.get(c) ?? 0, gastoEmpresa),
+      })),
+      porMes: [...porMes.entries()].map(([mes, m]) => ({ mes, obras: round2(m.obras), empresa: round2(m.empresa) })),
     },
     planosPorRevisar,
     entregablesVencidos,

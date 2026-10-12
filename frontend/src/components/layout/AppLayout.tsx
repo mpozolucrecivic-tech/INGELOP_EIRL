@@ -17,6 +17,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  Wallet,
   X,
   type LucideIcon,
 } from 'lucide-react';
@@ -50,6 +51,7 @@ const navGrupos: { titulo?: string; items: NavItem[] }[] = [
     titulo: 'Gestión',
     items: [
       { to: '/clientes', label: 'Clientes', icon: Briefcase, acceso: 'admin' },
+      { to: '/gastos-empresa', label: 'Gastos de la empresa', icon: Wallet, acceso: 'admin' },
       { to: '/trabajadores', label: 'Personal y tarifas', icon: HardHat, acceso: 'admin' },
       { to: '/usuarios', label: 'Accesos', icon: KeyRound, acceso: 'admin' },
       { to: '/auditoria', label: 'Auditoría', icon: ShieldCheck, acceso: 'admin' },
