@@ -91,7 +91,7 @@ export default function SitioPage() {
                     <label className={`inline-flex items-center gap-2 text-sm ${vacio ? 'text-slate-400' : 'text-slate-700'}`} title={vacio ? 'Escribe el dato para poder publicarlo' : undefined}>
                       <input
                         type="checkbox"
-                        className="size-4 accent-amber-500"
+                        className="size-4 accent-brand-600"
                         checked={d.publicado}
                         disabled={vacio}
                         onChange={(e) => editar(c.clave, { publicado: e.target.checked })}

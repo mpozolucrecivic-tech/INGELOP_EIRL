@@ -32,7 +32,7 @@ if ($cmsMarca !== null) {
             $menu[$slug] = [$item['etiqueta'], cms_url($slug)];
     }
 }
-$cmsLogo = !empty($cmsMarca['logoId']) ? cms_medio_url((int) $cmsMarca['logoId']) : 'assets/img/logo.svg';
+$cmsLogo = !empty($cmsMarca['logoId']) ? cms_medio_url((int) $cmsMarca['logoId']) : 'assets/img/logo.svg?v=2';
 $cmsSitioUrl = (string) (contenido_web()['sitioUrl'] ?? '');
 $cmsCanonical = $cmsSitioUrl !== '' ? rtrim($cmsSitioUrl, '/') . '/' . cms_url($pagina) : '';
 // Datos estructurados para buscadores (Google: empresa local)
@@ -72,14 +72,14 @@ $jsonLd = array_filter($jsonLd, fn ($v) => $v !== null);
     <meta property="og:locale" content="es_PE">
     <?php if ($cmsCanonical !== ''): ?><link rel="canonical" href="<?= e($cmsCanonical) ?>"><meta property="og:url" content="<?= e($cmsCanonical) ?>"><?php endif; ?>
     <?php if (!empty($cmsPagina['imagenSocialId'])): ?><meta property="og:image" content="<?= e(cms_medio_url((int) $cmsPagina['imagenSocialId'])) ?>"><?php endif; ?>
-    <meta name="theme-color" content="#0f172a">
-    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <meta name="theme-color" content="#202625">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/estilos.css?v=1">
+    <link rel="stylesheet" href="assets/css/estilos.css?v=2">
     <link rel="stylesheet" href="assets/css/conexion-api.css?v=1">
-    <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+    <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
 </head>
 <body class="pagina-<?= e($pagina) ?>"<?= API_URL !== '' ? ' data-api="' . e(API_URL) . '"' : '' ?>>
 <a class="saltar" href="#contenido">Saltar al contenido</a>

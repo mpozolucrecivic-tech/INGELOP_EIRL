@@ -43,7 +43,7 @@ export default function ClientesPage() {
           <Input placeholder="Buscar por nombre, RUC/DNI o contacto…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" aria-label="Buscar clientes" />
         </div>
         <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-          <input type="checkbox" className="size-4 accent-amber-500" checked={verInactivos} onChange={(e) => setVerInactivos(e.target.checked)} />
+          <input type="checkbox" className="size-4 accent-brand-600" checked={verInactivos} onChange={(e) => setVerInactivos(e.target.checked)} />
           Incluir inactivos
         </label>
       </div>

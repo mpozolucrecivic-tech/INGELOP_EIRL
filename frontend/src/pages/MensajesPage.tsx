@@ -54,7 +54,7 @@ export default function MensajesPage() {
           ))}
         </Select>
         <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-          <input type="checkbox" className="size-4 accent-amber-500" checked={soloNoLeidos} onChange={(e) => setSoloNoLeidos(e.target.checked)} />
+          <input type="checkbox" className="size-4 accent-brand-600" checked={soloNoLeidos} onChange={(e) => setSoloNoLeidos(e.target.checked)} />
           Solo sin leer
         </label>
       </div>

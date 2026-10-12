@@ -152,6 +152,7 @@ function EtapaCard({ etapa, proyectoId, esUltima, documentos }: { etapa: Etapa; 
                   title: `Aprobar ${TIPO_ETAPA[etapa.tipo].toLowerCase()}`,
                   message: 'Al aprobarla, la etapa ya no admitirá documentos nuevos y se podrá iniciar la siguiente.',
                   confirmText: 'Aprobar',
+                  tone: 'primary',
                   onConfirm: () => accion.mutateAsync({ id: etapa.id, accion: 'aprobar' }),
                 })
               }

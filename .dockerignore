@@ -7,3 +7,11 @@ deploy/.env
 web/storage/*.csv
 **/*.log
 web/storage/cache
+web/*.zip
+web/*.tar
+web/*.tar.gz
+web/*.7z
+web/*.rar
+web/*.sql
+web/*.dump
+web/*.bak

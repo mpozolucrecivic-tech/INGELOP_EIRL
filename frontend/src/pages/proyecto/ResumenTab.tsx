@@ -90,7 +90,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader title="Planos por especialidad" action={<Link to={`${base}/planos`} className={link}>Ver planos</Link>} />
+          <CardHeader title="Planos por especialidad" action={<Link to={`${base}/expediente/planos`} className={link}>Ver planos</Link>} />
           {planos.total ? (
             <div className="space-y-4 p-5">
               <div className="flex flex-wrap gap-2">
@@ -121,7 +121,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
         </Card>
 
         <Card>
-          <CardHeader title="Próximos entregables" action={<Link to={`${base}/entregables`} className={link}>Ver todos</Link>} />
+          <CardHeader title="Próximos entregables" action={<Link to={`${base}/expediente/entregables`} className={link}>Ver todos</Link>} />
           {entregables.proximos.length ? (
             <ul className="divide-y divide-slate-100">
               {entregables.proximos.map((e) => (
@@ -146,13 +146,13 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
         <Card className="lg:col-span-2">
           <CardHeader
             title="Presupuestos"
-            action={<Link to={`${base}/presupuestos`} className={link}>Ver presupuestos</Link>}
+            action={<Link to={`${base}/expediente/presupuestos`} className={link}>Ver presupuestos</Link>}
           />
           {presupuestos.length ? (
             <ul className="divide-y divide-slate-100">
               {presupuestos.map((p) => (
                 <li key={p.id}>
-                  <Link to={`${base}/presupuestos?id=${p.id}`} className="flex flex-wrap items-center gap-3 px-5 py-3 hover:bg-slate-50">
+                  <Link to={`${base}/expediente/presupuestos?id=${p.id}`} className="flex flex-wrap items-center gap-3 px-5 py-3 hover:bg-slate-50">
                     <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">{p.nombre}</span>
                     <Badge>v{p.version}</Badge>
                     <Badge color={ESTADO_REVISION[p.estado].color}>{ESTADO_REVISION[p.estado].label}</Badge>
@@ -170,7 +170,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
           <CardHeader
             title="Tareas"
             subtitle={avance.sprintVigente ? `Periodo ${avance.sprintVigente.numero}: ${avance.sprintVigente.objetivo}` : 'Ningún periodo de trabajo en curso'}
-            action={<Link to={`${base}/tablero`} className={link}>Ver</Link>}
+            action={<Link to={`${base}/planificacion`} className={link}>Ver</Link>}
           />
           <div className="space-y-2 p-5">
             <div className="mb-3 flex items-center gap-2">
@@ -193,7 +193,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
       {esAdmin && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card>
-            <CardHeader title="Dinero del proyecto" action={<Link to={`${base}/gastos`} className={link}>Gastos</Link>} />
+            <CardHeader title="Dinero del proyecto" action={<Link to={`${base}/recursos/gastos`} className={link}>Gastos</Link>} />
             <dl className="space-y-3 p-5 text-sm">
               <div className="flex justify-between">
                 <dt className="text-slate-500">Monto del contrato</dt>
@@ -220,7 +220,7 @@ export default function ResumenTab({ proyectoId }: { proyectoId: number }) {
       )}
 
       <Card>
-        <CardHeader title="Últimas fotos y observaciones" subtitle={`${evidencias.total} en total`} action={<Link to={`${base}/fotos`} className={link}>Ver todas</Link>} />
+        <CardHeader title="Últimas fotos y observaciones" subtitle={`${evidencias.total} en total`} action={<Link to={`${base}/expediente/fotos`} className={link}>Ver todas</Link>} />
         {evidencias.ultimas.length ? (
           <ul className="divide-y divide-slate-100">
             {evidencias.ultimas.map((e) => (

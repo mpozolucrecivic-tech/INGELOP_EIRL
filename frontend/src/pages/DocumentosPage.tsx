@@ -31,7 +31,7 @@ export default function DocumentosPage({ modo }: { modo: 'todos' | 'mios' }) {
   return (
     <>
       <PageHeader
-        title={todos ? 'Documentos' : 'Mis documentos'}
+        title={todos ? 'Expedientes' : 'Mis documentos'}
         subtitle={
           todos
             ? 'Todos los documentos de todos los proyectos, por etapa y categoría.'
@@ -126,7 +126,7 @@ export default function DocumentosPage({ modo }: { modo: 'todos' | 'mios' }) {
                       </p>
                     </td>
                     <td className={td}>
-                      <Link to={`/proyectos/${d.proyecto.id}/etapas`} className="text-sm text-brand-700 hover:underline">
+                      <Link to={`/proyectos/${d.proyecto.id}/expediente/etapas`} className="text-sm text-brand-700 hover:underline">
                         {d.proyecto.nombre}
                       </Link>
                       <p className="flex items-center gap-1 text-xs text-slate-500">

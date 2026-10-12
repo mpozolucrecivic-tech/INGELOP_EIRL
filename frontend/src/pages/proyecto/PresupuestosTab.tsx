@@ -122,13 +122,13 @@ function imprimir(p: PresupuestoDetalle, proyecto: string, cliente: string, fila
     `<tr class="${strong ? 'tt' : ''}"><td colspan="5" class="r">${label}</td><td class="r">${m(v)}</td></tr>`;
   const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(p.nombre)} v${p.version}</title>
 <style>
-body{font:12px/1.4 system-ui,Segoe UI,Arial,sans-serif;color:#0f172a;margin:24px}
+body{font:12px/1.4 system-ui,Segoe UI,Arial,sans-serif;color:#202625;margin:24px}
 h1{font-size:16px;margin:0}h2{font-size:13px;margin:4px 0 0;font-weight:600}
 .meta{margin:8px 0 16px;color:#475569}
 table{width:100%;border-collapse:collapse}th,td{border:1px solid #cbd5e1;padding:4px 6px;vertical-align:top}
 th{background:#f1f5f9;text-align:left}.r{text-align:right;white-space:nowrap}
-tr.t td{font-weight:700;background:#fafaf9}tr.tt td{font-weight:700;font-size:13px;background:#fef3c7}
-.head{display:flex;justify-content:space-between;border-bottom:2px solid #f59e0b;padding-bottom:8px;margin-bottom:8px}
+tr.t td{font-weight:700;background:#fafaf9}tr.tt td{font-weight:700;font-size:13px;background:#e3f3d7}
+.head{display:flex;justify-content:space-between;border-bottom:2px solid #559f27;padding-bottom:8px;margin-bottom:8px}
 @page{size:A4;margin:14mm}
 </style></head><body>
 <div class="head"><div><h1>INGELOP Consultores y Ejecutores E.I.R.L.</h1><h2>${esc(p.nombre)}</h2></div><div class="r">Versión ${p.version}<br>${formatFecha(p.fecha)}</div></div>
@@ -440,7 +440,7 @@ function Editor({ proyectoId, id, onVolver, onAbrir }: { proyectoId: number; id:
             </thead>
             <tbody>
               {filas.map((f, i) => (
-                <tr key={i} className={clsx('border-b border-slate-100', f.esTitulo ? 'bg-slate-50 font-semibold' : 'hover:bg-amber-50/30')}>
+                <tr key={i} className={clsx('border-b border-slate-100', f.esTitulo ? 'bg-slate-50 font-semibold' : 'hover:bg-brand-50/40')}>
                   <td className="px-2 py-1">
                     <input className={clsx(celda, 'font-mono')} value={f.item} disabled={!editable} onChange={(e) => set(i, { item: e.target.value.trim() })} aria-label="Ítem" />
                   </td>

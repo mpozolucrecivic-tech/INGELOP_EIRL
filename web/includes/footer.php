@@ -4,7 +4,7 @@
     <div class="contenedor pie__grid">
         <div>
             <a class="marca marca--pie" href="index.php">
-                <img src="<?= e($cmsLogo ?? 'assets/img/logo.svg') ?>" alt="" width="40" height="40">
+                <img src="<?= e($cmsLogo ?? 'assets/img/logo.svg?v=2') ?>" alt="" width="40" height="40">
                 <span class="marca__texto">
                     <strong><?= e(EMPRESA['nombre_corto']) ?></strong>
                     <small><?= e($cmsMarca['subtitulo'] ?? 'Consultores y Ejecutores E.I.R.L.') ?></small>

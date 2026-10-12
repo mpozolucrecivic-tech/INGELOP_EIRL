@@ -7,6 +7,7 @@ import LoginPage from '@/pages/LoginPage';
 
 // Páginas cargadas bajo demanda (el login abre rápido; Recharts solo se descarga al ver gráficos)
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const MiTrabajoPage = lazy(() => import('@/pages/MiTrabajoPage'));
 const ProyectosPage = lazy(() => import('@/pages/ProyectosPage'));
 const ProyectoPage = lazy(() => import('@/pages/proyecto/ProyectoPage'));
 const UsuariosPage = lazy(() => import('@/pages/UsuariosPage'));
@@ -25,7 +26,7 @@ const MediosPage = lazy(() => import('@/pages/MediosPage'));
 
 function RequireEditor() {
   const { puedeEditarWeb } = useAuth();
-  return puedeEditarWeb ? <Outlet /> : <Navigate to="/proyectos" replace />;
+  return puedeEditarWeb ? <Outlet /> : <Navigate to="/" replace />;
 }
 
 /** Exige sesión iniciada */
@@ -40,7 +41,12 @@ function RequireAuth() {
 /** Solo ADMIN; el USUARIO va a sus proyectos */
 function RequireAdmin() {
   const { esAdmin } = useAuth();
-  return esAdmin ? <Outlet /> : <Navigate to="/proyectos" replace />;
+  return esAdmin ? <Outlet /> : <Navigate to="/" replace />;
+}
+
+function InicioRoute() {
+  const { esAdmin } = useAuth();
+  return esAdmin ? <DashboardPage /> : <MiTrabajoPage />;
 }
 
 export default function App() {
@@ -49,6 +55,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
+          <Route index element={<InicioRoute />} />
           <Route path="/proyectos" element={<ProyectosPage />} />
           <Route path="/proyectos/:id/*" element={<ProyectoPage />} />
           <Route path="/mis-documentos" element={<DocumentosPage modo="mios" />} />
@@ -58,7 +65,6 @@ export default function App() {
             <Route path="/biblioteca" element={<MediosPage />} />
           </Route>
           <Route element={<RequireAdmin />}>
-            <Route index element={<DashboardPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/trabajadores" element={<TrabajadoresPage />} />

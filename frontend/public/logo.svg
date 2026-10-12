@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="INGELOP">
+  <defs>
+    <linearGradient id="verde" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#75bb47"/>
+      <stop offset="1" stop-color="#326719"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="#fff" stroke="#dde1df" stroke-width="2"/>
+  <path d="M34 32V18l7-5v18M45 31V8l7 5v21M55 35V21l5 4v14" fill="none" stroke="#202625" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 31V21l3-2v12M48 31V13l4 3v18M58 36V27l2 1v11" fill="none" stroke="url(#verde)" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M9 45c9-7 20-10 31-9 7 1 12 3 17 7-14-2-27 0-39 6z" fill="url(#verde)"/>
+  <path d="M15 39c1-12 8-20 18-20 11 0 18 8 19 21l-7 3-27-1z" fill="#f7f8f7" stroke="#202625" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M30 20c-5 5-8 12-8 21M45 28l1 14" fill="none" stroke="#c5cbc8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M9 42c5-2 10-2 13-1 9 3 20 3 29-1l5 5c-5 5-14 7-24 7S14 50 8 46z" fill="#fff" stroke="#202625" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M43 34l6 1 1 7-6 2z" fill="url(#verde)" stroke="#202625" stroke-width="2" stroke-linejoin="round"/>
+</svg>

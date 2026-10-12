@@ -41,7 +41,7 @@ export default function TrabajadoresPage() {
           <Input placeholder="Buscar por nombre, DNI o cargo…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" aria-label="Buscar profesionales" />
         </div>
         <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-          <input type="checkbox" className="size-4 accent-amber-500" checked={verInactivos} onChange={(e) => setVerInactivos(e.target.checked)} />
+          <input type="checkbox" className="size-4 accent-brand-600" checked={verInactivos} onChange={(e) => setVerInactivos(e.target.checked)} />
           Incluir inactivos
         </label>
       </div>
@@ -85,7 +85,7 @@ export default function TrabajadoresPage() {
                     {t.asignaciones?.length ? (
                       <div className="flex flex-wrap gap-1">
                         {t.asignaciones.map((a) => (
-                          <Link key={a.id} to={`/proyectos/${a.proyecto.id}/equipo`} className="text-xs font-medium text-brand-700 hover:underline">
+                          <Link key={a.id} to={`/proyectos/${a.proyecto.id}/recursos/equipo`} className="text-xs font-medium text-brand-700 hover:underline">
                             {a.proyecto.nombre}
                           </Link>
                         ))}

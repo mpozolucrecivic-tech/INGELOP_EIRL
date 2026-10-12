@@ -12,8 +12,9 @@ ErrorDocument 404 /404.php
   RewriteRule ^robots\.txt$ robots.php [L]
 </IfModule>
 
-# Bloquea el acceso directo a includes y a la carpeta de mensajes
+# Bloquea archivos internos, respaldos y paquetes que nunca deben publicarse
 RedirectMatch 404 ^/(includes|storage)(/|$)
+RedirectMatch 404 (?i)\.(zip|tar|gz|7z|rar|sql|dump|bak)$
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"

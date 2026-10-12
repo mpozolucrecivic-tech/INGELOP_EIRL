@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertCircle, HardHat } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { mensajeError } from '@/api/client';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -26,7 +26,7 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  if (usuario) return <Navigate to={usuario.rol === 'ADMIN' ? '/' : '/proyectos'} replace />;
+  if (usuario) return <Navigate to="/" replace />;
 
   const onSubmit = async (data: FormData) => {
     setError(null);
@@ -45,12 +45,12 @@ export default function LoginPage() {
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{
-            backgroundImage: 'repeating-linear-gradient(-45deg, #f59e0b 0 24px, transparent 24px 48px)',
+            backgroundImage: 'repeating-linear-gradient(-45deg, #559f27 0 24px, transparent 24px 48px)',
           }}
           aria-hidden
         />
         <div className="relative flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-brand-500 text-xl font-black text-slate-900">I</div>
+          <img src="/logo.svg?v=2" alt="" className="size-11" />
           <div>
             <p className="font-bold tracking-wide text-white">INGELOP</p>
             <p className="text-sm text-slate-400">Consultores y Ejecutores E.I.R.L. · Chiclayo</p>
@@ -72,9 +72,7 @@ export default function LoginPage() {
       <div className="flex items-center justify-center px-4 py-12 sm:px-8">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
-            <div className="mb-4 flex size-11 items-center justify-center rounded-xl bg-slate-900 text-brand-400">
-              <HardHat className="size-6" />
-            </div>
+            <img src="/logo.svg?v=2" alt="" className="mb-4 size-11" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900">Iniciar sesión</h2>
           <p className="mt-1 text-sm text-slate-500">Ingresa con tu cuenta de la intranet.</p>

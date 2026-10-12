@@ -23,7 +23,7 @@ export function GastoMensualChart({ data }: { data: { mes: string; monto: number
           labelFormatter={(l) => formatMes(String(l))}
           formatter={(v) => [formatSoles(Number(v)), 'Gasto']}
         />
-        <Bar dataKey="monto" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="monto" fill="#559f27" radius={[4, 4, 0, 0]} maxBarSize={40} />
       </BarChart>
     </ResponsiveContainer>
   );

@@ -2,7 +2,7 @@ import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type Selec
 import clsx from 'clsx';
 
 const controlBase =
-  'block w-full rounded-lg border bg-white px-3 text-sm text-slate-900 shadow-sm transition-colors placeholder:text-slate-400 ' +
+  'block w-full rounded-md border bg-white px-3 text-sm text-slate-900 transition-colors placeholder:text-slate-400 ' +
   'focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500';
 
 const borde = (error?: string) => (error ? 'border-red-400' : 'border-slate-300');
@@ -26,11 +26,11 @@ function Wrapper({ label, error, hint, id, children, className }: WrapperProps) 
       )}
       {children}
       {error ? (
-        <p className="mt-1 text-xs text-red-600" role="alert">
+        <p id={`${id}-message`} className="mt-1 text-xs text-red-600" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className="mt-1 text-xs text-slate-500">{hint}</p>
+        <p id={`${id}-message`} className="mt-1 text-xs text-slate-500">{hint}</p>
       ) : null}
     </div>
   );
@@ -46,7 +46,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   const inputId = id ?? autoId;
   return (
     <Wrapper label={label} error={error} hint={hint} id={inputId} className={wrapperClassName}>
-      <input ref={ref} id={inputId} aria-invalid={!!error} className={clsx(controlBase, borde(error), 'h-10', className)} {...props} />
+      <input ref={ref} id={inputId} aria-invalid={!!error} aria-describedby={error || hint ? `${inputId}-message` : undefined} className={clsx(controlBase, borde(error), 'h-10', className)} {...props} />
     </Wrapper>
   );
 });
@@ -59,7 +59,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   const selectId = id ?? autoId;
   return (
     <Wrapper label={label} error={error} hint={hint} id={selectId} className={wrapperClassName}>
-      <select ref={ref} id={selectId} aria-invalid={!!error} className={clsx(controlBase, borde(error), 'h-10 pr-8', className)} {...props}>
+      <select ref={ref} id={selectId} aria-invalid={!!error} aria-describedby={error || hint ? `${selectId}-message` : undefined} className={clsx(controlBase, borde(error), 'h-10 pr-8', className)} {...props}>
         {children}
       </select>
     </Wrapper>
@@ -74,7 +74,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   const areaId = id ?? autoId;
   return (
     <Wrapper label={label} error={error} hint={hint} id={areaId} className={wrapperClassName}>
-      <textarea ref={ref} id={areaId} rows={rows} aria-invalid={!!error} className={clsx(controlBase, borde(error), 'py-2', className)} {...props} />
+      <textarea ref={ref} id={areaId} rows={rows} aria-invalid={!!error} aria-describedby={error || hint ? `${areaId}-message` : undefined} className={clsx(controlBase, borde(error), 'py-2', className)} {...props} />
     </Wrapper>
   );
 });

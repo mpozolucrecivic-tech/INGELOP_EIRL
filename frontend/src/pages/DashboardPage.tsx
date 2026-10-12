@@ -25,7 +25,7 @@ function PrimerosPasos({ data }: { data: DashboardGeneral }) {
       hecho: data.resumenProyectos.some((p) => p.planos.total > 0),
       texto: 'Subir el primer plano',
       detalle: 'Desde la pestaña Planos de un proyecto.',
-      to: primerProyecto ? `/proyectos/${primerProyecto.id}/planos` : '/proyectos',
+      to: primerProyecto ? `/proyectos/${primerProyecto.id}/expediente/planos` : '/proyectos',
     },
   ];
   const hechos = pasos.filter((p) => p.hecho).length;
@@ -111,7 +111,7 @@ export default function DashboardPage() {
               <ul className="divide-y divide-slate-100">
                 {data.planosPorRevisar.slice(0, 8).map((p) => (
                   <li key={p.id}>
-                    <Link to={`/proyectos/${p.proyecto.id}/planos`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50">
+                    <Link to={`/proyectos/${p.proyecto.id}/expediente/planos`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50">
                       <span className="w-14 font-mono text-sm font-semibold text-slate-900">{p.codigo}</span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm text-slate-800">{p.titulo}</p>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
               <ul className="divide-y divide-slate-100">
                 {data.entregablesVencidos.slice(0, 8).map((e) => (
                   <li key={e.id}>
-                    <Link to={`/proyectos/${e.proyecto.id}/entregables`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50">
+                    <Link to={`/proyectos/${e.proyecto.id}/expediente/entregables`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-slate-50">
                       <AlertTriangle className="size-4 shrink-0 text-red-500" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm text-slate-800">{e.nombre}</p>

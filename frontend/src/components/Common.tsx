@@ -60,8 +60,8 @@ export function IconoArchivo() {
 /** Frase corta que explica para qué sirve una pestaña */
 export function TextoAyuda({ children }: { children: ReactNode }) {
   return (
-    <p className="mb-4 flex items-start gap-2 text-sm text-slate-500">
-      <Info className="mt-0.5 size-4 shrink-0 text-slate-400" />
+    <p className="mb-4 flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
+      <Info className="mt-0.5 size-4 shrink-0 text-brand-600" />
       <span>{children}</span>
     </p>
   );

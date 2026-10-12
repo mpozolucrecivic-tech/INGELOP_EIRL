@@ -15,7 +15,7 @@ test('Web PHP: páginas CMS, contacto, SEO, imágenes, publicación vacía y cac
   const bloque = { id: 'texto', tipo: 'texto', titulo: 'Contenido <seguro>', texto: '<script>alert(1)</script>', visible: true, medioId: 7, botonTexto: 'Contacto', botonUrl: 'contacto.php' };
   const pagina = (slug, bloques = [bloque]) => ({ tipo: 'pagina', slug, titulo: 'Título editorial', descripcion: 'Descripción para buscadores', imagenSocialId: 7, bloques });
   const web = { datos: {}, proyectos: [], servicios: [], medios: [{ id: 7, textoAlternativo: 'Foto del equipo' }], sitioUrl: 'https://ingelop.example', cms: {
-    configuracion: { tipo: 'configuracion', nombre: 'Marca editorial', subtitulo: 'Consultoría', descripcion: 'Descripción de marca', logoId: null, menu: [{ etiqueta: 'Equipo', slug: 'equipo' }] },
+    configuracion: { tipo: 'configuracion', nombre: 'Marca </script><script>alert(2)</script>', subtitulo: 'Consultoría', descripcion: 'Descripción de marca', logoId: null, menu: [{ etiqueta: 'Equipo', slug: 'equipo' }] },
     'pagina.equipo': pagina('equipo'), 'pagina.contacto': pagina('contacto', [{ ...bloque, medioId: null, tipo: 'contacto' }]),
   } };
   let disponible = true;
@@ -49,7 +49,9 @@ test('Web PHP: páginas CMS, contacto, SEO, imágenes, publicación vacía y cac
     const r = await fetch(url + '/pagina.php?slug=equipo');
     const html = await r.text();
     assert.equal(r.status, 200);
-    assert.ok(html.includes('Marca editorial'));
+    assert.ok(html.includes('Marca &lt;/script&gt;&lt;script&gt;alert(2)&lt;/script&gt;'));
+    assert.ok(!html.includes('</script><script>alert(2)</script>'));
+    assert.ok(html.includes('Marca \\u003C/script\\u003E\\u003Cscript\\u003Ealert(2)\\u003C/script\\u003E'));
     assert.ok(html.includes('Contenido &lt;seguro&gt;'));
     assert.ok(html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
     assert.ok(!html.includes('<script>alert(1)</script>'));
