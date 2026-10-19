@@ -1,8 +1,9 @@
 import { useDeferredValue, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { ArrowRight, Building2, Calendar, FileStack, MapPin, Plus, Search } from 'lucide-react';
+import { ArrowRight, Building2, Calendar, FileStack, GanttChart, List, MapPin, Plus, Search } from 'lucide-react';
 import { useProyectos } from '@/api/proyectos';
 import { EstadoProyectoBadge } from '@/components/Common';
+import { Cronograma, LeyendaCronograma } from '@/components/Cronograma';
 import { Button } from '@/components/ui/Button';
 import { Badge, Card, EmptyState, ErrorState, PageHeader, Spinner, Table, td, th } from '@/components/ui/Display';
 import { Input, Select } from '@/components/ui/Field';
@@ -10,6 +11,8 @@ import { useAuth } from '@/context/AuthContext';
 import { ESTADO_PROYECTO, formatFecha, formatSoles, RUBRO_OBRA, TIPO_SERVICIO } from '@/lib/format';
 import type { EstadoProyecto, RubroObra } from '@/types/api';
 import { ProyectoFormModal } from './ProyectoForm';
+
+const COLOR_ESTADO: Record<EstadoProyecto, string> = { PLANIFICADA: 'bg-slate-400', EN_EJECUCION: 'bg-brand-500', FINALIZADA: 'bg-emerald-600' };
 
 export default function ProyectosPage() {
   const { esAdmin } = useAuth();
@@ -19,6 +22,7 @@ export default function ProyectosPage() {
   const [estado, setEstado] = useState<EstadoProyecto | ''>('');
   const [rubro, setRubro] = useState<RubroObra | ''>('');
   const [archivados, setArchivados] = useState(false);
+  const [vista, setVista] = useState<'lista' | 'cronograma'>('lista');
   const [creando, setCreando] = useState(false);
   const busqueda = useDeferredValue(q.trim());
 
@@ -43,8 +47,8 @@ export default function ProyectosPage() {
         }
       />
 
-      <div className="mb-5 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row">
-        <div className="relative flex-1">
+      <div className="mb-5 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative min-w-[16rem] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <Input placeholder="Buscar por proyecto, cliente o ubicación…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" aria-label="Buscar proyectos" />
         </div>
@@ -56,6 +60,20 @@ export default function ProyectosPage() {
           <option value="">Todos los estados</option>
           {(Object.keys(ESTADO_PROYECTO) as EstadoProyecto[]).map((e) => <option key={e} value={e}>{ESTADO_PROYECTO[e].label}</option>)}
         </Select>
+        <div className="inline-flex shrink-0 rounded-lg bg-slate-100 p-1" role="group" aria-label="Vista">
+          {(['lista', 'cronograma'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={vista === v}
+              onClick={() => setVista(v)}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium ${vista === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            >
+              {v === 'lista' ? <List className="size-4" /> : <GanttChart className="size-4" />}
+              {v === 'lista' ? 'Lista' : 'Cronograma'}
+            </button>
+          ))}
+        </div>
         {esAdmin && (
           <label className="inline-flex items-center gap-2 whitespace-nowrap px-1 text-sm text-slate-600">
             <input type="checkbox" className="size-4 accent-brand-600" checked={archivados} onChange={(e) => setArchivados(e.target.checked)} />
@@ -83,6 +101,23 @@ export default function ProyectosPage() {
                   : 'Todavía no te han asignado a ningún proyecto. Consulta con el administrador.'
             }
           />
+        </Card>
+      ) : vista === 'cronograma' ? (
+        <Card>
+          <Cronograma
+            filas={[...proyectos]
+              .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio))
+              .map((p) => ({
+                id: String(p.id),
+                etiqueta: p.nombre,
+                detalle: p.cliente.nombre,
+                inicio: p.fechaInicio,
+                fin: p.fechaFin,
+                color: COLOR_ESTADO[p.estado],
+                enlace: `/proyectos/${p.id}`,
+              }))}
+          />
+          <LeyendaCronograma items={(Object.keys(ESTADO_PROYECTO) as EstadoProyecto[]).map((e) => ({ color: COLOR_ESTADO[e], texto: ESTADO_PROYECTO[e].label }))} />
         </Card>
       ) : (
         <>

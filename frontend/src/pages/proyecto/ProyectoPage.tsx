@@ -7,13 +7,13 @@ import { Badge, ErrorState, Spinner } from '@/components/ui/Display';
 import { useAuth } from '@/context/AuthContext';
 import { formatFecha, RUBRO_OBRA, TIPO_SERVICIO } from '@/lib/format';
 import ResumenTab from './ResumenTab';
-import TableroTab from './TableroTab';
 import PlanosTab from './PlanosTab';
 import PresupuestosTab from './PresupuestosTab';
 import EntregablesTab from './EntregablesTab';
 import EquipoTab from './EquipoTab';
 import GastosTab from './GastosTab';
 import CobrosTab from './CobrosTab';
+import PlanificacionTab from './PlanificacionTab';
 import ObservacionesTab from './contrato/ObservacionesTab';
 import CorrespondenciaTab from './contrato/CorrespondenciaTab';
 import PlazoTab from './contrato/PlazoTab';
@@ -139,7 +139,7 @@ export default function ProyectoPage() {
         <Route path="expediente/entregables" element={<EntregablesTab proyectoId={id} />} />
         <Route path="expediente/presupuestos" element={<PresupuestosTab proyectoId={id} />} />
         <Route path="expediente/fotos" element={<EvidenciasTab proyectoId={id} />} />
-        <Route path="planificacion" element={<TableroTab proyectoId={id} />} />
+        <Route path="planificacion" element={<PlanificacionTab proyectoId={id} />} />
         <Route path="contrato" element={<Navigate to={`${base}/contrato/observaciones`} replace />} />
         <Route path="contrato/observaciones" element={<ObservacionesTab proyectoId={id} />} />
         <Route path="contrato/correspondencia" element={<CorrespondenciaTab proyectoId={id} />} />

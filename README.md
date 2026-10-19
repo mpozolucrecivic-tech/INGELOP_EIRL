@@ -278,7 +278,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Pantalla | ADMIN | USUARIO |
 |---|---|---|
 | **Resumen general** | "Primeros pasos" (mientras falte algo), proyectos en desarrollo, monto contratado vs gastos de obra, gastos de la empresa, **planos esperando revisión**, **entregables vencidos**, horas trabajadas del mes, estado por proyecto, gasto mensual (obras y oficina) | — |
-| **Proyectos** | Todos, con búsqueda y filtros; crear; **Ver archivados** | Solo los suyos (nunca los archivados) |
+| **Proyectos** | Todos, con búsqueda y filtros; crear; **Ver archivados**; vista **Lista** o **Cronograma** (Gantt de todos los proyectos con la línea de hoy) | Solo los suyos (nunca los archivados) |
 | **Documentos** | Todos los documentos de todos los proyectos, con filtros (proyecto, etapa, categoría, persona, fechas); descargar y eliminar | — |
 | **Mis documentos** | — | Historial de lo que subió |
 | **Clientes** | Municipalidades, gobiernos regionales, empresas privadas y personas (RUC/DNI, contacto) | — |
@@ -298,6 +298,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Proyecto → **Planos** | Por especialidad; aprobar/observar, historial de revisiones | Registrar, subir revisiones, descargar |
 | Proyecto → **Presupuestos** | Editor de partidas, versiones, aprobar/observar, Excel, PDF | Editar y enviar a revisión |
 | Proyecto → **Entregables** | Checklist del expediente, plantilla, fechas límite | Solo lectura |
+| Proyecto → **Planificación** → Cronograma | Plazo, etapas, periodos de trabajo y entregables en una línea de tiempo | Igual |
 | Proyecto → **Tareas** | Tareas por periodo de trabajo (en la API: *sprints*), arrastrando tarjetas | Solo lectura |
 | Proyecto → **Equipo y horas** | Asignar profesionales, registrar horas por tarea, horas trabajadas y costo | — |
 | Proyecto → **Cobros y garantías** | Pagos pactados con el cliente (programado → facturado → cobrado) con detracción, penalidad y neto recibido frente al contrato; cartas fianza con renovación | — |
