@@ -776,6 +776,22 @@ async function main() {
   const malJson = await fetch(`${API}/proyectos`, { method: 'POST', headers: { Authorization: `Bearer ${A}`, 'Content-Type': 'application/json' }, body: '{malo' });
   check('JSON mal formado -> 400', malJson.status === 400);
 
+  seccion('Proyectos archivados');
+  expectStatus('no se elimina un proyecto activo', await call('DELETE', `/proyectos/${P}`, { token: A }), 409);
+  expectStatus('USUARIO no archiva', await call('POST', `/proyectos/${P}/archivar`, { token: U }), 403);
+  const archP = await call('POST', `/proyectos/${P}/archivar`, { token: A });
+  check('POST /proyectos/:id/archivar', archP.status === 200 && !!archP.body.archivadoEn, archP.body);
+  expectStatus('no se archiva dos veces', await call('POST', `/proyectos/${P}/archivar`, { token: A }), 409);
+  expectStatus('USUARIO asignado ya no entra al proyecto archivado', await call('GET', `/proyectos/${P}`, { token: U }), 403);
+  check('USUARIO no lo ve en su lista', !((await call('GET', '/proyectos?archivados=true', { token: U })).body ?? []).some((p: any) => p.id === P));
+  check('la lista normal no incluye archivados', !((await call('GET', '/proyectos', { token: A })).body ?? []).some((p: any) => p.id === P));
+  check('?archivados=true los muestra', ((await call('GET', '/proyectos?archivados=true', { token: A })).body ?? []).some((p: any) => p.id === P));
+  check('el inicio no cuenta el archivado', !((await call('GET', '/dashboard/general', { token: A })).body?.resumenProyectos ?? []).some((p: any) => p.id === P));
+  expectStatus('la jefatura sí lo consulta', await call('GET', `/proyectos/${P}`, { token: A }), 200);
+  const react = await call('POST', `/proyectos/${P}/desarchivar`, { token: A });
+  check('POST /proyectos/:id/desarchivar', react.status === 200 && react.body.archivadoEn === null, react.body);
+  expectStatus('reactivado: el USUARIO vuelve a entrar', await call('GET', `/proyectos/${P}`, { token: U }), 200);
+
   seccion('Limpieza');
   expectStatus('DELETE /proyectos/:id/usuarios/:usuarioId', await call('DELETE', `/proyectos/${P}/usuarios/${usuarioId}`, { token: A }), 204);
   expectStatus('USUARIO desasignado pierde acceso', await call('GET', `/proyectos/${P}`, { token: U }), 403);
@@ -783,7 +799,8 @@ async function main() {
   expectStatus('DELETE /sprints/:id', await call('DELETE', `/sprints/${S}`, { token: A }), 204);
   expectStatus('DELETE /gastos/:id', await call('DELETE', `/gastos/${gasto.body.id}`, { token: A }), 204);
   expectStatus('USUARIO DELETE /proyectos/:id', await call('DELETE', `/proyectos/${P}`, { token: U }), 403);
-  expectStatus('DELETE /proyectos/:id (cascade)', await call('DELETE', `/proyectos/${P}`, { token: A }), 204);
+  expectStatus('archivar antes de eliminar', await call('POST', `/proyectos/${P}/archivar`, { token: A }), 200);
+  expectStatus('DELETE /proyectos/:id archivado (cascade)', await call('DELETE', `/proyectos/${P}`, { token: A }), 204);
   expectStatus('GET proyecto eliminado', await call('GET', `/proyectos/${P}`, { token: A }), 404);
   const restantes = [...((await call('GET', '/notificaciones?limite=100', { token: A })).body?.notificaciones ?? []), ...((await call('GET', '/notificaciones?limite=100', { token: U })).body?.notificaciones ?? [])];
   check('se borran los avisos del proyecto eliminado', !restantes.some((n: any) => n.enlace === `/proyectos/${P}` || n.enlace?.startsWith(`/proyectos/${P}/`)), restantes.map((n: any) => n.enlace));

@@ -23,6 +23,8 @@ const ACCIONES_ESPECIALES: Record<string, string> = {
   importar: 'IMPORTAR',
   verificar: 'VERIFICAR',
   renovar: 'RENOVAR',
+  archivar: 'ARCHIVAR',
+  desarchivar: 'DESARCHIVAR',
 };
 const CAMPO_SENSIBLE = /pass|token|secret|clave_?acceso/i;
 

@@ -275,7 +275,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Pantalla | ADMIN | USUARIO |
 |---|---|---|
 | **Resumen general** | "Primeros pasos" (mientras falte algo), proyectos en desarrollo, monto contratado vs gastos de obra, gastos de la empresa, **planos esperando revisión**, **entregables vencidos**, horas trabajadas del mes, estado por proyecto, gasto mensual (obras y oficina) | — |
-| **Proyectos** | Todos, con búsqueda y filtros; crear | Solo los suyos |
+| **Proyectos** | Todos, con búsqueda y filtros; crear; **Ver archivados** | Solo los suyos (nunca los archivados) |
 | **Documentos** | Todos los documentos de todos los proyectos, con filtros (proyecto, etapa, categoría, persona, fechas); descargar y eliminar | — |
 | **Mis documentos** | — | Historial de lo que subió |
 | **Clientes** | Municipalidades, gobiernos regionales, empresas privadas y personas (RUC/DNI, contacto) | — |
@@ -300,11 +300,11 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Proyecto → **Cobros y garantías** | Pagos pactados con el cliente (programado → facturado → cobrado) con detracción, penalidad y neto recibido frente al contrato; cartas fianza con renovación | — |
 | Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen); **importar desde Excel** y deshacer importaciones | — |
 | Proyecto → **Fotos y observaciones** | Galería de actas, informes, fotos y observaciones (evidencias) | Subir y ver |
-| Proyecto → **Ajustes** | Editar el proyecto, dar/quitar acceso, eliminar | — |
+| Proyecto → **Configuración** | Editar el proyecto, dar/quitar acceso, **archivar o reactivar**, eliminar (solo si está archivado) | — |
 
 ## Documentación interactiva (Swagger)
 
-Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 154 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
+Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 156 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
 
 Para probar rutas protegidas: ejecuta `POST /api/v1/auth/login`, copia el `token`, pulsa **Authorize** y pégalo. En producción está apagada salvo que se defina `SWAGGER_HABILITADO=true` (expone todas las rutas de la API).
 
@@ -332,7 +332,8 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, la recuper
 | **Proyectos** ||||
 | GET | `/proyectos?estado=&clienteId=&rubro=&q=` | A/U | ADMIN: todos · USUARIO: los suyos |
 | POST | `/proyectos` | A | `{ nombre, clienteId, tipoServicio, rubro, ubicacion, fechaInicio, fechaFin, montoContrato, estado, responsableId }` |
-| GET / PUT / DELETE | `/proyectos/:id` | A/U · A · A | Detalle / editar / eliminar (con archivos) |
+| GET / PUT / DELETE | `/proyectos/:id` | A/U · A · A | Detalle / editar / eliminar con archivos (**solo si está archivado**; si no, 409) |
+| POST | `/proyectos/:id/archivar` · `/proyectos/:id/desarchivar` | A | Archivado: fuera de `GET /proyectos` (salvo `?archivados=true`), del inicio y de los recordatorios de entregables; los usuarios asignados reciben 403. Los cobros y cartas fianza siguen en Cobranzas |
 | GET / POST / DELETE | `/proyectos/:id/usuarios[/:usuarioId]` | A | Acceso de usuarios al proyecto |
 | **Planos** ||||
 | GET | `/proyectos/:id/planos?especialidad=&estado=` | A/U | Con última revisión |

@@ -40,7 +40,7 @@ export interface ProyectoInput {
   responsableId: number;
 }
 
-export const useProyectos = (filtros: { estado?: EstadoProyecto; rubro?: RubroObra; q?: string } = {}) =>
+export const useProyectos = (filtros: { estado?: EstadoProyecto; rubro?: RubroObra; q?: string; archivados?: boolean } = {}) =>
   useQuery({
     queryKey: [...keys.proyectos, filtros],
     queryFn: async () => (await api.get<Proyecto[]>('/proyectos', { params: filtros })).data,
@@ -64,6 +64,13 @@ export const useActualizarProyecto = (id: number) =>
     fn: async (data: Partial<ProyectoInput>) => (await api.put<Proyecto>(`/proyectos/${id}`, data)).data,
     invalidate: [keys.proyectos, keys.dashboardGeneral],
     exito: 'Proyecto actualizado',
+  });
+
+export const useArchivarProyecto = () =>
+  useApiMutation({
+    fn: async ({ id, archivar }: { id: number; archivar: boolean }) => (await api.post<Proyecto>(`/proyectos/${id}/${archivar ? 'archivar' : 'desarchivar'}`)).data,
+    invalidate: [keys.proyectos, keys.dashboardGeneral],
+    exito: (p) => (p.archivadoEn ? 'Proyecto archivado' : 'Proyecto reactivado'),
   });
 
 export const useEliminarProyecto = () =>

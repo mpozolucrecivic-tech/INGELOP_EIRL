@@ -152,6 +152,7 @@ export async function dashboardGeneral(meses: number) {
     usuariosActivos,
   ] = await Promise.all([
     prisma.proyecto.findMany({
+      where: { archivadoEn: null },
       select: {
         id: true,
         nombre: true,
@@ -166,13 +167,13 @@ export async function dashboardGeneral(meses: number) {
       orderBy: { fechaInicio: 'desc' },
     }),
     // Gastos de proyecto (con proyecto) y de la empresa (sin proyecto) se suman por separado
-    prisma.gasto.groupBy({ by: ['proyectoId'], where: { proyectoId: { not: null } }, _sum: { monto: true } }),
-    prisma.gasto.groupBy({ by: ['categoria'], where: { proyectoId: { not: null } }, _sum: { monto: true } }),
+    prisma.gasto.groupBy({ by: ['proyectoId'], where: { proyectoId: { not: null }, proyecto: { archivadoEn: null } }, _sum: { monto: true } }),
+    prisma.gasto.groupBy({ by: ['categoria'], where: { proyectoId: { not: null }, proyecto: { archivadoEn: null } }, _sum: { monto: true } }),
     prisma.gasto.groupBy({ by: ['categoria'], where: { proyectoId: null }, _sum: { monto: true } }),
     prisma.gasto.findMany({ where: { fecha: { gte: inicioVentana } }, select: { fecha: true, monto: true, proyectoId: true } }),
-    prisma.actividad.findMany({ select: { estado: true, avance: true, sprint: { select: { proyectoId: true } } } }),
+    prisma.actividad.findMany({ where: { sprint: { proyecto: { archivadoEn: null } } }, select: { estado: true, avance: true, sprint: { select: { proyectoId: true } } } }),
     prisma.plano.findMany({
-      where: { estado: EstadoRevision.EN_REVISION },
+      where: { estado: EstadoRevision.EN_REVISION, proyecto: { archivadoEn: null } },
       select: {
         id: true,
         codigo: true,
@@ -186,7 +187,7 @@ export async function dashboardGeneral(meses: number) {
     prisma.plano.groupBy({ by: ['proyectoId', 'estado'], _count: { _all: true } }),
     prisma.entregable.groupBy({ by: ['proyectoId', 'estado'], _count: { _all: true } }),
     prisma.entregable.findMany({
-      where: { estado: { not: EstadoRevision.APROBADO }, fechaLimite: { lt: hoyFecha } },
+      where: { estado: { not: EstadoRevision.APROBADO }, fechaLimite: { lt: hoyFecha }, proyecto: { archivadoEn: null } },
       select: { id: true, nombre: true, fechaLimite: true, proyecto: { select: { id: true, nombre: true } } },
       orderBy: { fechaLimite: 'asc' },
     }),

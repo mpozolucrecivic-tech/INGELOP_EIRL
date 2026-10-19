@@ -1,6 +1,6 @@
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useParams } from 'react-router';
 import clsx from 'clsx';
-import { ArrowLeft, Briefcase, Calendar, MapPin, User } from 'lucide-react';
+import { Archive, ArrowLeft, Briefcase, Calendar, MapPin, User } from 'lucide-react';
 import { useProyecto } from '@/api/proyectos';
 import { EstadoProyectoBadge } from '@/components/Common';
 import { Badge, ErrorState, Spinner } from '@/components/ui/Display';
@@ -84,6 +84,20 @@ export default function ProyectoPage() {
           <span className="flex items-center gap-1.5"><User className="size-4 text-slate-400" />{proyecto.responsable.nombre}</span>
         </div>
       </div>
+
+      {proyecto.archivadoEn && (
+        <div className="mb-5 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">
+          <Archive className="size-4 shrink-0" />
+          <span>
+            Proyecto archivado el {formatFecha(proyecto.archivadoEn)}: no aparece en las listas y solo la jefatura puede verlo.
+          </span>
+          {esAdmin && (
+            <Link to={`${base}/configuracion`} className="font-semibold underline">
+              Reactivar
+            </Link>
+          )}
+        </div>
+      )}
 
       <nav className="-mx-4 overflow-x-auto border-b border-slate-200 bg-white px-4 sm:mx-0 sm:rounded-t-lg sm:border-x sm:border-t sm:px-3" aria-label="Áreas del proyecto">
         <div className="flex gap-1">

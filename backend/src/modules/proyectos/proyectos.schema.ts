@@ -31,6 +31,11 @@ export const listarProyectosQuery = z.object({
   clienteId: z.coerce.number().int().positive().optional(),
   rubro: z.nativeEnum(RubroObra).optional(),
   q: z.string().trim().min(1).optional(),
+  // true: solo los archivados (jefatura); por defecto, solo los activos
+  archivados: z
+    .enum(['true', 'false'])
+    .transform((v) => v === 'true')
+    .default('false'),
 });
 
 export const asignarUsuarioSchema = z.object({

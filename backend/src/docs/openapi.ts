@@ -53,6 +53,8 @@ const ACCIONES: Record<string, string> = {
   'vista-previa': 'Vista previa',
   leer: 'Marcar como leída',
   renovar: 'Renovar',
+  archivar: 'Archivar',
+  desarchivar: 'Reactivar (desarchivar)',
   'leer-todas': 'Marcar todas como leídas',
   enviar: 'Enviar a revisión',
   aprobar: 'Aprobar',

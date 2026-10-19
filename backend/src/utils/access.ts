@@ -10,7 +10,7 @@ import { AppError } from './AppError';
 export const filtroProyectosVisibles = (usuario: UsuarioAutenticado): Prisma.ProyectoWhereInput =>
   usuario.rol === Rol.ADMIN
     ? {}
-    : { OR: [{ usuarios: { some: { usuarioId: usuario.id } } }, { responsableId: usuario.id }] };
+    : { archivadoEn: null, OR: [{ usuarios: { some: { usuarioId: usuario.id } } }, { responsableId: usuario.id }] };
 
 /**
  * Verifica que el proyecto exista y que el usuario tenga acceso a él.
@@ -21,6 +21,7 @@ export async function assertProjectAccess(usuario: UsuarioAutenticado, proyectoI
     where: { id: proyectoId },
     select: {
       responsableId: true,
+      archivadoEn: true,
       usuarios: { where: { usuarioId: usuario.id }, select: { id: true } },
     },
   });
@@ -30,4 +31,6 @@ export async function assertProjectAccess(usuario: UsuarioAutenticado, proyectoI
 
   const asignado = proyecto.responsableId === usuario.id || proyecto.usuarios.length > 0;
   if (!asignado) throw AppError.forbidden('No tienes acceso a este proyecto');
+  // Archivado: queda solo para la jefatura (consulta y, si hace falta, reactivarlo)
+  if (proyecto.archivadoEn) throw AppError.forbidden('Este proyecto está archivado');
 }

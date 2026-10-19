@@ -4,7 +4,7 @@ import * as avisos from '../notificaciones/notificaciones.eventos';
 import type { ListarProyectosQuery } from './proyectos.schema';
 
 export async function listar(req: Request, res: Response) {
-  res.json(await proyectosService.listar(req.usuario, req.query as ListarProyectosQuery));
+  res.json(await proyectosService.listar(req.usuario, req.query as unknown as ListarProyectosQuery));
 }
 
 export async function obtener(req: Request, res: Response) {
@@ -17,6 +17,14 @@ export async function crear(req: Request, res: Response) {
 
 export async function actualizar(req: Request, res: Response) {
   res.json(await proyectosService.actualizar(Number(req.params.id), req.body));
+}
+
+export async function archivar(req: Request, res: Response) {
+  res.json(await proyectosService.archivar(Number(req.params.id), true));
+}
+
+export async function desarchivar(req: Request, res: Response) {
+  res.json(await proyectosService.archivar(Number(req.params.id), false));
 }
 
 export async function eliminar(req: Request, res: Response) {

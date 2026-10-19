@@ -123,7 +123,7 @@ async function recordarEntregables() {
     where: {
       estado: { not: EstadoRevision.APROBADO },
       fechaLimite: { not: null, lte: limite },
-      proyecto: { estado: { not: EstadoProyecto.FINALIZADA } },
+      proyecto: { estado: { not: EstadoProyecto.FINALIZADA }, archivadoEn: null },
     },
     select: { id: true, nombre: true, fechaLimite: true, responsableId: true, proyecto: { select: { id: true, nombre: true } } },
   });

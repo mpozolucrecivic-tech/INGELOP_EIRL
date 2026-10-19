@@ -88,6 +88,8 @@ export interface Proyecto {
   montoContrato: number;
   estado: EstadoProyecto;
   responsableId: number;
+  /** Fecha en que se archivó; null = activo */
+  archivadoEn: string | null;
   creadoEn: string;
   responsable: { id: number; nombre: string; email: string };
   _count?: Partial<Record<'sprints' | 'gastos' | 'evidencias' | 'asignaciones' | 'usuarios' | 'planos' | 'presupuestos' | 'entregables', number>>;

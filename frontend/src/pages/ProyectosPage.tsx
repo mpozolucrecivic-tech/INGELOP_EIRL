@@ -18,6 +18,7 @@ export default function ProyectosPage() {
   const [q, setQ] = useState(params.get('q') ?? '');
   const [estado, setEstado] = useState<EstadoProyecto | ''>('');
   const [rubro, setRubro] = useState<RubroObra | ''>('');
+  const [archivados, setArchivados] = useState(false);
   const [creando, setCreando] = useState(false);
   const busqueda = useDeferredValue(q.trim());
 
@@ -25,6 +26,7 @@ export default function ProyectosPage() {
     ...(busqueda && { q: busqueda }),
     ...(estado && { estado }),
     ...(rubro && { rubro }),
+    ...(archivados && { archivados: true }),
   });
 
   return (
@@ -54,6 +56,12 @@ export default function ProyectosPage() {
           <option value="">Todos los estados</option>
           {(Object.keys(ESTADO_PROYECTO) as EstadoProyecto[]).map((e) => <option key={e} value={e}>{ESTADO_PROYECTO[e].label}</option>)}
         </Select>
+        {esAdmin && (
+          <label className="inline-flex items-center gap-2 whitespace-nowrap px-1 text-sm text-slate-600">
+            <input type="checkbox" className="size-4 accent-brand-600" checked={archivados} onChange={(e) => setArchivados(e.target.checked)} />
+            Ver archivados
+          </label>
+        )}
       </div>
 
       {isLoading ? (
@@ -64,10 +72,12 @@ export default function ProyectosPage() {
         <Card>
           <EmptyState
             icon={<Building2 className="size-6" />}
-            title={busqueda || estado || rubro ? 'Sin resultados' : 'Aún no hay proyectos'}
+            title={busqueda || estado || rubro ? 'Sin resultados' : archivados ? 'No hay proyectos archivados' : 'Aún no hay proyectos'}
             description={
               busqueda || estado || rubro
                 ? 'Prueba con otra búsqueda o filtro.'
+                : archivados
+                  ? 'Los proyectos terminados o cancelados se archivan desde su pestaña Configuración.'
                 : esAdmin
                   ? 'Crea el primer proyecto para empezar a registrar su avance.'
                   : 'Todavía no te han asignado a ningún proyecto. Consulta con el administrador.'

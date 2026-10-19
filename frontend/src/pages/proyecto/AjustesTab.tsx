@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Pencil, Trash2, UserPlus, X } from 'lucide-react';
+import { Archive, ArchiveRestore, Pencil, Trash2, UserPlus, X } from 'lucide-react';
 import { useUsuarios } from '@/api/admin';
-import { useAsignarUsuario, useDesasignarUsuario, useEliminarProyecto } from '@/api/proyectos';
+import { useArchivarProyecto, useAsignarUsuario, useDesasignarUsuario, useEliminarProyecto } from '@/api/proyectos';
 import { Button, IconButton } from '@/components/ui/Button';
 import { Card, CardHeader, EmptyState } from '@/components/ui/Display';
 import { Select } from '@/components/ui/Field';
@@ -19,6 +19,7 @@ export default function AjustesTab({ proyecto }: { proyecto: ProyectoDetalle }) 
   const asignar = useAsignarUsuario(proyecto.id);
   const desasignar = useDesasignarUsuario(proyecto.id);
   const eliminar = useEliminarProyecto();
+  const archivar = useArchivarProyecto();
   const { confirm, dialog } = useConfirm();
 
   const asignados = new Set(proyecto.usuarios.map((u) => u.id));
@@ -108,15 +109,51 @@ export default function AjustesTab({ proyecto }: { proyecto: ProyectoDetalle }) 
         )}
       </Card>
 
+      <Card className="lg:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+          <div>
+            <h3 className="font-semibold text-slate-900">{proyecto.archivadoEn ? 'Proyecto archivado' : 'Archivar proyecto'}</h3>
+            <p className="mt-0.5 text-sm text-slate-600">
+              {proyecto.archivadoEn
+                ? `Archivado el ${formatFecha(proyecto.archivadoEn)}. No aparece en las listas ni en el inicio, y los arquitectos e ingenieros ya no entran. Se conserva todo.`
+                : 'Para proyectos terminados o cancelados: deja de aparecer en las listas, en el inicio y en los recordatorios. Se conserva todo y se puede reactivar.'}
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            icon={proyecto.archivadoEn ? <ArchiveRestore className="size-4" /> : <Archive className="size-4" />}
+            loading={archivar.isPending}
+            onClick={() =>
+              proyecto.archivadoEn
+                ? archivar.mutate({ id: proyecto.id, archivar: false })
+                : confirm({
+                    title: 'Archivar proyecto',
+                    message: `«${proyecto.nombre}» dejará de aparecer en las listas y los arquitectos e ingenieros asignados ya no podrán entrar. Puedes reactivarlo cuando quieras.`,
+                    confirmText: 'Archivar',
+                    tone: 'primary',
+                    onConfirm: () => archivar.mutateAsync({ id: proyecto.id, archivar: true }),
+                  })
+            }
+          >
+            {proyecto.archivadoEn ? 'Reactivar' : 'Archivar'}
+          </Button>
+        </div>
+      </Card>
+
       <Card className="border-red-200 lg:col-span-2">
         <div className="flex flex-wrap items-center justify-between gap-4 p-5">
           <div>
             <h3 className="font-semibold text-red-700">Eliminar proyecto</h3>
-            <p className="mt-0.5 text-sm text-slate-600">Se borran planos, presupuestos, entregables, tareas, horas, gastos y documentos con sus archivos. No se puede deshacer.</p>
+            <p className="mt-0.5 text-sm text-slate-600">
+              {proyecto.archivadoEn
+                ? 'Se borran planos, presupuestos, entregables, tareas, horas, gastos, cobros y documentos con sus archivos. No se puede deshacer.'
+                : 'Solo se puede eliminar un proyecto archivado. Archívalo primero; en la mayoría de los casos, archivar es suficiente.'}
+            </p>
           </div>
           <Button
             variant="danger"
             icon={<Trash2 className="size-4" />}
+            disabled={!proyecto.archivadoEn}
             onClick={() =>
               confirm({
                 title: 'Eliminar proyecto',

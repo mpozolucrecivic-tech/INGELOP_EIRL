@@ -23,6 +23,7 @@ export function listar(usuario: UsuarioAutenticado, filtros: ListarProyectosQuer
   const where: Prisma.ProyectoWhereInput = {
     AND: [
       filtroProyectosVisibles(usuario),
+      { archivadoEn: filtros.archivados ? { not: null } : null },
       filtros.estado ? { estado: filtros.estado } : {},
       filtros.clienteId ? { clienteId: filtros.clienteId } : {},
       filtros.rubro ? { rubro: filtros.rubro } : {},
@@ -90,7 +91,23 @@ export async function actualizar(id: number, data: ActualizarProyectoInput) {
 }
 
 /** Elimina el proyecto con todos sus datos (cascade) y sus archivos subidos */
+/** Archivar (fecha) o reactivar (null). Al archivar se conserva todo; solo deja de aparecer */
+export async function archivar(id: number, archivar: boolean) {
+  const proyecto = await prisma.proyecto.findUnique({ where: { id }, select: { archivadoEn: true } });
+  if (!proyecto) throw AppError.notFound('Proyecto no encontrado');
+  if (archivar === !!proyecto.archivadoEn) throw AppError.conflict(archivar ? 'El proyecto ya está archivado' : 'El proyecto no está archivado');
+  return prisma.proyecto.update({
+    where: { id },
+    data: { archivadoEn: archivar ? new Date() : null },
+    include: { responsable: responsableSelect, cliente: clienteSelect },
+  });
+}
+
+/** Solo un proyecto archivado: borra todo, incluidos los archivos (no se puede deshacer) */
 export async function eliminar(id: number) {
+  const proyecto = await prisma.proyecto.findUnique({ where: { id }, select: { archivadoEn: true } });
+  if (!proyecto) throw AppError.notFound('Proyecto no encontrado');
+  if (!proyecto.archivadoEn) throw AppError.conflict('Primero archiva el proyecto. Solo un proyecto archivado se puede eliminar.');
   await prisma.$transaction([
     prisma.proyecto.delete({ where: { id } }),
     // Avisos que llevan al proyecto eliminado (no tienen FK: se identifican por su enlace)

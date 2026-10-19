@@ -26,6 +26,8 @@ router.put(
   validate({ params: idParamSchema, body: actualizarProyectoSchema }),
   controller.actualizar,
 );
+router.post('/proyectos/:id/archivar', admin, validate({ params: idParamSchema }), controller.archivar);
+router.post('/proyectos/:id/desarchivar', admin, validate({ params: idParamSchema }), controller.desarchivar);
 router.delete('/proyectos/:id', admin, validate({ params: idParamSchema }), controller.eliminar);
 
 // Usuarios (rol USUARIO) asignados a la obra
