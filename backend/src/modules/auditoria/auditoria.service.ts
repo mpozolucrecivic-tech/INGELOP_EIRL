@@ -135,8 +135,9 @@ export function registrarEnSegundoPlano(e: EventoAuditoria): void {
 /** Fallos de inicio de sesión de un correo desde su último acceso correcto, dentro de la ventana de bloqueo */
 export async function fallosRecientes(correo: string): Promise<number> {
   const desde = new Date(Date.now() - env.LOGIN_BLOQUEO_MIN * 60_000);
+  // Un inicio de sesión correcto o una contraseña restablecida reinician la cuenta
   const ultimoOk = await prisma.auditoria.findFirst({
-    where: { correo, accion: 'LOGIN_OK', fecha: { gte: desde } },
+    where: { correo, accion: { in: ['LOGIN_OK', 'CONTRASENA_RESTABLECIDA'] }, resultado: 'EXITO', fecha: { gte: desde } },
     orderBy: { id: 'desc' },
     select: { fecha: true },
   });

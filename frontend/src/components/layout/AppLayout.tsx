@@ -127,14 +127,26 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
       <div className="border-t border-slate-800 pt-4">
-        <div className="flex items-center gap-3 px-2">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-slate-800 text-sm font-bold text-brand-400">
-            {usuario?.nombre.charAt(0).toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-white">{usuario?.nombre}</p>
-            <p className="text-xs text-slate-400">{ROL[esAdmin ? 'ADMIN' : 'USUARIO'].label}</p>
-          </div>
+        <div className="flex items-center gap-1 px-1">
+          <NavLink
+            to="/mi-cuenta"
+            onClick={onNavigate}
+            title="Mi cuenta: datos y contraseña"
+            className={({ isActive }) =>
+              clsx(
+                'flex min-w-0 flex-1 items-center gap-3 rounded-md p-1 transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                isActive && 'bg-slate-800',
+              )
+            }
+          >
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-slate-800 text-sm font-bold text-brand-400">
+              {usuario?.nombre.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-white">{usuario?.nombre}</p>
+              <p className="text-xs text-slate-400">{ROL[esAdmin ? 'ADMIN' : 'USUARIO'].label} · Mi cuenta</p>
+            </div>
+          </NavLink>
           <button
             onClick={logout}
             className="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
@@ -151,6 +163,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
 function nombreSeccion(pathname: string) {
   if (pathname === '/') return 'Inicio';
+  if (pathname === '/mi-cuenta') return 'Mi cuenta';
   if (pathname.startsWith('/proyectos/')) return 'Detalle del proyecto';
   const item = navGrupos
     .flatMap((grupo) => grupo.items)

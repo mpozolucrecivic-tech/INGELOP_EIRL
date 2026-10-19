@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { Rol } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
-import { usuarioPublicoSelect } from '../auth/auth.service';
+import { guardarContrasena, usuarioPublicoSelect } from '../auth/auth.service';
 import type { ActualizarUsuarioInput, CrearUsuarioInput, ListarUsuariosQuery } from './usuarios.schema';
 
 const BCRYPT_ROUNDS = 10;
@@ -48,6 +48,8 @@ export async function actualizar(id: number, data: ActualizarUsuarioInput, solic
   if (!usuario) throw AppError.notFound('Usuario no encontrado');
 
   if (data.email) await assertEmailLibre(data.email, id);
+  // Desde aquí cerraría la propia sesión sin pedir la contraseña actual
+  if (data.password && id === solicitanteId) throw AppError.conflict('Para cambiar tu propia contraseña usa «Mi cuenta»');
 
   const pierdeAdmin = usuario.rol === Rol.ADMIN && ((data.rol && data.rol !== Rol.ADMIN) || data.activo === false);
   if (pierdeAdmin) {
@@ -56,10 +58,10 @@ export async function actualizar(id: number, data: ActualizarUsuarioInput, solic
   }
 
   const { password, ...resto } = data;
-  return prisma.usuario.update({
-    where: { id },
-    data: { ...resto, ...(password && { passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS) }) },
-    select: usuarioPublicoSelect,
+  return prisma.$transaction(async (tx) => {
+    // Contraseña nueva asignada por la jefatura: cierra las sesiones abiertas y anula enlaces de recuperación
+    if (password) await guardarContrasena(id, password, tx);
+    return tx.usuario.update({ where: { id }, data: resto, select: usuarioPublicoSelect });
   });
 }
 

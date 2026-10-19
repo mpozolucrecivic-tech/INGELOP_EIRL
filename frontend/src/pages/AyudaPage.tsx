@@ -64,7 +64,7 @@ const guias: Guia[] = [
       <>En <Link to="/usuarios" className={enlace}>Accesos a la intranet</Link>, pulsa <b>Nuevo usuario</b>.</>,
       <>Escribe su nombre, correo y una contraseña inicial, y elige el rol <b>Arquitecto o ingeniero</b>.</>,
       <>Entra al proyecto, abre <b>Configuración</b> y en <b>Usuarios con acceso</b> agrégalo. Solo verá los proyectos donde lo agregues.</>,
-      <>Envíale su correo y su contraseña para que inicie sesión.</>,
+      <>Envíale su correo y su contraseña para que inicie sesión, y pídele que la cambie en <b>Mi cuenta</b>.</>,
     ],
     consejo: <>Si alguien deja la empresa, desactiva su acceso: no se borra nada de lo que subió.</>,
   },
@@ -109,11 +109,24 @@ const guias: Guia[] = [
     titulo: 'Leer y responder los mensajes de la web',
     admin: true,
     pasos: [
-      <>En el menú, <Link to="/mensajes" className={enlace}>Mensajes</Link> muestra cuántos mensajes hay sin leer.</>,
+      <>En el menú, <Link to="/mensajes" className={enlace}>Mensajes</Link> muestra cuántos mensajes hay sin leer. Si el correo está configurado, cada mensaje nuevo también llega a la bandeja de la empresa.</>,
       <>Haz clic en un mensaje para ver el detalle: queda marcado como leído.</>,
-      <>Pulsa <b>Responder por correo</b> para escribirle a la persona desde tu correo.</>,
-      <>Usa el filtro <b>Consulta técnica</b> para ver solo las consultas técnicas.</>,
+      <>Pulsa <b>Responder por correo</b> para escribirle a la persona desde tu correo, y luego <b>Marcar como respondido</b>.</>,
+      <>Anota en la <b>Nota interna</b> lo que se hizo (ej. «se envió la cotización»). Solo la ve la jefatura.</>,
+      <>Cuando ya no necesites verlo en la bandeja, pulsa <b>Archivar</b>. Lo encuentras luego en la pestaña <b>Archivados</b>.</>,
     ],
+    consejo: <>Usa <b>Eliminar</b> solo para el spam: archivar conserva el mensaje.</>,
+  },
+  {
+    icono: <KeyRound className="size-5" />,
+    titulo: 'Cambiar o recuperar tu contraseña',
+    admin: false,
+    pasos: [
+      <>Haz clic en tu nombre, abajo en el menú, para abrir <Link to="/mi-cuenta" className={enlace}>Mi cuenta</Link>.</>,
+      <>Escribe tu contraseña actual y la nueva dos veces. Al guardar, se cierran tus sesiones abiertas en otros equipos.</>,
+      <>Si la olvidaste, en la pantalla de inicio pulsa <b>¿Olvidaste tu contraseña?</b>: te llegará un enlace al correo que vence en 30 minutos.</>,
+    ],
+    consejo: <>Si no te llega el correo, revisa la carpeta de spam o pide a la jefatura que te asigne una contraseña nueva.</>,
   },
 ];
 

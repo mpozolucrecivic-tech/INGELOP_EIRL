@@ -648,6 +648,55 @@ async function main() {
   const csv = await fetch(`${API}/auditoria/exportar?accion=LOGIN_OK`, { headers: { Authorization: `Bearer ${A}` } });
   check('GET /auditoria/exportar devuelve CSV', csv.status === 200 && (csv.headers.get('content-type') ?? '').includes('text/csv'));
 
+  seccion('Contraseñas');
+  const emailC = `clave.${sufijo}@ingelop.com`;
+  const userC = await call('POST', '/usuarios', { token: A, json: { nombre: 'Clave E2E', email: emailC, password: 'Inicial123' } });
+  const tokenC1 = (await call('POST', '/auth/login', { json: { email: emailC, password: 'Inicial123' } })).body?.token as string;
+  expectStatus('POST /auth/cambiar-contrasena sin token', await call('POST', '/auth/cambiar-contrasena', { json: { actual: 'x', nueva: 'Nueva12345' } }), 401);
+  const malActual = await call('POST', '/auth/cambiar-contrasena', { token: tokenC1, json: { actual: 'incorrecta', nueva: 'Nueva12345' } });
+  check('contraseña actual incorrecta -> 422 en el campo actual', malActual.status === 422 && JSON.stringify(malActual.body).includes('actual'), malActual.body);
+  expectStatus('nueva igual a la actual', await call('POST', '/auth/cambiar-contrasena', { token: tokenC1, json: { actual: 'Inicial123', nueva: 'Inicial123' } }), 422);
+  expectStatus('nueva demasiado corta', await call('POST', '/auth/cambiar-contrasena', { token: tokenC1, json: { actual: 'Inicial123', nueva: 'corta' } }), 422);
+  // iat va en segundos: espera para que el token anterior sea claramente más antiguo que el cambio
+  await new Promise((r) => setTimeout(r, 1100));
+  const cambio = await call('POST', '/auth/cambiar-contrasena', { token: tokenC1, json: { actual: 'Inicial123', nueva: 'Nueva12345' } });
+  check('POST /auth/cambiar-contrasena devuelve token nuevo', cambio.status === 200 && typeof cambio.body?.token === 'string', cambio.body);
+  expectStatus('la sesión anterior deja de valer', await call('GET', '/auth/me', { token: tokenC1 }), 401);
+  expectStatus('el token nuevo sigue valiendo', await call('GET', '/auth/me', { token: cambio.body?.token }), 200);
+  // (sin probar el login con la contraseña anterior: el límite de RATE_LIMIT_LOGIN fallos por IP ya está casi lleno en esta prueba)
+  const tokenC2 = (await call('POST', '/auth/login', { json: { email: emailC, password: 'Nueva12345' } })).body?.token as string;
+  check('login con la contraseña nueva', !!tokenC2);
+  expectStatus('ADMIN no cambia su propia contraseña desde Accesos', await call('PUT', `/usuarios/${payload.id}`, { token: A, json: { password: 'OtraClave123' } }), 409);
+  await new Promise((r) => setTimeout(r, 1100));
+  expectStatus('ADMIN asigna contraseña a otro usuario', await call('PUT', `/usuarios/${userC.body.id}`, { token: A, json: { password: 'Asignada123' } }), 200);
+  expectStatus('…y cierra sus sesiones abiertas', await call('GET', '/auth/me', { token: tokenC2 }), 401);
+
+  const opciones = await call('GET', '/auth/opciones');
+  check('GET /auth/opciones (público)', opciones.status === 200 && typeof opciones.body?.recuperacionContrasena === 'boolean', opciones.body);
+  expectStatus('restablecer con enlace mal formado', await call('POST', '/auth/restablecer-contrasena', { json: { token: 'corto', nueva: 'Nueva12345' } }), 422);
+  expectStatus('restablecer con enlace inexistente', await call('POST', '/auth/restablecer-contrasena', { json: { token: 'A'.repeat(43), nueva: 'Nueva12345' } }), 400);
+  if (!opciones.body?.recuperacionContrasena) {
+    expectStatus('recuperar sin correo configurado', await call('POST', '/auth/recuperar-contrasena', { json: { email: emailC } }), 503);
+  } else {
+    const inexistente = await call('POST', '/auth/recuperar-contrasena', { json: { email: `nadie.${sufijo}@ingelop.com` } });
+    const existente = await call('POST', '/auth/recuperar-contrasena', { json: { email: emailC } });
+    check('recuperar responde igual exista o no la cuenta', inexistente.status === 200 && existente.status === 200 && inexistente.body.message === existente.body.message, [inexistente.body, existente.body]);
+    // Con MAILPIT_URL (servidor SMTP de pruebas) se sigue el enlace real del correo
+    const mailpit = process.env.MAILPIT_URL;
+    if (mailpit) {
+      await new Promise((r) => setTimeout(r, 1500));
+      const lista = await (await fetch(`${mailpit}/api/v1/search?query=${encodeURIComponent(`to:${emailC}`)}`)).json();
+      const correo = await (await fetch(`${mailpit}/api/v1/message/${lista.messages?.[0]?.ID}`)).json();
+      const tokenRec = String(correo.Text ?? '').match(/restablecer-contrasena#([A-Za-z0-9_-]{43})/)?.[1];
+      check('el correo trae el enlace de recuperación', !!tokenRec);
+      const rest = await call('POST', '/auth/restablecer-contrasena', { json: { token: tokenRec, nueva: 'Recuperada123' } });
+      expectStatus('POST /auth/restablecer-contrasena', rest, 200);
+      expectStatus('el enlace sirve una sola vez', await call('POST', '/auth/restablecer-contrasena', { json: { token: tokenRec, nueva: 'OtraVez12345' } }), 400);
+      check('login con la contraseña restablecida', !!(await call('POST', '/auth/login', { json: { email: emailC, password: 'Recuperada123' } })).body?.token);
+    }
+  }
+  await call('DELETE', `/usuarios/${userC.body.id}`, { token: A });
+
   seccion('Varios');
   expectStatus('ruta inexistente', await call('GET', '/no-existe', { token: A }), 404);
   const malJson = await fetch(`${API}/proyectos`, { method: 'POST', headers: { Authorization: `Bearer ${A}`, 'Content-Type': 'application/json' }, body: '{malo' });

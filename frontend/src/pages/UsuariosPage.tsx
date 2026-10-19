@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -201,14 +202,24 @@ function UsuarioModal({ state, onClose, esYo }: { state: { usuario?: Usuario } |
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" {...register('puedeEditarWeb')} />Puede preparar páginas y gestionar imágenes de la web. La jefatura publica.</label>
         <Input label="Nombre completo" error={errors.nombre?.message} {...register('nombre')} />
         <Input label="Correo" type="email" autoComplete="off" error={errors.email?.message} {...register('email')} />
-        <Input
-          label={usuario ? 'Nueva contraseña' : 'Contraseña'}
-          type="password"
-          autoComplete="new-password"
-          hint={usuario ? 'Déjala en blanco para no cambiarla' : 'Mínimo 8 caracteres'}
-          error={errors.password?.message}
-          {...register('password')}
-        />
+        {esYo ? (
+          <p className="text-sm text-slate-500">
+            Tu propia contraseña se cambia en{' '}
+            <Link to="/mi-cuenta" onClick={onClose} className="font-medium text-brand-700 hover:underline">
+              Mi cuenta
+            </Link>
+            .
+          </p>
+        ) : (
+          <Input
+            label={usuario ? 'Nueva contraseña' : 'Contraseña'}
+            type="password"
+            autoComplete="new-password"
+            hint={usuario ? 'Déjala en blanco para no cambiarla. Si asignas una nueva, se cierran sus sesiones abiertas.' : 'Mínimo 8 caracteres'}
+            error={errors.password?.message}
+            {...register('password')}
+          />
+        )}
         <Select label="Rol" disabled={esYo} hint={esYo ? 'No puedes cambiar tu propio rol' : undefined} error={errors.rol?.message} {...register('rol')}>
           <option value="USUARIO">{ROL.USUARIO.label} — {ROL.USUARIO.descripcion}</option>
           <option value="ADMIN">{ROL.ADMIN.label} — {ROL.ADMIN.descripcion}</option>

@@ -145,7 +145,7 @@ espaldo.ps1` | Copia de seguridad de la base de datos y los archivos (ver `docs/
 | `SWAGGER_HABILITADO` | `false` | Publica `/api/docs` en producción. En desarrollo la documentación siempre está disponible |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | `smtp.gmail.com` / `587` | Correo saliente (opcional). Sin `SMTP_HOST` no se envía ningún correo. `SMTP_FROM` es el remitente; sin ella se usa `SMTP_USER` |
 | `CONTACTO_EMAIL` | `contacto@ingelop.pe` | Bandeja que recibe el aviso de cada mensaje nuevo de la web |
-| `INTRANET_URL` | `http://localhost:5173` | Dirección de la intranet para los enlaces de los correos |
+| `INTRANET_URL` | `http://localhost:5173` | Dirección de la intranet para los enlaces de los correos. La recuperación de contraseña por correo necesita esta variable y `SMTP_HOST` |
 
 ---
 
@@ -229,7 +229,7 @@ Para probar el correo en local sin una cuenta real: `docker run -d --rm --name m
 
 ## Auditoría y seguridad de accesos
 
-La intranet registra inicios de sesión (correctos, fallidos y bloqueados), accesos denegados, credenciales alteradas y **toda** creación, edición, eliminación, subida y descarga, con fecha, persona, **IP**, navegador y registro afectado. Los registros no se pueden editar ni borrar (trigger de PostgreSQL + cadena de huellas verificable). Incluye bloqueo por cuenta tras 5 fallos, alertas de seguridad (IP sospechosas, accesos desde una IP o navegador nuevo) y el último acceso de cada usuario. Detalle, conservación legal y cómo verificar la IP real en Render: [`docs/AUDITORIA.md`](docs/AUDITORIA.md).
+La intranet registra inicios de sesión (correctos, fallidos y bloqueados), accesos denegados, credenciales alteradas y **toda** creación, edición, eliminación, subida y descarga, con fecha, persona, **IP**, navegador y registro afectado. Los registros no se pueden editar ni borrar (trigger de PostgreSQL + cadena de huellas verificable). Incluye bloqueo por cuenta tras 5 fallos, alertas de seguridad (IP sospechosas, accesos desde una IP o navegador nuevo) y el último acceso de cada usuario. Cada persona cambia su contraseña en **Mi cuenta** o la recupera con un enlace por correo (un solo uso, 30 min); al cambiarla, o cuando la jefatura le asigna una nueva, se cierran sus sesiones abiertas. Detalle, conservación legal y cómo verificar la IP real en Render: [`docs/AUDITORIA.md`](docs/AUDITORIA.md).
 
 ## Roles
 
@@ -272,6 +272,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | **Proyectos realizados** | Portafolio de la web: orden, datos, foto, ocultar | — |
 | **Mensajes** | Mensajes del formulario de la web (contador de no leídos en el menú): por atender, respondidos y archivados, con nota interna; aviso por correo si hay SMTP | — |
 | **Ayuda** | Guías paso a paso | Solo las guías que le aplican |
+| **Mi cuenta** (clic en el nombre, abajo en el menú) | Sus datos y cambiar su contraseña | Igual |
 | Proyecto → **Resumen** | Planos aprobados, entregables aprobados, plazo, horas, presupuestos, dinero del proyecto | Igual, sin dinero |
 | Proyecto → **Etapas y documentos** | Iniciar etapas, aprobar u observar con comentario; ver y eliminar todos los documentos | Ver el estado de cada etapa, enviar o reenviar a revisión, subir documentos y ver **solo los suyos** |
 | Proyecto → **Planos** | Por especialidad; aprobar/observar, historial de revisiones | Registrar, subir revisiones, descargar |
@@ -291,7 +292,7 @@ Para probar rutas protegidas: ejecuta `POST /api/v1/auth/login`, copia el `token
 
 ## API (`/api/v1`)
 
-Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /health` y las rutas de la web pública (`GET /servicios`, `GET /servicios/:id/foto`, `POST /contacto`).
+Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, la recuperación de contraseña, `GET /health` y las rutas de la web pública (`GET /servicios`, `GET /servicios/:id/foto`, `POST /contacto`).
 **A** = solo ADMIN · **A/U** = ADMIN y USUARIO con acceso al proyecto.
 
 | Método | Ruta | Rol | Descripción |
@@ -299,6 +300,10 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | **Auth** ||||
 | POST | `/auth/login` | público | Login → `{ token, usuario }` |
 | GET | `/auth/me` | A/U | Usuario autenticado |
+| POST | `/auth/cambiar-contrasena` | A/U | `{ actual, nueva }` → `{ token }` nuevo; las demás sesiones del usuario dejan de valer. Límite: `RATE_LIMIT_LOGIN` fallos por IP |
+| GET | `/auth/opciones` | público | `{ recuperacionContrasena }`: si hay correo configurado para recuperar la contraseña |
+| POST | `/auth/recuperar-contrasena` | público | `{ email }` → siempre la misma respuesta, exista o no la cuenta. Envía un enlace de un solo uso que vence en 30 min (uno cada 2 min por cuenta). 503 si no hay correo configurado. Límite: `RATE_LIMIT_CONTACTO` por IP |
+| POST | `/auth/restablecer-contrasena` | público | `{ token, nueva }` con el código del enlace (`/restablecer-contrasena#<token>`). 400 si el enlace no existe, venció o ya se usó |
 | **Usuarios** ||||
 | GET / POST | `/usuarios` | A | Listar (`?rol=&activo=`) / crear |
 | PUT / DELETE | `/usuarios/:id` | A | Editar / baja lógica |

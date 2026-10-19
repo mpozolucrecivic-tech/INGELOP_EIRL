@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '@/context/AuthContext';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -24,6 +24,9 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const CmsPage = lazy(() => import('@/pages/CmsPage'));
 const MediosPage = lazy(() => import('@/pages/MediosPage'));
 const GastosEmpresaPage = lazy(() => import('@/pages/GastosEmpresaPage'));
+const MiCuentaPage = lazy(() => import('@/pages/MiCuentaPage'));
+const RecuperarContrasenaPage = lazy(() => import('@/pages/RecuperarContrasenaPage'));
+const RestablecerContrasenaPage = lazy(() => import('@/pages/RestablecerContrasenaPage'));
 
 function RequireEditor() {
   const { puedeEditarWeb } = useAuth();
@@ -54,6 +57,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/recuperar-contrasena" element={<Suspense fallback={<Spinner className="h-full" />}><RecuperarContrasenaPage /></Suspense>} />
+      <Route path="/restablecer-contrasena" element={<Suspense fallback={<Spinner className="h-full" />}><RestablecerContrasenaPage /></Suspense>} />
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route index element={<InicioRoute />} />
@@ -61,6 +66,7 @@ export default function App() {
           <Route path="/proyectos/:id/*" element={<ProyectoPage />} />
           <Route path="/mis-documentos" element={<DocumentosPage modo="mios" />} />
           <Route path="/ayuda" element={<AyudaPage />} />
+          <Route path="/mi-cuenta" element={<MiCuentaPage />} />
           <Route element={<RequireEditor />}>
             <Route path="/cms" element={<CmsPage />} />
             <Route path="/biblioteca" element={<MediosPage />} />

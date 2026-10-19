@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { mensajeError } from '@/api/client';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +20,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
+  // Mensaje de otra pantalla (p. ej. "tu contraseña cambió")
+  const aviso = (location.state as { aviso?: string } | null)?.aviso;
   const {
     register,
     handleSubmit,
@@ -78,6 +80,12 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-slate-500">Ingresa con tu cuenta de la intranet.</p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4" noValidate>
+            {aviso && !error && (
+              <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800" role="status">
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+                {aviso}
+              </div>
+            )}
             {error && (
               <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">
                 <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -85,7 +93,12 @@ export default function LoginPage() {
               </div>
             )}
             <Input label="Correo" type="email" autoComplete="email" placeholder="nombre@ingelop.com" error={errors.email?.message} {...register('email')} />
-            <Input label="Contraseña" type="password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
+            <div>
+              <Input label="Contraseña" type="password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
+              <Link to="/recuperar-contrasena" className="mt-1.5 inline-block text-xs font-medium text-brand-700 hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <Button type="submit" loading={isSubmitting} className="w-full">
               Ingresar
             </Button>

@@ -11,6 +11,11 @@ La intranet registra quién hizo qué, cuándo y desde dónde. Los registros **n
 | `LOGIN_BLOQUEADO` | Bloqueo por cuenta (5 fallos seguidos) o por IP (límite de peticiones) |
 | `TOKEN_ALTERADO` | Credencial con firma inválida, manipulada o de otro propósito (p. ej. un enlace de vista previa usado como sesión). Los tokens simplemente vencidos **no** se registran |
 | `SESION_RECHAZADA` | Token válido de una cuenta ya desactivada o eliminada |
+| `CONTRASENA_CAMBIADA` | Cambio desde «Mi cuenta» (éxito, o fallo por contraseña actual incorrecta). Las sesiones iniciadas antes del cambio dejan de valer; eso no se registra como incidente |
+| `CONTRASENA_BLOQUEADA` | Demasiados intentos de cambio con la contraseña actual incorrecta desde una IP |
+| `RECUPERACION_SOLICITADA` | «¿Olvidaste tu contraseña?». Éxito = se envió el enlace; fallo = cuenta inexistente o desactivada, o enlace pedido hace menos de 2 min (motivo en el detalle; al usuario siempre se le responde lo mismo) |
+| `CONTRASENA_RESTABLECIDA` | Uso del enlace del correo (éxito, o fallo por enlace inexistente, vencido o ya usado). Un éxito reinicia el bloqueo por cuenta |
+| `RECUPERACION_BLOQUEADA` | Demasiadas solicitudes de recuperación o enlaces inválidos desde una IP |
 | `ACCESO_DENEGADO` | Cualquier respuesta 403: alguien intentó entrar donde no tiene permiso |
 | `CREAR`, `EDITAR`, `ELIMINAR`, `SUBIR` | Toda modificación de la intranet, en todos los módulos (se registra automáticamente) |
 | `DESCARGAR` | Descarga de archivos protegidos (planos, documentos) |

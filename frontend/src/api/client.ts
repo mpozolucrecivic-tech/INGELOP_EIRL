@@ -62,6 +62,12 @@ export function mensajeError(error: unknown, porDefecto = 'Ocurrió un error ine
   return porDefecto;
 }
 
+/** Errores de validación de la API por campo del cuerpo ({ actual: 'La contraseña actual no es correcta' }) */
+export function erroresDeCampo(error: unknown): Record<string, string> {
+  if (!axios.isAxiosError<ApiErrorBody>(error)) return {};
+  return Object.fromEntries((error.response?.data?.errors ?? []).filter((e) => e.campo.startsWith('body.')).map((e) => [e.campo.slice(5), e.mensaje]));
+}
+
 /** Descarga un archivo protegido y devuelve un blob URL (para <img> o descargas) */
 export async function obtenerArchivo(url: string): Promise<string> {
   const ruta = url.startsWith(API_URL) ? url.slice(API_URL.length) : url.replace(/^\/api\/v1/, '');

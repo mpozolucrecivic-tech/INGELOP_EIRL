@@ -31,13 +31,21 @@ export async function verifyToken(req: Request, res: Response, next: NextFunctio
   if (payload.purpose || typeof payload.id !== 'number' || !Object.values(Rol).includes(payload.rol as Rol)) {
     return alterado(payload.purpose ? 'token de otro propósito usado para iniciar sesión' : 'contenido inválido');
   }
-  const usuario = await prisma.usuario.findUnique({ where: { id: payload.id }, select: { id: true, rol: true, activo: true, nombre: true } });
+  const usuario = await prisma.usuario.findUnique({
+    where: { id: payload.id },
+    select: { id: true, rol: true, activo: true, nombre: true, contrasenaCambiadaEn: true },
+  });
   if (!usuario?.activo) {
     registrarEnSegundoPlano({
       ...contextoDe(req), accion: 'SESION_RECHAZADA', modulo: 'auth', resultado: 'FALLO', codigoHttp: 401,
       usuarioId: payload.id, usuarioNombre: usuario?.nombre ?? null, detalle: { motivo: usuario ? 'cuenta desactivada' : 'usuario inexistente' },
     });
     return res.status(401).json({ message: 'Usuario inactivo o no encontrado' });
+  }
+  // Sesión iniciada antes del último cambio de contraseña: deja de valer (iat está en segundos).
+  // Es lo esperado tras un cambio, así que no se registra como incidente.
+  if (usuario.contrasenaCambiadaEn && (payload.iat ?? 0) < Math.floor(usuario.contrasenaCambiadaEn.getTime() / 1000)) {
+    return res.status(401).json({ message: 'Tu contraseña cambió. Inicia sesión de nuevo.' });
   }
   req.usuario = { id: usuario.id, rol: usuario.rol, nombre: usuario.nombre };
   next();
