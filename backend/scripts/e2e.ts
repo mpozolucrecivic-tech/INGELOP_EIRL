@@ -771,6 +771,71 @@ async function main() {
   }
   await call('DELETE', `/usuarios/${userC.body.id}`, { token: A });
 
+  seccion('Contrato: correspondencia');
+  const sig = await call('GET', '/correspondencia/siguiente-numero', { token: A });
+  check('número sugerido NNN-AAAA', sig.status === 200 && /^\d{3}-\d{4}$/.test(sig.body.sugerido), sig.body);
+  const formCarta = (campos: Record<string, string>, archivo?: [Buffer, string]) => {
+    const f = new FormData();
+    for (const [k, v] of Object.entries(campos)) f.append(k, v);
+    if (archivo) f.append('archivo', new Blob([archivo[0]], { type: 'application/pdf' }), archivo[1]);
+    return f;
+  };
+  const oficio = await call('POST', `/proyectos/${P}/correspondencia`, { token: A, form: formCarta({ tipo: 'RECIBIDA', numero: 'Oficio N.° 123-2026-MD', fecha: '2026-10-01', asunto: 'Observaciones al expediente', entidad: 'Municipalidad Distrital' }, [pdf, 'oficio.pdf']) });
+  check('POST correspondencia recibida con PDF', oficio.status === 201 && oficio.body.tieneArchivo && !('ruta' in oficio.body), oficio.body);
+  expectStatus('USUARIO no registra correspondencia', await call('POST', `/proyectos/${P}/correspondencia`, { token: U, form: formCarta({ tipo: 'ENVIADA', numero: 'X', fecha: '2026-10-02', asunto: 'Prueba', entidad: 'MD' }) }), 403);
+  expectStatus('PDF falso rechazado', await call('POST', `/proyectos/${P}/correspondencia`, { token: A, form: formCarta({ tipo: 'ENVIADA', numero: 'X', fecha: '2026-10-02', asunto: 'Prueba', entidad: 'MD' }, [Buffer.from('MZ ejecutable'), 'cartaEnv.pdf']) }), 400);
+  const cartaEnv = await call('POST', `/proyectos/${P}/correspondencia`, { token: A, form: formCarta({ tipo: 'ENVIADA', numero: `Carta N.° ${sig.body.sugerido}-INGELOP`, fecha: '2026-10-10', asunto: 'Levantamiento de observaciones', entidad: 'Municipalidad Distrital', respondeAId: String(oficio.body.id) }) });
+  check('cartaEnv enviada que responde al oficio (sin archivo)', cartaEnv.status === 201 && cartaEnv.body.respondeA?.id === oficio.body.id && !cartaEnv.body.tieneArchivo, cartaEnv.body);
+  expectStatus('no se responde a sí misma', await call('PUT', `/correspondencia/${cartaEnv.body.id}`, { token: A, json: { respondeAId: cartaEnv.body.id } }), 422);
+  const listaCorr = await call('GET', `/proyectos/${P}/correspondencia?q=levantamiento`, { token: U });
+  check('USUARIO consulta y busca correspondencia', listaCorr.status === 200 && listaCorr.body.length === 1 && listaCorr.body[0].id === cartaEnv.body.id, listaCorr.body);
+  const arcOficio = await fetch(`${API}/correspondencia/${oficio.body.id}/archivo`, { headers: { Authorization: `Bearer ${U}` } });
+  check('USUARIO descarga el oficio', arcOficio.status === 200 && (await arcOficio.text()).startsWith('%PDF'));
+  expectStatus('archivo de un documento sin archivo', await call('GET', `/correspondencia/${cartaEnv.body.id}/archivo`, { token: A }), 404);
+
+  seccion('Contrato: observaciones de la entidad');
+  const obs1 = await call('POST', `/proyectos/${P}/observaciones`, { token: A, json: { documento: 'Oficio N.° 123-2026-MD', fechaRecepcion: '2026-10-01', fechaLimite: '2026-10-11', descripcion: 'Falta el plano de cortes de la cisterna', responsableId: usuarioId, etapaId: E1 } });
+  check('POST observación (N.° 1, pendiente)', obs1.status === 201 && obs1.body.numero === 1 && obs1.body.estado === 'PENDIENTE' && obs1.body.responsable?.id === usuarioId, obs1.body);
+  expectStatus('plazo antes de la recepción', await call('POST', `/proyectos/${P}/observaciones`, { token: A, json: { documento: 'Oficio', fechaRecepcion: '2026-10-05', fechaLimite: '2026-10-01', descripcion: 'Algo que corregir' } }), 422);
+  expectStatus('responsable sin acceso al proyecto', await call('POST', `/proyectos/${P}/observaciones`, { token: A, json: { documento: 'Oficio', fechaRecepcion: '2026-10-05', descripcion: 'Algo que corregir', responsableId: userC.body.id } }), 422);
+  const obs2 = await call('POST', `/proyectos/${P}/observaciones`, { token: A, json: { documento: 'Informe de revisión 05', fechaRecepcion: '2026-10-02', descripcion: 'Revisar metrados de concreto' } });
+  check('correlativo N.° 2', obs2.body?.numero === 2, obs2.body);
+  expectStatus('USUARIO no registra observaciones', await call('POST', `/proyectos/${P}/observaciones`, { token: U, json: { documento: 'X', fechaRecepcion: '2026-10-02', descripcion: 'Algo que corregir' } }), 403);
+  const enProc = await call('PATCH', `/observaciones/${obs1.body.id}`, { token: U, json: { estado: 'EN_PROCESO', respuesta: 'Se agregó la lámina IS-05 con los cortes' } });
+  check('USUARIO avanza a EN_PROCESO y redacta la respuesta', enProc.status === 200 && enProc.body.estado === 'EN_PROCESO' && /IS-05/.test(enProc.body.respuesta), enProc.body);
+  expectStatus('USUARIO no marca LEVANTADA', await call('PATCH', `/observaciones/${obs1.body.id}`, { token: U, json: { estado: 'LEVANTADA' } }), 403);
+  expectStatus('USUARIO no cambia el plazo', await call('PATCH', `/observaciones/${obs1.body.id}`, { token: U, json: { fechaLimite: '2026-12-31' } }), 403);
+  const lev = await call('PATCH', `/observaciones/${obs1.body.id}`, { token: A, json: { estado: 'LEVANTADA', correspondenciaId: cartaEnv.body.id } });
+  check('jefatura la levanta con la cartaEnv (fecha de respuesta automática)', lev.status === 200 && lev.body.estado === 'LEVANTADA' && !!lev.body.fechaRespuesta && lev.body.correspondencia?.id === cartaEnv.body.id && lev.body.diasParaVencer === null, lev.body);
+  expectStatus('USUARIO no edita una observación cerrada', await call('PATCH', `/observaciones/${obs1.body.id}`, { token: U, json: { respuesta: 'otra' } }), 403);
+  const listaObs = await call('GET', `/proyectos/${P}/observaciones?estado=ABIERTAS`, { token: U });
+  check('listar abiertas con resumen', listaObs.status === 200 && listaObs.body.observaciones.length === 1 && listaObs.body.resumen.levantadas === 1 && listaObs.body.resumen.abiertas === 1, listaObs.body);
+  await new Promise((r) => setTimeout(r, 400));
+  check('el responsable recibe el aviso de la observación', ((await call('GET', '/notificaciones?limite=100', { token: U })).body?.notificaciones ?? []).some((n: any) => n.tipo === 'OBSERVACION_ENTIDAD'));
+  expectStatus('DELETE /observaciones/:id', await call('DELETE', `/observaciones/${obs2.body.id}`, { token: A }), 204);
+  expectStatus('DELETE /correspondencia/:id con archivo', await call('DELETE', `/correspondencia/${oficio.body.id}`, { token: A }), 204);
+
+  seccion('Contrato: plazo y ampliaciones');
+  const plazo0 = await call('GET', `/proyectos/${P}/ampliaciones`, { token: U });
+  const fin0 = plazo0.body?.plazo?.fechaFin;
+  check('GET plazo (USUARIO)', plazo0.status === 200 && plazo0.body.plazo.diasAmpliados === 0 && plazo0.body.ampliaciones.length === 0, plazo0.body);
+  expectStatus('USUARIO no solicita ampliaciones', await call('POST', `/proyectos/${P}/ampliaciones`, { token: U, json: { motivo: 'Demora de la entidad', diasSolicitados: 10, fechaSolicitud: '2026-10-05' } }), 403);
+  const amp = await call('POST', `/proyectos/${P}/ampliaciones`, { token: A, json: { motivo: 'Demora de la entidad en entregar el estudio de suelos', diasSolicitados: 20, fechaSolicitud: '2026-10-05' } });
+  check('POST ampliación N.° 1 solicitada', amp.status === 201 && amp.body.numero === 1 && amp.body.estado === 'SOLICITADA', amp.body);
+  expectStatus('aprobar sin días', await call('POST', `/ampliaciones/${amp.body.id}/resolver`, { token: A, json: { estado: 'APROBADA', fechaResolucion: '2026-10-10' } }), 422);
+  const apr = await call('POST', `/ampliaciones/${amp.body.id}/resolver`, { token: A, json: { estado: 'APROBADA', diasAprobados: 15, fechaResolucion: '2026-10-10', documentoResolucion: 'Resolución N.° 045-2026' } });
+  check('aprobar 15 días', apr.status === 200 && apr.body.estado === 'APROBADA' && apr.body.diasAprobados === 15, apr.body);
+  expectStatus('no se resuelve dos veces', await call('POST', `/ampliaciones/${amp.body.id}/resolver`, { token: A, json: { estado: 'DENEGADA', fechaResolucion: '2026-10-10' } }), 409);
+  expectStatus('no se edita una resuelta', await call('PUT', `/ampliaciones/${amp.body.id}`, { token: A, json: { diasSolicitados: 30 } }), 409);
+  const plazo1 = await call('GET', `/proyectos/${P}/ampliaciones`, { token: A });
+  const corrido = (new Date(plazo1.body.plazo.fechaFin).getTime() - new Date(fin0).getTime()) / 86_400_000;
+  check('la fecha de fin del proyecto se corre 15 días', corrido === 15 && plazo1.body.plazo.diasAmpliados === 15 && plazo1.body.plazo.fechaFinOriginal === fin0, plazo1.body.plazo);
+  const den = await call('POST', `/proyectos/${P}/ampliaciones`, { token: A, json: { motivo: 'Lluvias intensas en la zona', diasSolicitados: 5, fechaSolicitud: '2026-10-12' } });
+  expectStatus('denegar no mueve la fecha', await call('POST', `/ampliaciones/${den.body.id}/resolver`, { token: A, json: { estado: 'DENEGADA', fechaResolucion: '2026-10-15' } }), 200);
+  expectStatus('eliminar la aprobada', await call('DELETE', `/ampliaciones/${amp.body.id}`, { token: A }), 204);
+  const plazo2 = await call('GET', `/proyectos/${P}/ampliaciones`, { token: A });
+  check('al eliminarla, la fecha de fin vuelve', plazo2.body?.plazo?.fechaFin === fin0 && plazo2.body.plazo.diasAmpliados === 0, plazo2.body?.plazo);
+
   seccion('Varios');
   expectStatus('ruta inexistente', await call('GET', '/no-existe', { token: A }), 404);
   const malJson = await fetch(`${API}/proyectos`, { method: 'POST', headers: { Authorization: `Bearer ${A}`, 'Content-Type': 'application/json' }, body: '{malo' });

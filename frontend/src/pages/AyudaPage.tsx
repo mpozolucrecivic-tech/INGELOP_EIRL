@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { Building2, FileSpreadsheet, FileStack, FolderOpen, Inbox, KeyRound, Landmark, Layers, Lightbulb } from 'lucide-react';
+import { Building2, FileSpreadsheet, FileStack, FolderOpen, Inbox, KeyRound, Landmark, Layers, Lightbulb, MessageSquareWarning } from 'lucide-react';
 import { Card, PageHeader } from '@/components/ui/Display';
 import { useAuth } from '@/context/AuthContext';
 
@@ -42,6 +42,18 @@ const guias: Guia[] = [
       <>Desde esa misma pestaña se registran las horas trabajadas de cada profesional.</>,
     ],
     consejo: <>Los profesionales se registran antes en <Link to="/trabajadores" className={enlace}>Personal y tarifas</Link>, con su costo por hora.</>,
+  },
+  {
+    icono: <MessageSquareWarning className="size-5" />,
+    titulo: 'Observaciones de la entidad, cartas y plazos',
+    admin: false,
+    pasos: [
+      <>En el proyecto, abre <b>Contrato</b>. En <b>Observaciones de la entidad</b>, la jefatura registra cada observación con su oficio, el plazo y el responsable.</>,
+      <>El responsable la marca <b>En proceso</b> y redacta la respuesta. La campana avisa 2 días antes de que venza.</>,
+      <>En <b>Correspondencia</b> se guardan las cartas enviadas y los oficios recibidos, con su PDF. Al presentar la respuesta, la jefatura marca la observación como <b>Levantada</b> y elige la carta.</>,
+      <>En <b>Plazo</b> se registran las ampliaciones. Al aprobar una, la fecha de término del proyecto se corre los días aprobados.</>,
+    ],
+    consejo: <>La jefatura tiene además una calculadora de penalidad por mora en <b>Plazo y penalidades</b>.</>,
   },
   {
     icono: <Landmark className="size-5" />,

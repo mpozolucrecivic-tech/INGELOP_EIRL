@@ -32,6 +32,7 @@ import portafolioRoutes, { portafolioPublicRoutes } from './modules/portafolio/p
 import cmsRoutes, { cmsPublicRoutes } from './modules/cms/cms.routes';
 import notificacionesRoutes from './modules/notificaciones/notificaciones.routes';
 import cobrosRoutes from './modules/cobros/cobros.routes';
+import contratoRoutes from './modules/contrato/contrato.routes';
 
 export const app = express();
 
@@ -76,6 +77,7 @@ api.use(entregablesRoutes);
 api.use(personalRoutes);
 api.use(gastosRoutes);
 api.use(cobrosRoutes);
+api.use(contratoRoutes);
 api.use(evidenciasRoutes);
 api.use(etapasRoutes);
 api.use(documentosRoutes);

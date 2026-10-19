@@ -49,7 +49,7 @@ export function TablaCobros({ cobros, conProyecto = false, onEditar }: { cobros:
               <td className={td}>
                 <Badge color={ESTADO_COBRO[c.estado].color}>{ESTADO_COBRO[c.estado].label}</Badge>
                 {c.diasPorCobrar !== null && (
-                  <p className={`mt-1 text-xs ${c.diasPorCobrar > 30 ? 'font-semibold text-red-600' : 'text-slate-500'}`}>hace {c.diasPorCobrar} días</p>
+                  <p className={`mt-1 text-xs ${c.diasPorCobrar > 30 ? 'font-semibold text-red-600' : 'text-slate-500'}`}>{c.diasPorCobrar === 0 ? 'emitida hoy' : `hace ${c.diasPorCobrar === 1 ? '1 día' : `${c.diasPorCobrar} días`}`}</p>
                 )}
               </td>
               <td className={`${td} whitespace-nowrap`}>
@@ -112,10 +112,11 @@ export function TablaCobros({ cobros, conProyecto = false, onEditar }: { cobros:
 /** Texto y color del vencimiento de una carta vigente */
 export function vencimientoCarta(dias: number | null) {
   if (dias === null) return null;
-  if (dias < 0) return { texto: `Venció hace ${-dias} días`, clase: 'font-semibold text-red-600' };
+  const n = (d: number) => (d === 1 ? '1 día' : `${d} días`);
+  if (dias < 0) return { texto: `Venció hace ${n(-dias)}`, clase: 'font-semibold text-red-600' };
   if (dias === 0) return { texto: 'Vence hoy', clase: 'font-semibold text-red-600' };
-  if (dias <= 15) return { texto: `Vence en ${dias} días`, clase: 'font-semibold text-amber-700' };
-  return { texto: `Vence en ${dias} días`, clase: 'text-slate-500' };
+  if (dias <= 15) return { texto: dias === 1 ? 'Vence mañana' : `Vence en ${n(dias)}`, clase: 'font-semibold text-amber-700' };
+  return { texto: `Vence en ${n(dias)}`, clase: 'text-slate-500' };
 }
 
 export function TablaCartas({

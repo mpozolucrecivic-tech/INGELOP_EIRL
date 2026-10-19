@@ -641,3 +641,75 @@ export interface CartaFianza {
   diasParaVencer: number | null;
   proyecto?: ProyectoResumido;
 }
+
+// ---------- Contrato: observaciones, correspondencia y plazo ----------
+
+export type EstadoObservacion = 'PENDIENTE' | 'EN_PROCESO' | 'LEVANTADA' | 'NO_PROCEDE';
+export type TipoCorrespondencia = 'ENVIADA' | 'RECIBIDA';
+export type EstadoAmpliacion = 'SOLICITADA' | 'APROBADA' | 'DENEGADA';
+
+export interface ObservacionEntidad {
+  id: number;
+  proyectoId: number;
+  numero: number;
+  documento: string;
+  fechaRecepcion: string;
+  fechaLimite: string | null;
+  descripcion: string;
+  estado: EstadoObservacion;
+  respuesta: string | null;
+  fechaRespuesta: string | null;
+  responsable: { id: number; nombre: string } | null;
+  etapa: { id: number; tipo: TipoEtapa } | null;
+  correspondencia: { id: number; numero: string } | null;
+  /** Solo las abiertas con plazo; negativo = vencida */
+  diasParaVencer: number | null;
+}
+
+export interface ResumenObservaciones {
+  total: number;
+  abiertas: number;
+  vencidas: number;
+  levantadas: number;
+}
+
+export interface Correspondencia {
+  id: number;
+  proyectoId: number;
+  tipo: TipoCorrespondencia;
+  numero: string;
+  fecha: string;
+  asunto: string;
+  entidad: string;
+  referencia: string | null;
+  respondeA: { id: number; numero: string } | null;
+  respuestas: { id: number; numero: string }[];
+  nombreArchivo: string | null;
+  tamano: number | null;
+  tieneArchivo: boolean;
+  descargaUrl: string | null;
+  usuario: { id: number; nombre: string };
+  creadoEn: string;
+}
+
+export interface AmpliacionPlazo {
+  id: number;
+  numero: number;
+  motivo: string;
+  diasSolicitados: number;
+  fechaSolicitud: string;
+  estado: EstadoAmpliacion;
+  diasAprobados: number | null;
+  fechaResolucion: string | null;
+  documentoResolucion: string | null;
+}
+
+export interface PlazoProyecto {
+  fechaInicio: string;
+  fechaFinOriginal: string;
+  fechaFin: string;
+  diasAmpliados: number;
+  plazoOriginalDias: number;
+  plazoVigenteDias: number;
+  diasRestantes: number;
+}

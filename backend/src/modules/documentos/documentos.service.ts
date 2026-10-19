@@ -1,12 +1,11 @@
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { open } from 'node:fs/promises';
 import { EstadoEtapa, Prisma, Rol } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { storage, toStorageKey } from '../../config/storage';
 import { AppError } from '../../utils/AppError';
 import { assertProjectAccess } from '../../utils/access';
-import { BYTES_FIRMA, firmaValida } from '../../utils/firmaArchivo';
+import { verificarFirmaArchivo } from '../../utils/firmaArchivo';
 import type { UsuarioAutenticado } from '../../types/express';
 import type { DocumentosProyectoQuery, EditarDocumentoInput, ListarDocumentosQuery, SubirDocumentoInput } from './documentos.schema';
 
@@ -79,17 +78,7 @@ export async function subir(
 ) {
   if (!archivo) throw AppError.badRequest('Adjunta el archivo en el campo "archivo"');
 
-  const extension = path.extname(archivo.originalname).toLowerCase();
-  const handle = await open(archivo.path, 'r');
-  try {
-    const inicio = Buffer.alloc(BYTES_FIRMA);
-    const { bytesRead } = await handle.read(inicio, 0, BYTES_FIRMA, 0);
-    if (!firmaValida(extension, inicio.subarray(0, bytesRead))) {
-      throw AppError.badRequest(`El contenido del archivo no corresponde a un ${extension.slice(1).toUpperCase()} válido`);
-    }
-  } finally {
-    await handle.close();
-  }
+  await verificarFirmaArchivo(archivo.path, archivo.originalname);
 
   const etapa = await prisma.etapa.findUnique({ where: { id: etapaId } });
   if (!etapa || etapa.proyectoId !== proyectoId) throw AppError.notFound('Etapa no encontrada en este proyecto');

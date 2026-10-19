@@ -1,4 +1,4 @@
-import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, EstadoMensaje, TipoServicio, TipoEtapa, EstadoEtapa, CategoriaDocumento, EstadoCobro, TipoGarantia, EstadoGarantia } from '@/types/api';
+import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, EstadoMensaje, TipoServicio, TipoEtapa, EstadoEtapa, CategoriaDocumento, EstadoCobro, TipoGarantia, EstadoGarantia, EstadoObservacion, TipoCorrespondencia, EstadoAmpliacion } from '@/types/api';
 
 const soles = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
 const solesCorto = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', notation: 'compact', maximumFractionDigits: 1 });
@@ -262,4 +262,22 @@ export const ESTADO_GARANTIA: Record<EstadoGarantia, { label: string; color: 'gr
   RENOVADA: { label: 'Renovada', color: 'slate' },
   DEVUELTA: { label: 'Devuelta', color: 'blue' },
   EJECUTADA: { label: 'Ejecutada', color: 'red' },
+};
+
+export const ESTADO_OBSERVACION: Record<EstadoObservacion, { label: string; color: 'amber' | 'blue' | 'green' | 'slate' }> = {
+  PENDIENTE: { label: 'Pendiente', color: 'amber' },
+  EN_PROCESO: { label: 'En proceso', color: 'blue' },
+  LEVANTADA: { label: 'Levantada', color: 'green' },
+  NO_PROCEDE: { label: 'No procede', color: 'slate' },
+};
+
+export const TIPO_CORRESPONDENCIA: Record<TipoCorrespondencia, { label: string; color: 'violet' | 'blue' }> = {
+  ENVIADA: { label: 'Enviada', color: 'violet' },
+  RECIBIDA: { label: 'Recibida', color: 'blue' },
+};
+
+export const ESTADO_AMPLIACION: Record<EstadoAmpliacion, { label: string; color: 'amber' | 'green' | 'red' }> = {
+  SOLICITADA: { label: 'Solicitada', color: 'amber' },
+  APROBADA: { label: 'Aprobada', color: 'green' },
+  DENEGADA: { label: 'Denegada', color: 'red' },
 };

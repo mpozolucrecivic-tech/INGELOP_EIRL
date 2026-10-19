@@ -24,6 +24,7 @@ const ACCIONES_ESPECIALES: Record<string, string> = {
   verificar: 'VERIFICAR',
   renovar: 'RENOVAR',
   archivar: 'ARCHIVAR',
+  resolver: 'RESOLVER',
   desarchivar: 'DESARCHIVAR',
 };
 const CAMPO_SENSIBLE = /pass|token|secret|clave_?acceso/i;

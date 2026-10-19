@@ -1,4 +1,4 @@
-import { EstadoCobro, EstadoGarantia, EstadoProyecto, EstadoRevision, Rol } from '@prisma/client';
+import { EstadoCobro, EstadoGarantia, EstadoObservacion, EstadoProyecto, EstadoRevision, Rol } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import type { ListarNotificacionesQuery } from './notificaciones.schema';
@@ -16,6 +16,7 @@ const RETENCION_DIAS = 90;
 const AVISO_ENTREGABLE_DIAS = 3; // recordar los entregables que vencen dentro de estos días
 const AVISO_FIANZA_DIAS = 15; // tiempo para tramitar la renovación con el banco
 const FACTURA_SIN_COBRAR_DIAS = 30;
+const AVISO_OBSERVACION_DIAS = 2;
 const MANTENIMIENTO_CADA_MS = 60 * 60_000;
 
 /**
@@ -97,6 +98,7 @@ export function mantenimiento(forzar = false): Promise<void> {
       await recordarEntregables();
       await recordarCartasFianza();
       await recordarCobros();
+      await recordarObservaciones();
       await prisma.notificacion.deleteMany({ where: { creadoEn: { lt: new Date(Date.now() - RETENCION_DIAS * 86_400_000) } } });
       ultimoMantenimiento = Date.now();
     } catch (e) {
@@ -188,6 +190,32 @@ async function recordarCobros() {
       mensaje: `${c.proyecto.nombre} · ${facturado ? 'emitida' : 'programado para'} el ${fechaCorta(fecha)}`,
       enlace: `/proyectos/${c.proyecto.id}/recursos/cobros`,
       clave: `cobro:${c.id}:${facturado ? 'atrasado' : 'sin-facturar'}:${fecha.toISOString().slice(0, 10)}`,
+    });
+  }
+}
+
+/** Observaciones de la entidad sin levantar que vencen en 2 días o ya vencieron: responsable (o equipo) y jefatura */
+async function recordarObservaciones() {
+  const hoy = hoyEnLima();
+  const observaciones = await prisma.observacionEntidad.findMany({
+    where: {
+      estado: { in: [EstadoObservacion.PENDIENTE, EstadoObservacion.EN_PROCESO] },
+      fechaLimite: { not: null, lte: new Date(hoy.getTime() + AVISO_OBSERVACION_DIAS * 86_400_000) },
+      proyecto: { archivadoEn: null },
+    },
+    select: { id: true, numero: true, fechaLimite: true, responsableId: true, proyecto: { select: { id: true, nombre: true } } },
+  });
+  if (!observaciones.length) return;
+  const jefes = await jefaturas();
+  for (const o of observaciones) {
+    const fecha = o.fechaLimite!;
+    const vencida = fecha < hoy;
+    await notificar([...(o.responsableId ? [o.responsableId] : await equipoProyecto(o.proyecto.id)), ...jefes], {
+      tipo: vencida ? 'OBSERVACION_VENCIDA' : 'OBSERVACION_POR_VENCER',
+      titulo: `Observación N.° ${o.numero} ${vencida ? 'con plazo vencido' : 'por vencer'}`,
+      mensaje: `${o.proyecto.nombre} · ${vencida ? 'venció' : 'vence'} el ${fechaCorta(fecha)}`,
+      enlace: `/proyectos/${o.proyecto.id}/contrato/observaciones`,
+      clave: `observacion:${o.id}:${vencida ? 'vencida' : 'vence'}:${fecha.toISOString().slice(0, 10)}`,
     });
   }
 }

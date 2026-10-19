@@ -14,6 +14,9 @@ import EntregablesTab from './EntregablesTab';
 import EquipoTab from './EquipoTab';
 import GastosTab from './GastosTab';
 import CobrosTab from './CobrosTab';
+import ObservacionesTab from './contrato/ObservacionesTab';
+import CorrespondenciaTab from './contrato/CorrespondenciaTab';
+import PlazoTab from './contrato/PlazoTab';
 import EvidenciasTab from './EvidenciasTab';
 import EtapasTab from './EtapasTab';
 import AjustesTab from './AjustesTab';
@@ -43,9 +46,11 @@ export default function ProyectoPage() {
   const base = `/proyectos/${id}`;
   const enExpediente = location.pathname.startsWith(`${base}/expediente`);
   const enRecursos = location.pathname.startsWith(`${base}/recursos`);
+  const enContrato = location.pathname.startsWith(`${base}/contrato`);
   const primary = [
     { to: base, label: 'Resumen', active: location.pathname === base || location.pathname === `${base}/` },
     { to: `${base}/expediente/etapas`, label: 'Expediente', active: enExpediente },
+    { to: `${base}/contrato/observaciones`, label: 'Contrato', active: enContrato },
     { to: `${base}/planificacion`, label: 'Planificación', active: location.pathname.startsWith(`${base}/planificacion`) },
     ...(esAdmin ? [{ to: `${base}/recursos/equipo`, label: 'Recursos', active: enRecursos }] : []),
     ...(esAdmin ? [{ to: `${base}/configuracion`, label: 'Configuración', active: location.pathname.startsWith(`${base}/configuracion`) }] : []),
@@ -56,6 +61,11 @@ export default function ProyectoPage() {
     { to: `${base}/expediente/entregables`, label: 'Entregables' },
     { to: `${base}/expediente/presupuestos`, label: 'Presupuestos' },
     { to: `${base}/expediente/fotos`, label: 'Fotos y visitas' },
+  ];
+  const contrato = [
+    { to: `${base}/contrato/observaciones`, label: 'Observaciones de la entidad' },
+    { to: `${base}/contrato/correspondencia`, label: 'Correspondencia' },
+    { to: `${base}/contrato/plazo`, label: esAdmin ? 'Plazo y penalidades' : 'Plazo' },
   ];
   const recursos = [
     { to: `${base}/recursos/equipo`, label: 'Equipo y horas' },
@@ -107,16 +117,19 @@ export default function ProyectoPage() {
         </div>
       </nav>
 
-      {(enExpediente || enRecursos) && (
-        <nav className="-mx-4 mb-6 overflow-x-auto border-b border-slate-200 bg-slate-50 px-4 py-2 sm:mx-0 sm:px-3" aria-label={enExpediente ? 'Secciones del expediente' : 'Secciones de recursos'}>
+      {(enExpediente || enRecursos || enContrato) && (
+        <nav
+          className="-mx-4 mb-6 overflow-x-auto border-b border-slate-200 bg-slate-50 px-4 py-2 sm:mx-0 sm:px-3"
+          aria-label={enExpediente ? 'Secciones del expediente' : enContrato ? 'Secciones del contrato' : 'Secciones de recursos'}
+        >
           <div className="flex gap-1">
-            {(enExpediente ? expediente : recursos).map((item) => (
+            {(enExpediente ? expediente : enContrato ? contrato : recursos).map((item) => (
               <NavLink key={item.to} to={item.to} className={secondaryClass}>{item.label}</NavLink>
             ))}
           </div>
         </nav>
       )}
-      {!enExpediente && !enRecursos && <div className="mb-6" />}
+      {!enExpediente && !enRecursos && !enContrato && <div className="mb-6" />}
 
       <Routes>
         <Route index element={<ResumenTab proyectoId={id} />} />
@@ -127,6 +140,10 @@ export default function ProyectoPage() {
         <Route path="expediente/presupuestos" element={<PresupuestosTab proyectoId={id} />} />
         <Route path="expediente/fotos" element={<EvidenciasTab proyectoId={id} />} />
         <Route path="planificacion" element={<TableroTab proyectoId={id} />} />
+        <Route path="contrato" element={<Navigate to={`${base}/contrato/observaciones`} replace />} />
+        <Route path="contrato/observaciones" element={<ObservacionesTab proyectoId={id} />} />
+        <Route path="contrato/correspondencia" element={<CorrespondenciaTab proyectoId={id} />} />
+        <Route path="contrato/plazo" element={<PlazoTab proyectoId={id} />} />
         {esAdmin && (
           <>
             <Route path="recursos" element={<Navigate to={`${base}/recursos/equipo`} replace />} />

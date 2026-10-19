@@ -137,3 +137,45 @@ export function accesoAProyecto(proyectoId: number, usuarioId: number, actorId: 
     await notificar([usuarioId], { tipo: 'ACCESO_PROYECTO', titulo: 'Te dieron acceso a un proyecto', mensaje: p.nombre, enlace: `/proyectos/${proyectoId}` }, actorId);
   }, `acceso al proyecto ${proyectoId}`);
 }
+
+/** Observación de la entidad registrada (o reasignada): a su responsable, o al equipo si no tiene */
+export function observacionRegistrada(observacionId: number, actorId: number, soloResponsable = false) {
+  enSegundoPlano(async () => {
+    const o = await prisma.observacionEntidad.findUnique({
+      where: { id: observacionId },
+      select: { numero: true, documento: true, fechaLimite: true, responsableId: true, proyecto: { select: { id: true, nombre: true } } },
+    });
+    if (!o || (soloResponsable && !o.responsableId)) return;
+    const plazo = o.fechaLimite ? ` · plazo: ${o.fechaLimite.toISOString().slice(0, 10).split('-').reverse().join('/')}` : '';
+    await notificar(
+      o.responsableId ? [o.responsableId] : await equipoProyecto(o.proyecto.id),
+      {
+        tipo: 'OBSERVACION_ENTIDAD',
+        titulo: `${soloResponsable ? 'Te asignaron' : 'Nueva'} observación de la entidad N.° ${o.numero}`,
+        mensaje: `${o.proyecto.nombre} · ${recortar(o.documento, 80)}${plazo}`,
+        enlace: `/proyectos/${o.proyecto.id}/contrato/observaciones`,
+      },
+      actorId,
+    );
+  }, `observación ${observacionId}`);
+}
+
+export function plazoAmpliado(ampliacionId: number, actorId: number) {
+  enSegundoPlano(async () => {
+    const a = await prisma.ampliacionPlazo.findUnique({
+      where: { id: ampliacionId },
+      select: { numero: true, diasAprobados: true, proyecto: { select: { id: true, nombre: true, fechaFin: true } } },
+    });
+    if (!a) return;
+    await notificar(
+      await equipoProyecto(a.proyecto.id),
+      {
+        tipo: 'PLAZO_AMPLIADO',
+        titulo: `Plazo ampliado ${a.diasAprobados} días`,
+        mensaje: `${a.proyecto.nombre} · nueva fecha de término: ${a.proyecto.fechaFin.toISOString().slice(0, 10).split('-').reverse().join('/')}`,
+        enlace: `/proyectos/${a.proyecto.id}/contrato/plazo`,
+      },
+      actorId,
+    );
+  }, `ampliación ${ampliacionId}`);
+}

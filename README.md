@@ -243,6 +243,9 @@ La campana de la barra superior muestra avisos para cada persona (se revisa cada
 | Te dieron acceso a un proyecto | Esa persona |
 | Entregable que vence en 3 días o ya venció (sin aprobar, proyecto no finalizado) | Su responsable, o la jefatura si no tiene |
 | Carta fianza vigente que vence en 15 días o ya venció | Jefatura |
+| Observación de la entidad registrada o reasignada | Su responsable, o el equipo del proyecto si no tiene |
+| Observación sin levantar que vence en 2 días o ya venció | Su responsable (o el equipo) y la jefatura |
+| Ampliación de plazo aprobada | Responsable del proyecto y usuarios con acceso |
 | Factura emitida hace más de 30 días sin cobrar, o cobro programado cuya fecha pasó sin facturar | Jefatura |
 
 Nadie recibe aviso de su propia acción. Los avisos se crean en segundo plano: si fallan, la acción original no se ve afectada. Los recordatorios de entregables y la limpieza de avisos con más de 90 días corren como máximo una vez por hora, al consultar la campana; no hace falta una tarea programada. Al eliminar un proyecto se borran sus avisos. Marcar como leída no se registra en la auditoría.
@@ -298,13 +301,16 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Proyecto → **Tareas** | Tareas por periodo de trabajo (en la API: *sprints*), arrastrando tarjetas | Solo lectura |
 | Proyecto → **Equipo y horas** | Asignar profesionales, registrar horas por tarea, horas trabajadas y costo | — |
 | Proyecto → **Cobros y garantías** | Pagos pactados con el cliente (programado → facturado → cobrado) con detracción, penalidad y neto recibido frente al contrato; cartas fianza con renovación | — |
+| Proyecto → **Contrato** → Observaciones de la entidad | Registrar con documento, plazo y responsable; levantar con la carta de respuesta | Ver; marcar «en proceso» y redactar la respuesta |
+| Proyecto → **Contrato** → Correspondencia | Cartas y oficios enviados/recibidos con su archivo, número sugerido y a qué responden | Ver y descargar |
+| Proyecto → **Contrato** → Plazo y penalidades | Plazo original y vigente, ampliaciones (aprobar corre la fecha de término) y calculadora de penalidad por mora | Ver plazo y ampliaciones |
 | Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen); **importar desde Excel** y deshacer importaciones | — |
 | Proyecto → **Fotos y observaciones** | Galería de actas, informes, fotos y observaciones (evidencias) | Subir y ver |
 | Proyecto → **Configuración** | Editar el proyecto, dar/quitar acceso, **archivar o reactivar**, eliminar (solo si está archivado) | — |
 
 ## Documentación interactiva (Swagger)
 
-Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 156 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
+Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 171 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
 
 Para probar rutas protegidas: ejecuta `POST /api/v1/auth/login`, copia el `token`, pulsa **Authorize** y pégalo. En producción está apagada salvo que se defina `SWAGGER_HABILITADO=true` (expone todas las rutas de la API).
 
@@ -428,6 +434,17 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, la recuper
 | GET | `/cartas-fianza` | A | Todas (`?estado=&proyectoId=`), ordenadas por vencimiento |
 | PUT / DELETE | `/cartas-fianza/:id` | A | Editar o marcar devuelta/ejecutada / eliminar (si era una renovación, la anterior vuelve a vigente) |
 | POST | `/cartas-fianza/:id/renovar` | A | La vigente pasa a RENOVADA y se crea la nueva enlazada (`numero, fechaEmision, fechaVencimiento, monto?, entidadFinanciera?`) |
+| **Contrato: observaciones, correspondencia y plazo** ||||
+| GET | `/proyectos/:id/observaciones` | A/U | `{ resumen, observaciones }` (`?estado=` o `ABIERTAS`), con `diasParaVencer` |
+| POST | `/proyectos/:id/observaciones` | A | `documento, fechaRecepcion, descripcion, fechaLimite?, responsableId?, etapaId?, estado?, respuesta?, correspondenciaId?` (correlativo por proyecto) |
+| PATCH / DELETE | `/observaciones/:id` | A/U · A | Jefatura: todo. Arquitecto o ingeniero: solo `estado` (pendiente o en proceso) y `respuesta`, mientras esté abierta. Al levantarla se guarda la fecha de respuesta |
+| GET / POST | `/proyectos/:id/correspondencia` | A/U · A | Listar (`?tipo=&q=`) / registrar (multipart: `tipo, numero, fecha, asunto, entidad, referencia?, respondeAId?, archivo?`; se verifica la firma real del archivo) |
+| GET | `/correspondencia/siguiente-numero` | A | Correlativo sugerido de cartas enviadas del año (`NNN-AAAA`) |
+| GET | `/correspondencia/:id/archivo` | A/U | Descarga (`?ver=true` para abrir) |
+| PUT / DELETE | `/correspondencia/:id` | A | Editar datos / eliminar con su archivo |
+| GET / POST | `/proyectos/:id/ampliaciones` | A/U · A | `{ plazo, ampliaciones }` (plazo original y vigente, días restantes) / solicitar (`motivo, diasSolicitados, fechaSolicitud`) |
+| PUT / DELETE | `/ampliaciones/:id` | A | Editar (solo solicitada) / eliminar (si estaba aprobada, la fecha de término vuelve atrás) |
+| POST | `/ampliaciones/:id/resolver` | A | `{ estado: APROBADA \| DENEGADA, diasAprobados?, fechaResolucion, documentoResolucion? }`; aprobar suma los días a la fecha de término del proyecto |
 | **Notificaciones** (cada usuario, las suyas) ||||
 | GET | `/notificaciones` | A/U | `{ noLeidas, notificaciones }` (`?soloNoLeidas=true&limite=30`, máx. 100) |
 | GET | `/notificaciones/contador` | A/U | `{ noLeidas }` |

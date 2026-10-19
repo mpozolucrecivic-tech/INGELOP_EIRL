@@ -154,6 +154,8 @@ model Usuario {
   importacionesGasto   ImportacionGasto[]
   recuperaciones       RecuperacionContrasena[]
   notificaciones       Notificacion[]
+  observacionesEntidad ObservacionEntidad[]     @relation("ObservacionResponsable")
+  correspondencia      Correspondencia[]        @relation("CorrespondenciaRegistrada")
 }
 
 // ---------- Cobros al cliente y garantías ----------
@@ -224,6 +226,98 @@ model CartaFianza {
   @@index([estado, fechaVencimiento])
 }
 
+// ---------- Contrato: observaciones de la entidad, correspondencia y plazo ----------
+
+// Pendiente (recibida) -> En proceso (el equipo corrige) -> Levantada (respuesta presentada); o No procede
+enum EstadoObservacion {
+  PENDIENTE
+  EN_PROCESO
+  LEVANTADA
+  NO_PROCEDE
+}
+
+// Observación formal del cliente (oficio, informe de revisión…) con plazo para levantarla
+model ObservacionEntidad {
+  id                Int               @id @default(autoincrement())
+  proyectoId        Int
+  proyecto          Proyecto          @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  numero            Int // correlativo dentro del proyecto
+  documento         String // documento que la contiene, ej. "Oficio N.° 123-2026-MDLV/GDU"
+  fechaRecepcion    DateTime          @db.Date
+  fechaLimite       DateTime?         @db.Date // plazo para levantarla
+  descripcion       String
+  etapaId           Int?
+  etapa             Etapa?            @relation(fields: [etapaId], references: [id], onDelete: SetNull)
+  responsableId     Int?
+  responsable       Usuario?          @relation("ObservacionResponsable", fields: [responsableId], references: [id], onDelete: SetNull)
+  estado            EstadoObservacion @default(PENDIENTE)
+  respuesta         String? // cómo se levantó
+  fechaRespuesta    DateTime?         @db.Date
+  // Carta con la que se presentó el levantamiento
+  correspondenciaId Int?
+  correspondencia   Correspondencia?  @relation(fields: [correspondenciaId], references: [id], onDelete: SetNull)
+  creadoEn          DateTime          @default(now())
+  actualizadoEn     DateTime          @updatedAt
+
+  @@unique([proyectoId, numero])
+  @@index([estado, fechaLimite])
+}
+
+enum TipoCorrespondencia {
+  ENVIADA
+  RECIBIDA
+}
+
+// Cartas, oficios e informes enviados o recibidos, con su archivo
+model Correspondencia {
+  id            Int                  @id @default(autoincrement())
+  proyectoId    Int
+  proyecto      Proyecto             @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  tipo          TipoCorrespondencia
+  numero        String // ej. "Carta N.° 015-2026-INGELOP" u "Oficio N.° 123-2026-MDLV"
+  fecha         DateTime             @db.Date
+  asunto        String
+  entidad       String // a quién se envió o quién la envió
+  referencia    String?
+  respondeAId   Int?
+  respondeA     Correspondencia?     @relation("Respuesta", fields: [respondeAId], references: [id], onDelete: SetNull)
+  respuestas    Correspondencia[]    @relation("Respuesta")
+  ruta          String?              @unique // key del archivo en el almacenamiento
+  nombreArchivo String?
+  tamano        Int?
+  tipoArchivo   String?
+  usuarioId     Int
+  usuario       Usuario              @relation("CorrespondenciaRegistrada", fields: [usuarioId], references: [id])
+  creadoEn      DateTime             @default(now())
+  observaciones ObservacionEntidad[]
+
+  @@index([proyectoId, fecha])
+}
+
+enum EstadoAmpliacion {
+  SOLICITADA
+  APROBADA
+  DENEGADA
+}
+
+// Al aprobarse, la fecha de fin del proyecto se corre los días aprobados (y vuelve si se elimina)
+model AmpliacionPlazo {
+  id                  Int              @id @default(autoincrement())
+  proyectoId          Int
+  proyecto            Proyecto         @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  numero              Int
+  motivo              String
+  diasSolicitados     Int
+  fechaSolicitud      DateTime         @db.Date
+  estado              EstadoAmpliacion @default(SOLICITADA)
+  diasAprobados       Int?
+  fechaResolucion     DateTime?        @db.Date
+  documentoResolucion String? // ej. "Resolución de Gerencia N.° 045-2026"
+  creadoEn            DateTime         @default(now())
+
+  @@unique([proyectoId, numero])
+}
+
 // Aviso dentro de la intranet (campana). Se borran solos a los 90 días.
 model Notificacion {
   id        Int       @id @default(autoincrement())
@@ -289,21 +383,24 @@ model Proyecto {
   responsable   Usuario        @relation("ProyectoResponsable", fields: [responsableId], references: [id])
   creadoEn      DateTime       @default(now())
 
-  usuarios           UsuarioProyecto[]
-  sprints            Sprint[]
-  materiales         Material[]
-  gastos             Gasto[]
-  importacionesGasto ImportacionGasto[]
-  evidencias         Evidencia[]
-  asignaciones       Asignacion[]
-  registrosHoras     RegistroHoras[]
-  planos             Plano[]
-  presupuestos       Presupuesto[]
-  entregables        Entregable[]
-  etapas             Etapa[]
-  documentos         Documento[]
-  cobros             Cobro[]
-  cartasFianza       CartaFianza[]
+  usuarios             UsuarioProyecto[]
+  sprints              Sprint[]
+  materiales           Material[]
+  gastos               Gasto[]
+  importacionesGasto   ImportacionGasto[]
+  evidencias           Evidencia[]
+  asignaciones         Asignacion[]
+  registrosHoras       RegistroHoras[]
+  planos               Plano[]
+  presupuestos         Presupuesto[]
+  entregables          Entregable[]
+  etapas               Etapa[]
+  documentos           Documento[]
+  cobros               Cobro[]
+  cartasFianza         CartaFianza[]
+  observacionesEntidad ObservacionEntidad[]
+  correspondencia      Correspondencia[]
+  ampliaciones         AmpliacionPlazo[]
 }
 
 // Usuarios (rol USUARIO) asignados a una obra: define qué proyectos pueden ver
@@ -687,21 +784,22 @@ model Auditoria {
 
 // Regla: un proyecto empieza en cualquier etapa; para iniciar la siguiente, la anterior debe estar APROBADA.
 model Etapa {
-  id              Int         @id @default(autoincrement())
-  proyectoId      Int
-  proyecto        Proyecto    @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
-  tipo            TipoEtapa
-  estado          EstadoEtapa @default(EN_ELABORACION)
-  fechaInicio     DateTime    @default(now()) @db.Date
-  fechaFin        DateTime?   @db.Date // fecha prevista de término
-  fechaAprobacion DateTime?
-  observacion     String? // último comentario de la jefatura al observar
-  observadoEn     DateTime?
-  observadoPorId  Int?
-  observadoPor    Usuario?    @relation("EtapaObservadaPor", fields: [observadoPorId], references: [id], onDelete: SetNull)
-  creadoEn        DateTime    @default(now())
-  actualizadoEn   DateTime    @updatedAt
-  documentos      Documento[]
+  id                   Int                  @id @default(autoincrement())
+  proyectoId           Int
+  proyecto             Proyecto             @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  tipo                 TipoEtapa
+  estado               EstadoEtapa          @default(EN_ELABORACION)
+  fechaInicio          DateTime             @default(now()) @db.Date
+  fechaFin             DateTime?            @db.Date // fecha prevista de término
+  fechaAprobacion      DateTime?
+  observacion          String? // último comentario de la jefatura al observar
+  observadoEn          DateTime?
+  observadoPorId       Int?
+  observadoPor         Usuario?             @relation("EtapaObservadaPor", fields: [observadoPorId], references: [id], onDelete: SetNull)
+  creadoEn             DateTime             @default(now())
+  actualizadoEn        DateTime             @updatedAt
+  observacionesEntidad ObservacionEntidad[]
+  documentos           Documento[]
 
   @@unique([proyectoId, tipo])
 }

@@ -1,3 +1,7 @@
+import path from 'node:path';
+import { open } from 'node:fs/promises';
+import { AppError } from './AppError';
+
 /**
  * Comprueba que el contenido real del archivo corresponde a su extensión (los "números mágicos"
  * de cada formato). Evita, por ejemplo, un ejecutable renombrado como .pdf.
@@ -33,4 +37,19 @@ export const BYTES_FIRMA = 64;
 export function firmaValida(extension: string, inicio: Buffer): boolean {
   const verificar = FIRMAS[extension.toLowerCase()];
   return verificar ? verificar(inicio) : false;
+}
+
+/** Lee el inicio del archivo subido y rechaza (400) si su contenido no corresponde a su extensión */
+export async function verificarFirmaArchivo(ruta: string, nombreOriginal: string): Promise<void> {
+  const extension = path.extname(nombreOriginal).toLowerCase();
+  const handle = await open(ruta, 'r');
+  try {
+    const inicio = Buffer.alloc(BYTES_FIRMA);
+    const { bytesRead } = await handle.read(inicio, 0, BYTES_FIRMA, 0);
+    if (!firmaValida(extension, inicio.subarray(0, bytesRead))) {
+      throw AppError.badRequest(`El contenido del archivo no corresponde a un ${extension.slice(1).toUpperCase()} válido`);
+    }
+  } finally {
+    await handle.close();
+  }
 }

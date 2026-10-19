@@ -154,3 +154,10 @@ export const uploadDocumento = crearUpload({
       ? null
       : `Formato no permitido (${ext || 'sin extensión'}). Use PDF, Word, Excel, imágenes, DWG, DXF o ZIP`,
 });
+
+/** Cartas y oficios: <UPLOAD_DIR>/proyectos/<id>/correspondencia/, mismos formatos que los documentos */
+export const uploadCorrespondencia = crearUpload({
+  carpeta: (req) => path.join('proyectos', String(Number(req.params.id)), 'correspondencia'),
+  validar: (_file, ext) =>
+    EXTENSIONES_DOCUMENTO.includes(ext) ? null : `Formato no permitido (${ext || 'sin extensión'}). Use PDF, Word, Excel, imágenes o ZIP`,
+});
