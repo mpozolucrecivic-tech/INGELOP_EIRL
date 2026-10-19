@@ -14,3 +14,12 @@ export async function listar(req: Request, res: Response) {
 export async function marcarLeido(req: Request, res: Response) {
   res.json(await contactoService.marcarLeido(Number(req.params.id), req.body.leido));
 }
+
+export async function actualizar(req: Request, res: Response) {
+  res.json(await contactoService.actualizar(Number(req.params.id), req.body));
+}
+
+export async function eliminar(req: Request, res: Response) {
+  await contactoService.eliminar(Number(req.params.id));
+  res.status(204).end();
+}

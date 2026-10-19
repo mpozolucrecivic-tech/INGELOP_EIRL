@@ -452,21 +452,32 @@ enum TipoMensaje {
   CONSULTA_TECNICA
 }
 
+// Seguimiento de un mensaje de la web: pendiente de atender -> respondido; archivado = fuera de la bandeja
+enum EstadoMensaje {
+  NUEVO
+  RESPONDIDO
+  ARCHIVADO
+}
+
 // Mensajes del formulario de contacto de la web
 model MensajeContacto {
-  id           Int         @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   nombre       String
   correo       String
   telefono     String?
-  tipo         TipoMensaje @default(CONTACTO)
+  tipo         TipoMensaje   @default(CONTACTO)
   entidad      String? // entidad o empresa del remitente
   servicioSlug String? // servicio de interés (slug de Servicio, sin FK para no perder el dato si se borra)
   mensaje      String
-  leido        Boolean     @default(false)
+  leido        Boolean       @default(false)
+  estado       EstadoMensaje @default(NUEVO)
+  nota         String? // nota interna de la jefatura (ej. "cotización enviada el 20/10")
+  respondidoEn DateTime?
   ip           String?
-  fecha        DateTime    @default(now())
+  fecha        DateTime      @default(now())
 
   @@index([leido, fecha])
+  @@index([estado, fecha])
 }
 
 // Datos de contacto de la web, editables desde la intranet.

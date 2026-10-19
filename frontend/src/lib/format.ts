@@ -1,4 +1,4 @@
-import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, TipoServicio, TipoEtapa, EstadoEtapa, CategoriaDocumento } from '@/types/api';
+import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, EstadoMensaje, TipoServicio, TipoEtapa, EstadoEtapa, CategoriaDocumento } from '@/types/api';
 
 const soles = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
 const solesCorto = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', notation: 'compact', maximumFractionDigits: 1 });
@@ -100,6 +100,12 @@ export const TIPO_CLIENTE: Record<TipoCliente, string> = {
 export const TIPO_MENSAJE: Record<TipoMensaje, { label: string; color: 'slate' | 'blue' }> = {
   CONTACTO: { label: 'Contacto', color: 'slate' },
   CONSULTA_TECNICA: { label: 'Consulta técnica', color: 'blue' },
+};
+
+export const ESTADO_MENSAJE: Record<EstadoMensaje, { label: string; color: 'amber' | 'green' | 'slate' }> = {
+  NUEVO: { label: 'Por atender', color: 'amber' },
+  RESPONDIDO: { label: 'Respondido', color: 'green' },
+  ARCHIVADO: { label: 'Archivado', color: 'slate' },
 };
 
 /** Íconos que la web sabe dibujar (web/includes/api.php → ICONOS_SERVICIO) */

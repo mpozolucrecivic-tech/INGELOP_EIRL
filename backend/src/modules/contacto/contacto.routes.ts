@@ -5,7 +5,7 @@ import { limiteContacto } from '../../middlewares/rateLimit';
 import { validate } from '../../middlewares/validate';
 import { idParamSchema } from '../../utils/schemas';
 import * as controller from './contacto.controller';
-import { crearMensajeSchema, listarMensajesQuery, marcarLeidoSchema } from './contacto.schema';
+import { actualizarMensajeSchema, crearMensajeSchema, listarMensajesQuery, marcarLeidoSchema } from './contacto.schema';
 
 // ---------- Pública (formulario de la web): se monta ANTES de verifyToken ----------
 export const contactoPublicRoutes = Router();
@@ -18,5 +18,7 @@ const admin = requireRole(Rol.ADMIN);
 
 router.get('/contacto', admin, validate({ query: listarMensajesQuery }), controller.listar);
 router.patch('/contacto/:id/leido', admin, validate({ params: idParamSchema, body: marcarLeidoSchema }), controller.marcarLeido);
+router.patch('/contacto/:id', admin, validate({ params: idParamSchema, body: actualizarMensajeSchema }), controller.actualizar);
+router.delete('/contacto/:id', admin, validate({ params: idParamSchema }), controller.eliminar);
 
 export default router;

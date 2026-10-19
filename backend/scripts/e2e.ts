@@ -490,6 +490,26 @@ async function main() {
   const leido = await call('PATCH', `/contacto/${msgs.body[0]?.id}/leido`, { token: A, json: { leido: true } });
   check('PATCH /contacto/:id/leido', leido.status === 200 && leido.body.leido === true, leido.body);
   expectStatus('USUARIO PATCH /contacto/:id/leido', await call('PATCH', `/contacto/${msgs.body[0]?.id}/leido`, { token: U, json: { leido: false } }), 403);
+  const MSG = msgs.body[0]?.id;
+  check('mensaje nuevo queda por atender', msgs.body[0]?.estado === 'NUEVO' && msgs.body[0]?.nota === null, msgs.body[0]);
+  expectStatus('PATCH /contacto/:id sin campos', await call('PATCH', `/contacto/${MSG}`, { token: A, json: {} }), 422);
+  expectStatus('PATCH /contacto/:id estado inválido', await call('PATCH', `/contacto/${MSG}`, { token: A, json: { estado: 'BORRADO' } }), 422);
+  expectStatus('USUARIO PATCH /contacto/:id', await call('PATCH', `/contacto/${MSG}`, { token: U, json: { estado: 'ARCHIVADO' } }), 403);
+  const resp = await call('PATCH', `/contacto/${MSG}`, { token: A, json: { estado: 'RESPONDIDO', nota: '  Cotización enviada  ' } });
+  check('PATCH /contacto/:id respondido + nota', resp.status === 200 && resp.body.estado === 'RESPONDIDO' && !!resp.body.respondidoEn && resp.body.nota === 'Cotización enviada', resp.body);
+  const pend = await call('GET', `/contacto?q=${marca}&estado=PENDIENTES`, { token: A });
+  check('PENDIENTES incluye respondidos', pend.status === 200 && pend.body.length === 1, pend.body);
+  const arch = await call('PATCH', `/contacto/${MSG}`, { token: A, json: { estado: 'ARCHIVADO' } });
+  check('archivar conserva la fecha de respuesta', arch.status === 200 && arch.body.estado === 'ARCHIVADO' && arch.body.respondidoEn === resp.body.respondidoEn, arch.body);
+  const pend2 = await call('GET', `/contacto?q=${marca}&estado=PENDIENTES`, { token: A });
+  check('PENDIENTES excluye archivados', pend2.status === 200 && pend2.body.length === 0, pend2.body);
+  const sinNota = await call('PATCH', `/contacto/${MSG}`, { token: A, json: { nota: '' } });
+  check('nota vacía la borra', sinNota.status === 200 && sinNota.body.nota === null, sinNota.body);
+  const nuevo = await call('PATCH', `/contacto/${MSG}`, { token: A, json: { estado: 'NUEVO' } });
+  check('volver a NUEVO limpia la respuesta', nuevo.status === 200 && nuevo.body.respondidoEn === null, nuevo.body);
+  expectStatus('USUARIO DELETE /contacto/:id', await call('DELETE', `/contacto/${MSG}`, { token: U }), 403);
+  expectStatus('DELETE /contacto/:id', await call('DELETE', `/contacto/${MSG}`, { token: A }), 204);
+  expectStatus('DELETE /contacto/:id inexistente', await call('DELETE', `/contacto/${MSG}`, { token: A }), 404);
 
   seccion('Web pública: datos de la empresa y proyectos realizados');
   const web0 = await call('GET', '/web');

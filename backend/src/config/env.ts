@@ -4,6 +4,9 @@ import { z } from 'zod';
 
 dotenv.config({ quiet: true });
 
+// SMTP_HOST="" en el .env equivale a no definirla
+const vacioAUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
@@ -36,7 +39,26 @@ const envSchema = z.object({
   LOGIN_BLOQUEO_MIN: z.coerce.number().int().positive().default(15),
   // Conservación de la auditoría: mínimo 2 años (Reglamento de la Ley 29733, DS 016-2024-JUS)
   AUDITORIA_RETENCION_DIAS: z.coerce.number().int().min(730, 'Debe ser de al menos 730 días (2 años)').default(730),
+  // Correo saliente (opcional): sin SMTP_HOST no se envía ningún correo y todo lo demás funciona igual
+  SMTP_HOST: z.preprocess(vacioAUndefined, z.string().min(1).optional()),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.preprocess(vacioAUndefined, z.string().min(1).optional()),
+  SMTP_PASSWORD: z.preprocess(vacioAUndefined, z.string().min(1).optional()),
+  SMTP_FROM: z.preprocess(vacioAUndefined, z.string().min(3).optional()), // ej. "INGELOP <no-responder@ingelop.com>"; sin ella, SMTP_USER
+  // Bandeja que recibe los avisos de mensajes nuevos de la web
+  CONTACTO_EMAIL: z.preprocess(vacioAUndefined, z.string().email('CONTACTO_EMAIL debe ser un correo válido').optional()),
+  // Dirección de la intranet, para los enlaces de los correos (sin "/" final)
+  INTRANET_URL: z.preprocess(
+    (v) => (typeof v === 'string' ? vacioAUndefined(v.trim().replace(/\/+$/, '')) : v),
+    z.string().url('INTRANET_URL debe ser una URL (ej. https://intranet.ingelop.com)').optional(),
+  ),
 }).superRefine((e, ctx) => {
+  if (e.SMTP_HOST && !e.SMTP_FROM && !e.SMTP_USER) {
+    ctx.addIssue({ code: 'custom', path: ['SMTP_FROM'], message: 'Define SMTP_FROM (o SMTP_USER) cuando se usa SMTP_HOST: es el remitente de los correos' });
+  }
+  if (e.SMTP_USER && !e.SMTP_PASSWORD) {
+    ctx.addIssue({ code: 'custom', path: ['SMTP_PASSWORD'], message: 'Obligatoria cuando se define SMTP_USER' });
+  }
   if (e.STORAGE_DRIVER === 's3') {
     for (const clave of ['S3_ENDPOINT', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'] as const) {
       if (!e[clave]) ctx.addIssue({ code: 'custom', path: [clave], message: 'Obligatoria cuando STORAGE_DRIVER=s3' });

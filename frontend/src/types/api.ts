@@ -437,6 +437,7 @@ export interface Servicio {
 }
 
 export type TipoMensaje = 'CONTACTO' | 'CONSULTA_TECNICA';
+export type EstadoMensaje = 'NUEVO' | 'RESPONDIDO' | 'ARCHIVADO';
 
 export interface MensajeContacto {
   id: number;
@@ -449,6 +450,9 @@ export interface MensajeContacto {
   servicioNombre: string | null;
   mensaje: string;
   leido: boolean;
+  estado: EstadoMensaje;
+  nota: string | null;
+  respondidoEn: string | null;
   fecha: string;
 }
 

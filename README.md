@@ -143,6 +143,9 @@ espaldo.ps1` | Copia de seguridad de la base de datos y los archivos (ver `docs/
 | `AUDITORIA_RETENCION_DIAS` | `730` | Conservación de la auditoría (mínimo 730 = 2 años, Ley 29733) |
 | `STORAGE_DRIVER` | `local` | `local` (disco, `UPLOAD_DIR`) o `s3` (Cloudflare R2). Con `s3` son obligatorias `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (`S3_REGION=auto`) |
 | `SWAGGER_HABILITADO` | `false` | Publica `/api/docs` en producción. En desarrollo la documentación siempre está disponible |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | `smtp.gmail.com` / `587` | Correo saliente (opcional). Sin `SMTP_HOST` no se envía ningún correo. `SMTP_FROM` es el remitente; sin ella se usa `SMTP_USER` |
+| `CONTACTO_EMAIL` | `contacto@ingelop.pe` | Bandeja que recibe el aviso de cada mensaje nuevo de la web |
+| `INTRANET_URL` | `http://localhost:5173` | Dirección de la intranet para los enlaces de los correos |
 
 ---
 
@@ -216,14 +219,13 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
 - **Especialidades OSCE editables** (`ESPECIALIDADES_OSCE` en `web/includes/config.php`).
 - Leer también los **servicios** desde el servidor PHP (hoy los pide el navegador), con la misma copia de respaldo.
 
-### Avisos por correo desde la API (pendiente)
+### Avisos por correo y seguimiento de mensajes
 
-Hoy, cuando un mensaje entra por la API, solo se ve en la intranet (**Mensajes de la web**). Para recibir además un correo:
+Con `SMTP_HOST` y `CONTACTO_EMAIL` definidos, cada mensaje que entra por la API se envía también por correo a `CONTACTO_EMAIL`. Al pulsar **Responder** en ese correo, la respuesta va directo a quien escribió. El envío ocurre después de guardar el mensaje y sin esperar: si el servidor de correo falla, el mensaje no se pierde, el visitante no nota nada y el error queda en el log (`[CORREO]`). Sin `SMTP_HOST` no se envía nada.
 
-1. `npm i nodemailer` y `npm i -D @types/nodemailer` en `backend/`.
-2. Agrega a `backend/.env` y a `src/config/env.ts`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` y `CONTACTO_EMAIL` (opcionales: sin `SMTP_HOST` no se envía nada).
-3. Crea `src/config/mailer.ts` con `nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } })`.
-4. En `contacto.service.ts`, después de `prisma.mensajeContacto.create(...)`, llama a `transport.sendMail({ from, to: CONTACTO_EMAIL, replyTo: correo, subject, text })` **sin `await`** y con `.catch(console.error)`. Así una falla del correo no hace perder el mensaje ni demora la respuesta.
+En **Mensajes de la web** cada mensaje tiene un estado: **Por atender** → **Respondido** → **Archivado**. Además tiene una **nota interna** (solo la ve la jefatura) y se puede **eliminar**. Archivar lo saca de la bandeja sin borrarlo.
+
+Para probar el correo en local sin una cuenta real: `docker run -d --rm --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit`, con `SMTP_HOST=localhost`, `SMTP_PORT=1025`, `SMTP_FROM="INGELOP <no-responder@ingelop.test>"` y `CONTACTO_EMAIL=bandeja@ingelop.test`. Los correos se ven en http://localhost:8025.
 
 ## Auditoría y seguridad de accesos
 
@@ -268,7 +270,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | **Datos de la empresa** | Teléfono, WhatsApp, correo, dirección, horario y redes, cada uno con *Publicar en la web* | — |
 | **Servicios** | Servicios de la web: orden, textos, foto, ocultar | — |
 | **Proyectos realizados** | Portafolio de la web: orden, datos, foto, ocultar | — |
-| **Mensajes** | Mensajes del formulario de la web (contador de no leídos en el menú) | — |
+| **Mensajes** | Mensajes del formulario de la web (contador de no leídos en el menú): por atender, respondidos y archivados, con nota interna; aviso por correo si hay SMTP | — |
 | **Ayuda** | Guías paso a paso | Solo las guías que le aplican |
 | Proyecto → **Resumen** | Planos aprobados, entregables aprobados, plazo, horas, presupuestos, dinero del proyecto | Igual, sin dinero |
 | Proyecto → **Etapas y documentos** | Iniciar etapas, aprobar u observar con comentario; ver y eliminar todos los documentos | Ver el estado de cada etapa, enviar o reenviar a revisión, subir documentos y ver **solo los suyos** |
@@ -283,7 +285,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 
 ## Documentación interactiva (Swagger)
 
-Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 126 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
+Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 135 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
 
 Para probar rutas protegidas: ejecuta `POST /api/v1/auth/login`, copia el `token`, pulsa **Authorize** y pégalo. En producción está apagada salvo que se defina `SWAGGER_HABILITADO=true` (expone todas las rutas de la API).
 
@@ -382,7 +384,10 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | POST / DELETE | `/servicios/:id/foto` | A | Subir foto (multipart, campo `archivo`; JPG, PNG o WEBP, máx. `MAX_FOTO_MB`) / quitarla |
 | **Web pública: contacto** ||||
 | POST | `/contacto` | público | Guarda el mensaje (`nombre`, `correo`, `telefono?`, `tipo`: `CONTACTO` o `CONSULTA_TECNICA`, `entidad?`, `servicio?` = slug, `mensaje`). Límite: `RATE_LIMIT_CONTACTO` por IP |
-| GET | `/contacto` | A | Listar (`?tipo=&leido=&q=`) |
+| GET | `/contacto` | A | Listar (`?tipo=&leido=&estado=&q=`; `estado`: `NUEVO`, `RESPONDIDO`, `ARCHIVADO` o `PENDIENTES` = todo lo no archivado) |
+| PATCH | `/contacto/:id/leido` | A | `{ "leido": true }` |
+| PATCH | `/contacto/:id` | A | `{ estado?, nota? }`. Al pasar a `RESPONDIDO` guarda `respondidoEn`; volver a `NUEVO` la borra; `nota: ""` borra la nota |
+| DELETE | `/contacto/:id` | A | Elimina el mensaje (para sacarlo de la bandeja sin borrarlo, archívalo) |
 | **Web pública: datos y portafolio** ||||
 | GET | `/web` | público | `{ datos, proyectos }`: solo los datos **publicados** y los proyectos realizados activos. Lo lee el PHP de la web |
 | GET / PUT | `/sitio` | A | Los 8 datos de contacto con su estado / guardar `{ datos: [{ clave, valor, publicado }] }` (claves fijas, validación por tipo; no se publica un dato vacío) |
@@ -395,7 +400,6 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, `GET /heal
 | GET | `/auditoria/exportar` | A | Los mismos filtros en CSV (máx. 10 000 filas) |
 | GET | `/auditoria/alertas` | A | Fallos, bloqueos, accesos denegados y credenciales alteradas (24 h); IP sospechosas; accesos nuevos (7 días) |
 | GET | `/auditoria/ultimos-accesos` | A | Último inicio de sesión de cada usuario (fecha e IP) |
-| PATCH | `/contacto/:id/leido` | A | `{ "leido": true }` |
 
 > **Materiales (oculto):** los endpoints `/proyectos/:id/materiales` y `/materiales/:id/movimientos` siguen en la API, pero no aparecen en la interfaz ni en los dashboards, porque INGELOP no maneja almacén. Si más adelante ejecutan obras, basta con volver a mostrar la pestaña (`frontend/src/pages/proyecto/MaterialesTab.tsx`).
 

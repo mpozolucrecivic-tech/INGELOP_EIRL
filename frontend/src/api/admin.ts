@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './client';
 import { useApiMutation } from './mutation';
-import type { Cliente, DatoSitio, MensajeContacto, ProyectoWeb, Rol, Servicio, TipoCliente, TipoMensaje, Trabajador, Usuario } from '@/types/api';
+import type { Cliente, DatoSitio, EstadoMensaje, MensajeContacto, ProyectoWeb, Rol, Servicio, TipoCliente, TipoMensaje, Trabajador, Usuario } from '@/types/api';
 
 // ---------- Usuarios ----------
 
@@ -180,7 +180,10 @@ export const useQuitarFotoServicio = () =>
 
 // ---------- Mensajes del formulario de contacto ----------
 
-export const useMensajes = (filtros: { tipo?: TipoMensaje; leido?: boolean; q?: string } = {}, enabled = true) =>
+export const useMensajes = (
+  filtros: { tipo?: TipoMensaje; leido?: boolean; estado?: EstadoMensaje | 'PENDIENTES'; q?: string } = {},
+  enabled = true,
+) =>
   useQuery({
     queryKey: ['mensajes', filtros],
     queryFn: async () => (await api.get<MensajeContacto[]>('/contacto', { params: filtros })).data,
@@ -201,6 +204,35 @@ export const useMarcarLeido = () =>
   useApiMutation({
     fn: async ({ id, leido }: { id: number; leido: boolean }) => (await api.patch<MensajeContacto>(`/contacto/${id}/leido`, { leido })).data,
     invalidate: [['mensajes']],
+  });
+
+const EXITO_ESTADO: Record<EstadoMensaje, string> = {
+  NUEVO: 'Mensaje devuelto a "Por atender"',
+  RESPONDIDO: 'Mensaje marcado como respondido',
+  ARCHIVADO: 'Mensaje archivado',
+};
+
+export const useCambiarEstadoMensaje = () =>
+  useApiMutation({
+    fn: async ({ id, estado }: { id: number; estado: EstadoMensaje }) => (await api.patch<MensajeContacto>(`/contacto/${id}`, { estado })).data,
+    invalidate: [['mensajes']],
+    exito: (m: MensajeContacto) => EXITO_ESTADO[m.estado],
+  });
+
+export const useGuardarNotaMensaje = () =>
+  useApiMutation({
+    fn: async ({ id, nota }: { id: number; nota: string }) => (await api.patch<MensajeContacto>(`/contacto/${id}`, { nota })).data,
+    invalidate: [['mensajes']],
+    exito: 'Nota guardada',
+  });
+
+export const useEliminarMensaje = () =>
+  useApiMutation({
+    fn: async (id: number) => {
+      await api.delete(`/contacto/${id}`);
+    },
+    invalidate: [['mensajes']],
+    exito: 'Mensaje eliminado',
   });
 
 // ---------- Datos de la empresa (web) ----------
