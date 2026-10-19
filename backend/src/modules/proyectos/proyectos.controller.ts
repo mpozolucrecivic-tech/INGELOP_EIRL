@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import * as proyectosService from './proyectos.service';
+import * as avisos from '../notificaciones/notificaciones.eventos';
 import type { ListarProyectosQuery } from './proyectos.schema';
 
 export async function listar(req: Request, res: Response) {
@@ -28,7 +29,9 @@ export async function listarUsuarios(req: Request, res: Response) {
 }
 
 export async function asignarUsuario(req: Request, res: Response) {
-  res.status(201).json(await proyectosService.asignarUsuario(Number(req.params.id), req.body.usuarioId));
+  const usuarios = await proyectosService.asignarUsuario(Number(req.params.id), req.body.usuarioId);
+  avisos.accesoAProyecto(Number(req.params.id), req.body.usuarioId, req.usuario.id);
+  res.status(201).json(usuarios);
 }
 
 export async function desasignarUsuario(req: Request, res: Response) {

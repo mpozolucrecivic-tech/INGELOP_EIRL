@@ -72,6 +72,8 @@ export function auditarPeticion(req: Request, res: Response, next: NextFunction)
   };
 
   res.on('finish', () => {
+    // Acciones sin relevancia para la seguridad (p. ej. marcar una notificación como leída), si salieron bien
+    if (res.locals.sinAuditoria && res.statusCode < 400) return;
     const ruta = plantillaRuta(req.originalUrl);
     const marcado = res.locals.auditoria as Partial<EventoAuditoria> | undefined;
     const esMutacion = MUTACIONES.has(req.method);

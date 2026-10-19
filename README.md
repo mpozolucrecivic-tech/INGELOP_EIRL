@@ -231,6 +231,20 @@ Para probar el correo en local sin una cuenta real: `docker run -d --rm --name m
 
 La intranet registra inicios de sesión (correctos, fallidos y bloqueados), accesos denegados, credenciales alteradas y **toda** creación, edición, eliminación, subida y descarga, con fecha, persona, **IP**, navegador y registro afectado. Los registros no se pueden editar ni borrar (trigger de PostgreSQL + cadena de huellas verificable). Incluye bloqueo por cuenta tras 5 fallos, alertas de seguridad (IP sospechosas, accesos desde una IP o navegador nuevo) y el último acceso de cada usuario. Cada persona cambia su contraseña en **Mi cuenta** o la recupera con un enlace por correo (un solo uso, 30 min); al cambiarla, o cuando la jefatura le asigna una nueva, se cierran sus sesiones abiertas. Detalle, conservación legal y cómo verificar la IP real en Render: [`docs/AUDITORIA.md`](docs/AUDITORIA.md).
 
+## Notificaciones
+
+La campana de la barra superior muestra avisos para cada persona (se revisa cada minuto):
+
+| Aviso | Quién lo recibe |
+|---|---|
+| Plano, presupuesto o etapa enviado a revisión | Jefatura |
+| Plano aprobado u observado (con el comentario) | Su responsable y quien subió la última revisión |
+| Presupuesto o etapa aprobados u observados | Responsable del proyecto y usuarios con acceso |
+| Te dieron acceso a un proyecto | Esa persona |
+| Entregable que vence en 3 días o ya venció (sin aprobar, proyecto no finalizado) | Su responsable, o la jefatura si no tiene |
+
+Nadie recibe aviso de su propia acción. Los avisos se crean en segundo plano: si fallan, la acción original no se ve afectada. Los recordatorios de entregables y la limpieza de avisos con más de 90 días corren como máximo una vez por hora, al consultar la campana; no hace falta una tarea programada. Al eliminar un proyecto se borran sus avisos. Marcar como leída no se registra en la auditoría.
+
 ## Roles
 
 - **ADMIN** (gerencia/coordinación): acceso total. Es quien **aprueba u observa** planos y presupuestos, gestiona entregables, clientes, equipo, horas y gastos.
@@ -286,7 +300,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 
 ## Documentación interactiva (Swagger)
 
-Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 135 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
+Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 143 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
 
 Para probar rutas protegidas: ejecuta `POST /api/v1/auth/login`, copia el `token`, pulsa **Authorize** y pégalo. En producción está apagada salvo que se defina `SWAGGER_HABILITADO=true` (expone todas las rutas de la API).
 
@@ -400,6 +414,11 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, la recuper
 | PUT / DELETE | `/portafolio/:id` | A | Editar / ocultar (baja lógica) |
 | POST / DELETE | `/portafolio/:id/foto` | A | Subir foto (JPG, PNG o WEBP) / quitarla |
 | GET | `/portafolio/:id/foto` | público | Foto (solo si el proyecto está visible) |
+| **Notificaciones** (cada usuario, las suyas) ||||
+| GET | `/notificaciones` | A/U | `{ noLeidas, notificaciones }` (`?soloNoLeidas=true&limite=30`, máx. 100) |
+| GET | `/notificaciones/contador` | A/U | `{ noLeidas }` |
+| POST | `/notificaciones/:id/leer` | A/U | Marca una como leída (404 si no es tuya) |
+| POST | `/notificaciones/leer-todas` | A/U | `{ marcadas }` |
 | **Auditoría** ||||
 | GET | `/auditoria` | A | Registros (`?desde=&hasta=&usuarioId=&modulo=&accion=&resultado=&ip=&pagina=&porPagina=`) |
 | GET | `/auditoria/exportar` | A | Los mismos filtros en CSV (máx. 10 000 filas) |

@@ -30,6 +30,7 @@ import contactoRoutes, { contactoPublicRoutes } from './modules/contacto/contact
 import sitioRoutes, { sitioPublicRoutes } from './modules/sitio/sitio.routes';
 import portafolioRoutes, { portafolioPublicRoutes } from './modules/portafolio/portafolio.routes';
 import cmsRoutes, { cmsPublicRoutes } from './modules/cms/cms.routes';
+import notificacionesRoutes from './modules/notificaciones/notificaciones.routes';
 
 export const app = express();
 
@@ -82,6 +83,7 @@ api.use(contactoRoutes);
 api.use(sitioRoutes);
 api.use(portafolioRoutes);
 api.use(cmsRoutes);
+api.use(notificacionesRoutes);
 
 app.use('/api/v1', api);
 

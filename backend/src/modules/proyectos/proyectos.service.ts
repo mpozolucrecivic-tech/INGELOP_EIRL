@@ -91,7 +91,11 @@ export async function actualizar(id: number, data: ActualizarProyectoInput) {
 
 /** Elimina el proyecto con todos sus datos (cascade) y sus archivos subidos */
 export async function eliminar(id: number) {
-  await prisma.proyecto.delete({ where: { id } });
+  await prisma.$transaction([
+    prisma.proyecto.delete({ where: { id } }),
+    // Avisos que llevan al proyecto eliminado (no tienen FK: se identifican por su enlace)
+    prisma.notificacion.deleteMany({ where: { OR: [{ enlace: `/proyectos/${id}` }, { enlace: { startsWith: `/proyectos/${id}/` } }] } }),
+  ]);
   await storage.removePrefix(`proyectos/${id}`);
 }
 

@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useMensajesSinLeer } from '@/api/admin';
+import { Campana } from './Campana';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/Display';
 import { ROL } from '@/lib/format';
@@ -211,6 +212,9 @@ export function AppLayout() {
           <img src="/logo.svg?v=2" alt="" className="size-7 lg:hidden" />
           <span className="text-sm font-semibold text-slate-700">{nombreSeccion(location.pathname)}</span>
           <span className="ml-auto hidden text-xs font-medium uppercase tracking-wide text-slate-400 sm:block">Gestión documental y de proyectos</span>
+          <div className="ml-auto sm:ml-2">
+            <Campana />
+          </div>
         </header>
         <main className="mx-auto max-w-[1480px] px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
           <Suspense fallback={<Spinner />}>

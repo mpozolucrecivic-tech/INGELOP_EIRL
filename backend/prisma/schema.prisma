@@ -153,6 +153,25 @@ model Usuario {
   etapasObservadas     Etapa[]                  @relation("EtapaObservadaPor")
   importacionesGasto   ImportacionGasto[]
   recuperaciones       RecuperacionContrasena[]
+  notificaciones       Notificacion[]
+}
+
+// Aviso dentro de la intranet (campana). Se borran solos a los 90 días.
+model Notificacion {
+  id        Int       @id @default(autoincrement())
+  usuarioId Int
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tipo      String // PLANO_EN_REVISION, PLANO_OBSERVADO, ETAPA_APROBADA, ENTREGABLE_POR_VENCER…
+  titulo    String
+  mensaje   String?
+  enlace    String? // ruta de la intranet, ej. /proyectos/3/expediente/planos
+  // Evita duplicar recordatorios automáticos (ej. "entregable:12:vence:2026-10-20:usuario:4")
+  clave     String?   @unique
+  leidaEn   DateTime?
+  creadoEn  DateTime  @default(now())
+
+  @@index([usuarioId, leidaEn, creadoEn])
+  @@index([creadoEn])
 }
 
 // Enlace de "olvidé mi contraseña": de un solo uso y con vencimiento. Solo se guarda el hash del token.

@@ -41,6 +41,7 @@ const GRUPOS: Record<string, string> = {
   sitio: 'Web: datos de la empresa',
   portafolio: 'Web: proyectos realizados',
   cms: 'Web: editor de páginas (CMS)',
+  notificaciones: 'Notificaciones',
 };
 
 const ACCIONES: Record<string, string> = {
@@ -48,6 +49,8 @@ const ACCIONES: Record<string, string> = {
   retirar: 'Retirar publicación',
   restaurar: 'Restaurar versión',
   'vista-previa': 'Vista previa',
+  leer: 'Marcar como leída',
+  'leer-todas': 'Marcar todas como leídas',
   enviar: 'Enviar a revisión',
   aprobar: 'Aprobar',
   observar: 'Observar con comentario',

@@ -392,6 +392,31 @@ async function main() {
   expectStatus('USUARIO DELETE plano', await call('DELETE', `/planos/${borrador.body.id}`, { token: U }), 403);
   expectStatus('ADMIN DELETE plano', await call('DELETE', `/planos/${borrador.body.id}`, { token: A }), 204);
 
+  seccion('Notificaciones');
+  await new Promise((r) => setTimeout(r, 600)); // los avisos se crean en segundo plano
+  expectStatus('GET /notificaciones sin token', await call('GET', '/notificaciones'), 401);
+  const notifA = await call('GET', '/notificaciones?limite=50', { token: A });
+  const enRevisionA = notifA.body?.notificaciones?.filter((n: any) => n.tipo === 'PLANO_EN_REVISION' && n.enlace === `/proyectos/${P}/expediente/planos`) ?? [];
+  check('la jefatura recibe los planos que pasan a revisión (Rev. A y B)', notifA.status === 200 && enRevisionA.length >= 2, notifA.body);
+  const notifU = await call('GET', '/notificaciones?limite=50', { token: U });
+  const tiposU = (notifU.body?.notificaciones ?? []).map((n: any) => n.tipo);
+  check('quien subió el plano recibe la observación y la aprobación', tiposU.includes('PLANO_OBSERVADO') && tiposU.includes('PLANO_APROBADO'), tiposU);
+  check('…y el aviso de acceso al proyecto', tiposU.includes('ACCESO_PROYECTO'), tiposU);
+  check('nadie recibe aviso de su propia acción', !tiposU.includes('PLANO_EN_REVISION') && !(notifA.body?.notificaciones ?? []).some((n: any) => n.tipo === 'PLANO_APROBADO'), { tiposU });
+  const contU = await call('GET', '/notificaciones/contador', { token: U });
+  check('GET /notificaciones/contador', contU.status === 200 && contU.body.noLeidas === notifU.body.noLeidas && contU.body.noLeidas > 0, contU.body);
+  const idU = notifU.body.notificaciones[0].id;
+  expectStatus('marcar notificación ajena', await call('POST', `/notificaciones/${idU}/leer`, { token: A }), 404);
+  expectStatus('POST /notificaciones/:id/leer', await call('POST', `/notificaciones/${idU}/leer`, { token: U }), 204);
+  const contU2 = await call('GET', '/notificaciones/contador', { token: U });
+  check('el contador baja al leer', contU2.body.noLeidas === contU.body.noLeidas - 1, contU2.body);
+  const todas = await call('POST', '/notificaciones/leer-todas', { token: U });
+  check('POST /notificaciones/leer-todas', todas.status === 200 && todas.body.marcadas === contU2.body.noLeidas, todas.body);
+  const soloNo = await call('GET', '/notificaciones?soloNoLeidas=true', { token: U });
+  check('soloNoLeidas queda vacío', soloNo.status === 200 && soloNo.body.notificaciones.length === 0 && soloNo.body.noLeidas === 0, soloNo.body);
+  const audLeer = await call('GET', '/auditoria?modulo=notificaciones', { token: A });
+  check('marcar como leída no llena la auditoría', audLeer.status === 200 && (audLeer.body.registros ?? audLeer.body.items ?? []).filter((r: any) => r.resultado === 'EXITO').length === 0, audLeer.body);
+
   seccion('Presupuestos');
   const pres = await call('POST', `/proyectos/${P}/presupuestos`, { token: U, json: { nombre: 'Presupuesto de obra' } });
   expectStatus('USUARIO crea presupuesto', pres, 201);
@@ -565,6 +590,11 @@ async function main() {
   const obsEtapa = await call('POST', `/etapas/${E1}/observar`, { token: A, json: { observacion: 'Falta el plano de cortes' } });
   check('jefatura observa con comentario', obsEtapa.status === 200 && obsEtapa.body.estado === 'OBSERVADO' && obsEtapa.body.observacion === 'Falta el plano de cortes' && obsEtapa.body.observadoPor?.id, obsEtapa.body);
   expectStatus('responsable corrige y reenvía', await call('POST', `/etapas/${E1}/enviar`, { token: U }), 200);
+  await new Promise((r) => setTimeout(r, 400));
+  const avisoObs = (await call('GET', '/notificaciones?soloNoLeidas=true', { token: U })).body?.notificaciones ?? [];
+  check('el equipo recibe la etapa observada con el comentario', avisoObs.some((n: any) => n.tipo === 'ETAPA_OBSERVADA' && /plano de cortes/.test(n.mensaje ?? '')), avisoObs);
+  const avisoEnv = (await call('GET', '/notificaciones?soloNoLeidas=true', { token: A })).body?.notificaciones ?? [];
+  check('la jefatura recibe la etapa enviada a revisión', avisoEnv.some((n: any) => n.tipo === 'ETAPA_EN_REVISION'), avisoEnv);
 
   seccion('Documentos');
   const archivoDoc = (nombre: string, contenido: Buffer | string, categoria = 'MEMORIA') => {
@@ -711,6 +741,8 @@ async function main() {
   expectStatus('USUARIO DELETE /proyectos/:id', await call('DELETE', `/proyectos/${P}`, { token: U }), 403);
   expectStatus('DELETE /proyectos/:id (cascade)', await call('DELETE', `/proyectos/${P}`, { token: A }), 204);
   expectStatus('GET proyecto eliminado', await call('GET', `/proyectos/${P}`, { token: A }), 404);
+  const restantes = [...((await call('GET', '/notificaciones?limite=100', { token: A })).body?.notificaciones ?? []), ...((await call('GET', '/notificaciones?limite=100', { token: U })).body?.notificaciones ?? [])];
+  check('se borran los avisos del proyecto eliminado', !restantes.some((n: any) => n.enlace === `/proyectos/${P}` || n.enlace?.startsWith(`/proyectos/${P}/`)), restantes.map((n: any) => n.enlace));
   expectStatus('DELETE /clientes/:id sin proyectos', await call('DELETE', `/clientes/${C}`, { token: A }), 204);
   expectStatus('PUT /trabajadores/:id (desactivar)', await call('PUT', `/trabajadores/${T}`, { token: A, json: { activo: false } }), 200);
   expectStatus('DELETE /usuarios/:id (baja lógica)', await call('DELETE', `/usuarios/${usuarioId}`, { token: A }), 204);

@@ -181,3 +181,8 @@ export async function duplicar(usuario: UsuarioAutenticado, id: number) {
 export async function eliminar(id: number) {
   await prisma.presupuesto.delete({ where: { id } });
 }
+
+/** Estado antes de un cambio (para avisar solo cuando realmente cambia) */
+export async function estadoActual(id: number) {
+  return (await prisma.presupuesto.findUnique({ where: { id }, select: { estado: true } }))?.estado ?? null;
+}

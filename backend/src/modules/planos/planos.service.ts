@@ -171,3 +171,8 @@ export function revisionLetra(n: number): string {
   }
   return s;
 }
+
+/** Estado antes de un cambio (para avisar solo cuando realmente cambia) */
+export async function estadoActual(id: number) {
+  return (await prisma.plano.findUnique({ where: { id }, select: { estado: true } }))?.estado ?? null;
+}

@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import * as presupuestosService from './presupuestos.service';
+import * as avisos from '../notificaciones/notificaciones.eventos';
 
 export async function listarPorProyecto(req: Request, res: Response) {
   res.json(await presupuestosService.listarPorProyecto(Number(req.params.id)));
@@ -14,7 +15,10 @@ export async function crear(req: Request, res: Response) {
 }
 
 export async function actualizar(req: Request, res: Response) {
-  res.json(await presupuestosService.actualizar(req.usuario, Number(req.params.id), req.body));
+  const antes = req.body.estado ? await presupuestosService.estadoActual(Number(req.params.id)) : null;
+  const presupuesto = await presupuestosService.actualizar(req.usuario, Number(req.params.id), req.body);
+  if (req.body.estado && req.body.estado !== antes) avisos.presupuestoCambioEstado(Number(req.params.id), req.usuario.id);
+  res.json(presupuesto);
 }
 
 export async function guardarPartidas(req: Request, res: Response) {
