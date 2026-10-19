@@ -371,6 +371,7 @@ export interface DashboardProyecto {
 }
 
 export interface DashboardGeneral {
+  cobranzas: { cobrado: number; porCobrar: number; fianzasPorVencer: number };
   proyectos: {
     total: number;
     porEstado: Record<EstadoProyecto, number>;
@@ -564,4 +565,77 @@ export interface PaginaDocumentos {
   pagina: number;
   porPagina: number;
   documentos: Documento[];
+}
+
+// ---------- Cobros y cartas fianza ----------
+
+export type EstadoCobro = 'PROGRAMADO' | 'FACTURADO' | 'COBRADO' | 'ANULADO';
+export type TipoGarantia = 'FIEL_CUMPLIMIENTO' | 'ADELANTO' | 'OTRA';
+export type EstadoGarantia = 'VIGENTE' | 'RENOVADA' | 'DEVUELTA' | 'EJECUTADA';
+
+interface ProyectoResumido {
+  id: number;
+  nombre: string;
+  cliente: { nombre: string };
+}
+
+export interface Cobro {
+  id: number;
+  proyectoId: number;
+  concepto: string;
+  monto: number;
+  detraccion: number;
+  penalidad: number;
+  /** Lo que llega a la cuenta: monto - detracción - penalidad */
+  neto: number;
+  fechaProgramada: string | null;
+  comprobante: string | null;
+  fechaEmision: string | null;
+  fechaCobro: string | null;
+  estado: EstadoCobro;
+  observacion: string | null;
+  /** Solo si está facturado y sin cobrar */
+  diasPorCobrar: number | null;
+  proyecto?: ProyectoResumido;
+}
+
+export interface ResumenCobros {
+  montoContrato: number;
+  programado: number;
+  facturado: number;
+  cobrado: number;
+  porCobrar: number;
+  porFacturar: number;
+  sinProgramar: number;
+  netoRecibido: number;
+  detracciones: number;
+  penalidades: number;
+  porcentajeCobrado: number;
+}
+
+export interface ResumenCobranzas {
+  porCobrar: number;
+  facturasMas30Dias: number;
+  programadoSinFacturar: number;
+  cobradoAnio: number;
+  netoRecibidoAnio: number;
+  detraccionesAnio: number;
+}
+
+export interface CartaFianza {
+  id: number;
+  proyectoId: number;
+  tipo: TipoGarantia;
+  numero: string;
+  entidadFinanciera: string;
+  monto: number;
+  fechaEmision: string;
+  fechaVencimiento: string;
+  estado: EstadoGarantia;
+  observacion: string | null;
+  renovadaDe: { id: number; numero: string } | null;
+  renovadaPor: { id: number; numero: string } | null;
+  /** Solo las vigentes; negativo = vencida */
+  diasParaVencer: number | null;
+  proyecto?: ProyectoResumido;
 }

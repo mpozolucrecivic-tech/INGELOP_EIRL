@@ -22,6 +22,7 @@ const ACCIONES_ESPECIALES: Record<string, string> = {
   observar: 'OBSERVAR',
   importar: 'IMPORTAR',
   verificar: 'VERIFICAR',
+  renovar: 'RENOVAR',
 };
 const CAMPO_SENSIBLE = /pass|token|secret|clave_?acceso/i;
 

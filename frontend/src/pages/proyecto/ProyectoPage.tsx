@@ -13,6 +13,7 @@ import PresupuestosTab from './PresupuestosTab';
 import EntregablesTab from './EntregablesTab';
 import EquipoTab from './EquipoTab';
 import GastosTab from './GastosTab';
+import CobrosTab from './CobrosTab';
 import EvidenciasTab from './EvidenciasTab';
 import EtapasTab from './EtapasTab';
 import AjustesTab from './AjustesTab';
@@ -59,6 +60,7 @@ export default function ProyectoPage() {
   const recursos = [
     { to: `${base}/recursos/equipo`, label: 'Equipo y horas' },
     { to: `${base}/recursos/gastos`, label: 'Gastos' },
+    { to: `${base}/recursos/cobros`, label: 'Cobros y garantías' },
   ];
 
   return (
@@ -116,6 +118,7 @@ export default function ProyectoPage() {
             <Route path="recursos" element={<Navigate to={`${base}/recursos/equipo`} replace />} />
             <Route path="recursos/equipo" element={<EquipoTab proyectoId={id} />} />
             <Route path="recursos/gastos" element={<GastosTab proyectoId={id} />} />
+            <Route path="recursos/cobros" element={<CobrosTab proyectoId={id} />} />
             <Route path="configuracion" element={<AjustesTab proyecto={proyecto} />} />
           </>
         )}

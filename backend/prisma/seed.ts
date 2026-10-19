@@ -10,6 +10,8 @@ import path from 'node:path';
 import bcrypt from 'bcryptjs';
 import {
   CategoriaGasto,
+  EstadoCobro,
+  TipoGarantia,
   Especialidad,
   EstadoActividad,
   EstadoProyecto,
@@ -489,6 +491,24 @@ async function main() {
       { proyectoId: vivienda.id, categoria: CategoriaGasto.MANO_DE_OBRA, descripcion: 'Honorarios del equipo – agosto', monto: 6200, fecha: d('2026-08-31') },
       { proyectoId: vivienda.id, categoria: CategoriaGasto.OTROS, descripcion: 'Trámite de parámetros urbanísticos', monto: 450, fecha: d('2026-08-20') },
       { proyectoId: supervision.id, categoria: CategoriaGasto.OTROS, descripcion: 'Garantía de fiel cumplimiento', monto: 1900, fecha: d('2026-09-15') },
+    ],
+  });
+
+  // ---------- Cobros al cliente y cartas fianza (se borran con su proyecto) ----------
+  await prisma.cobro.createMany({
+    data: [
+      { proyectoId: expediente.id, concepto: 'Adelanto – 20 %', monto: 37000, detraccion: 4440, estado: EstadoCobro.COBRADO, fechaProgramada: d('2026-07-05'), comprobante: 'E001-101', fechaEmision: d('2026-07-05'), fechaCobro: d('2026-07-22') },
+      { proyectoId: expediente.id, concepto: 'Primer entregable – 30 %', monto: 55500, detraccion: 6660, estado: EstadoCobro.FACTURADO, fechaProgramada: d('2026-09-01'), comprobante: 'E001-118', fechaEmision: d('2026-09-03') },
+      { proyectoId: expediente.id, concepto: 'Segundo entregable – 30 %', monto: 55500, estado: EstadoCobro.PROGRAMADO, fechaProgramada: d('2026-11-15') },
+      { proyectoId: expediente.id, concepto: 'Aprobación del expediente – 20 %', monto: 37000, estado: EstadoCobro.PROGRAMADO, fechaProgramada: d('2026-12-20') },
+      { proyectoId: vivienda.id, concepto: 'Anteproyecto arquitectónico – 50 %', monto: 24000, detraccion: 2880, estado: EstadoCobro.COBRADO, fechaProgramada: d('2026-09-10'), comprobante: 'E001-121', fechaEmision: d('2026-09-10'), fechaCobro: d('2026-09-14') },
+      { proyectoId: vivienda.id, concepto: 'Proyecto final – 50 %', monto: 24000, estado: EstadoCobro.PROGRAMADO, fechaProgramada: d('2026-11-30') },
+    ],
+  });
+  await prisma.cartaFianza.createMany({
+    data: [
+      { proyectoId: expediente.id, tipo: TipoGarantia.FIEL_CUMPLIMIENTO, numero: '0011-0245-9800123456', entidadFinanciera: 'Banco de Crédito del Perú', monto: 18500, fechaEmision: d('2026-06-28'), fechaVencimiento: d('2026-12-28') },
+      { proyectoId: supervision.id, tipo: TipoGarantia.FIEL_CUMPLIMIENTO, numero: 'CF-2026-0778', entidadFinanciera: 'Caja Piura', monto: 9600, fechaEmision: d('2026-09-15'), fechaVencimiento: d('2027-03-15') },
     ],
   });
 

@@ -86,6 +86,15 @@ export default function DashboardPage() {
                 Gastos de obra {formatSoles(finanzas.gastoTotal)} ({formatPorcentaje(finanzas.porcentajeEjecutado)}) · margen {formatSoles(finanzas.margen)}
               </span>
               {finanzas.gastoEmpresa > 0 && <span className="block">Gastos de la empresa {formatSoles(finanzas.gastoEmpresa)}</span>}
+              <Link to="/cobranzas" className="block font-medium text-brand-700 hover:underline">
+                Cobrado {formatSoles(data.cobranzas.cobrado)} · por cobrar {formatSoles(data.cobranzas.porCobrar)}
+                {data.cobranzas.fianzasPorVencer > 0 && (
+                  <span className="text-amber-700">
+                    {' '}
+                    · {data.cobranzas.fianzasPorVencer} {data.cobranzas.fianzasPorVencer === 1 ? 'carta fianza vence' : 'cartas fianza vencen'} pronto
+                  </span>
+                )}
+              </Link>
             </div>
           }
         />

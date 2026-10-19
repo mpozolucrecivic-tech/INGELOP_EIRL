@@ -1,4 +1,4 @@
-import { Especialidad, EstadoProyecto, EstadoRevision, RubroObra, TipoEvidencia, TipoServicio } from '@prisma/client';
+import { Especialidad, EstadoCobro, EstadoGarantia, EstadoProyecto, EstadoRevision, RubroObra, TipoEvidencia, TipoServicio } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { claveMes, porcentaje, round2, toNumber } from '../../utils/helpers';
@@ -227,8 +227,16 @@ export async function dashboardGeneral(meses: number) {
   const contar = (filas: { proyectoId: number; estado: EstadoRevision; _count: { _all: number } }[], proyectoId: number, estado?: EstadoRevision) =>
     filas.filter((f) => f.proyectoId === proyectoId && (!estado || f.estado === estado)).reduce((s, f) => s + f._count._all, 0);
 
+  // Cobranzas: lo cobrado, lo facturado sin cobrar y las garantías que vencen en 15 días
+  const [cobrado, porCobrar, fianzasPorVencer] = await Promise.all([
+    prisma.cobro.aggregate({ where: { estado: EstadoCobro.COBRADO }, _sum: { monto: true } }),
+    prisma.cobro.aggregate({ where: { estado: EstadoCobro.FACTURADO }, _sum: { monto: true } }),
+    prisma.cartaFianza.count({ where: { estado: EstadoGarantia.VIGENTE, fechaVencimiento: { lte: new Date(Date.now() + 15 * 86_400_000) } } }),
+  ]);
+
   return {
     proyectos: { total: proyectos.length, porEstado, porTipoServicio, porRubro },
+    cobranzas: { cobrado: toNumber(cobrado._sum.monto), porCobrar: toNumber(porCobrar._sum.monto), fianzasPorVencer },
     finanzas: {
       montoContratado: montoTotal,
       gastoTotal,

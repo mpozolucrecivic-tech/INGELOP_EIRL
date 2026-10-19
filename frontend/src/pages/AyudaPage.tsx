@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { Building2, FileSpreadsheet, FileStack, FolderOpen, Inbox, KeyRound, Layers, Lightbulb } from 'lucide-react';
+import { Building2, FileSpreadsheet, FileStack, FolderOpen, Inbox, KeyRound, Landmark, Layers, Lightbulb } from 'lucide-react';
 import { Card, PageHeader } from '@/components/ui/Display';
 import { useAuth } from '@/context/AuthContext';
 
@@ -42,6 +42,19 @@ const guias: Guia[] = [
       <>Desde esa misma pestaña se registran las horas trabajadas de cada profesional.</>,
     ],
     consejo: <>Los profesionales se registran antes en <Link to="/trabajadores" className={enlace}>Personal y tarifas</Link>, con su costo por hora.</>,
+  },
+  {
+    icono: <Landmark className="size-5" />,
+    titulo: 'Registrar cobros y cartas fianza',
+    admin: true,
+    pasos: [
+      <>Entra al proyecto, abre <b>Recursos</b> y luego <b>Cobros y garantías</b>.</>,
+      <>Pulsa <b>Cobro</b> por cada pago pactado en el contrato (ej. «Primer entregable – 30 %»), con su monto y la fecha en que esperas facturar.</>,
+      <>Al emitir la factura, edita el cobro: estado <b>Facturado</b>, número de comprobante y fecha. Con <b>Calcular 12 %</b> se llena la detracción.</>,
+      <>Cuando llegue el dinero, cámbialo a <b>Cobrado</b> con la fecha de pago y, si la entidad descontó alguna, la penalidad.</>,
+      <>Registra la carta fianza con su banco y vencimiento. Antes de que venza, pulsa <b>Renovar</b> y anota la carta nueva.</>,
+    ],
+    consejo: <>En <Link to="/cobranzas" className={enlace}>Cobranzas</Link> ves todo lo pendiente de cobrar y las cartas por vencer. La campana avisa 15 días antes del vencimiento.</>,
   },
   {
     icono: <FileSpreadsheet className="size-5" />,

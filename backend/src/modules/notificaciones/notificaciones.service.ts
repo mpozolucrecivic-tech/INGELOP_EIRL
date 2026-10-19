@@ -1,4 +1,4 @@
-import { EstadoProyecto, EstadoRevision, Rol } from '@prisma/client';
+import { EstadoCobro, EstadoGarantia, EstadoProyecto, EstadoRevision, Rol } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import type { ListarNotificacionesQuery } from './notificaciones.schema';
@@ -14,6 +14,8 @@ export interface NuevaNotificacion {
 
 const RETENCION_DIAS = 90;
 const AVISO_ENTREGABLE_DIAS = 3; // recordar los entregables que vencen dentro de estos días
+const AVISO_FIANZA_DIAS = 15; // tiempo para tramitar la renovación con el banco
+const FACTURA_SIN_COBRAR_DIAS = 30;
 const MANTENIMIENTO_CADA_MS = 60 * 60_000;
 
 /**
@@ -93,6 +95,8 @@ export function mantenimiento(forzar = false): Promise<void> {
   enCurso ??= (async () => {
     try {
       await recordarEntregables();
+      await recordarCartasFianza();
+      await recordarCobros();
       await prisma.notificacion.deleteMany({ where: { creadoEn: { lt: new Date(Date.now() - RETENCION_DIAS * 86_400_000) } } });
       ultimoMantenimiento = Date.now();
     } catch (e) {
@@ -136,6 +140,54 @@ async function recordarEntregables() {
       enlace: `/proyectos/${e.proyecto.id}/expediente/entregables`,
       // Un aviso "por vencer" y otro "vencido" por cada fecha límite (si la cambian, se vuelve a avisar)
       clave: `entregable:${e.id}:${vencido ? 'vencido' : 'vence'}:${iso}`,
+    });
+  }
+}
+
+/** Cartas fianza vigentes que vencen pronto o ya vencieron (sin renovar ni devolver): a la jefatura */
+async function recordarCartasFianza() {
+  const hoy = hoyEnLima();
+  const cartas = await prisma.cartaFianza.findMany({
+    where: { estado: EstadoGarantia.VIGENTE, fechaVencimiento: { lte: new Date(hoy.getTime() + AVISO_FIANZA_DIAS * 86_400_000) } },
+    select: { id: true, numero: true, entidadFinanciera: true, fechaVencimiento: true, proyecto: { select: { id: true, nombre: true } } },
+  });
+  if (!cartas.length) return;
+  const jefes = await jefaturas();
+  for (const c of cartas) {
+    const vencida = c.fechaVencimiento < hoy;
+    await notificar(jefes, {
+      tipo: vencida ? 'FIANZA_VENCIDA' : 'FIANZA_POR_VENCER',
+      titulo: `Carta fianza ${vencida ? 'vencida' : 'por vencer'}: N.° ${c.numero}`,
+      mensaje: `${c.proyecto.nombre} · ${c.entidadFinanciera} · ${vencida ? 'venció' : 'vence'} el ${fechaCorta(c.fechaVencimiento)}`,
+      enlace: `/proyectos/${c.proyecto.id}/recursos/cobros`,
+      clave: `fianza:${c.id}:${vencida ? 'vencida' : 'vence'}:${c.fechaVencimiento.toISOString().slice(0, 10)}`,
+    });
+  }
+}
+
+/** Facturas emitidas hace más de 30 días sin cobrar, y cobros programados cuya fecha pasó sin facturar */
+async function recordarCobros() {
+  const hoy = hoyEnLima();
+  const cobros = await prisma.cobro.findMany({
+    where: {
+      OR: [
+        { estado: EstadoCobro.FACTURADO, fechaEmision: { lte: new Date(hoy.getTime() - FACTURA_SIN_COBRAR_DIAS * 86_400_000) } },
+        { estado: EstadoCobro.PROGRAMADO, fechaProgramada: { lt: hoy } },
+      ],
+    },
+    select: { id: true, concepto: true, estado: true, comprobante: true, fechaEmision: true, fechaProgramada: true, proyecto: { select: { id: true, nombre: true } } },
+  });
+  if (!cobros.length) return;
+  const jefes = await jefaturas();
+  for (const c of cobros) {
+    const facturado = c.estado === EstadoCobro.FACTURADO;
+    const fecha = (facturado ? c.fechaEmision : c.fechaProgramada)!;
+    await notificar(jefes, {
+      tipo: facturado ? 'COBRO_ATRASADO' : 'COBRO_SIN_FACTURAR',
+      titulo: facturado ? `Factura ${c.comprobante} sin cobrar hace más de ${FACTURA_SIN_COBRAR_DIAS} días` : `Cobro programado sin facturar: ${c.concepto}`,
+      mensaje: `${c.proyecto.nombre} · ${facturado ? 'emitida' : 'programado para'} el ${fechaCorta(fecha)}`,
+      enlace: `/proyectos/${c.proyecto.id}/recursos/cobros`,
+      clave: `cobro:${c.id}:${facturado ? 'atrasado' : 'sin-facturar'}:${fecha.toISOString().slice(0, 10)}`,
     });
   }
 }

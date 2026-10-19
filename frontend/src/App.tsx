@@ -25,6 +25,7 @@ const CmsPage = lazy(() => import('@/pages/CmsPage'));
 const MediosPage = lazy(() => import('@/pages/MediosPage'));
 const GastosEmpresaPage = lazy(() => import('@/pages/GastosEmpresaPage'));
 const MiCuentaPage = lazy(() => import('@/pages/MiCuentaPage'));
+const CobranzasPage = lazy(() => import('@/pages/CobranzasPage'));
 const RecuperarContrasenaPage = lazy(() => import('@/pages/RecuperarContrasenaPage'));
 const RestablecerContrasenaPage = lazy(() => import('@/pages/RestablecerContrasenaPage'));
 
@@ -75,6 +76,7 @@ export default function App() {
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/gastos-empresa" element={<GastosEmpresaPage />} />
+            <Route path="/cobranzas" element={<CobranzasPage />} />
             <Route path="/trabajadores" element={<TrabajadoresPage />} />
             <Route path="/servicios" element={<ServiciosPage />} />
             <Route path="/mensajes" element={<MensajesPage />} />

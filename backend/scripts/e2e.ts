@@ -249,6 +249,49 @@ async function main() {
   check('resumen: 5 categorías y 2 meses', resumen.body.porCategoria?.length === 5 && resumen.body.porMes?.length === 2);
   expectStatus('PUT /gastos/:id', await call('PUT', `/gastos/${gasto.body.id}`, { token: A, json: { descripcion: 'Compra de cemento Sol' } }), 200);
 
+  seccion('Cobros y cartas fianza');
+  expectStatus('USUARIO GET /proyectos/:id/cobros', await call('GET', `/proyectos/${P}/cobros`, { token: U }), 403);
+  const cob1 = await call('POST', `/proyectos/${P}/cobros`, { token: A, json: { concepto: 'Primer entregable – 30 %', monto: 30000, fechaProgramada: '2026-01-15' } });
+  check('POST cobro programado', cob1.status === 201 && cob1.body.estado === 'PROGRAMADO' && cob1.body.neto === 30000 && cob1.body.monto === 30000, cob1.body);
+  const sinComp = await call('POST', `/proyectos/${P}/cobros`, { token: A, json: { concepto: 'Segundo entregable', monto: 40000, estado: 'FACTURADO' } });
+  check('facturado sin comprobante -> 422 en comprobante', sinComp.status === 422 && JSON.stringify(sinComp.body).includes('comprobante'), sinComp.body);
+  expectStatus('detracción mayor al monto', await call('POST', `/proyectos/${P}/cobros`, { token: A, json: { concepto: 'Otro cobro', monto: 100, detraccion: 90, penalidad: 20 } }), 422);
+  const cob2 = await call('POST', `/proyectos/${P}/cobros`, { token: A, json: { concepto: 'Segundo entregable', monto: 40000, estado: 'FACTURADO', comprobante: 'e001-25', fechaEmision: '2026-02-01', detraccion: 4800 } });
+  check('POST cobro facturado (comprobante en mayúsculas)', cob2.status === 201 && cob2.body.comprobante === 'E001-25' && cob2.body.neto === 35200 && typeof cob2.body.diasPorCobrar === 'number', cob2.body);
+  expectStatus('cobrado sin fecha de pago', await call('PUT', `/cobros/${cob2.body.id}`, { token: A, json: { estado: 'COBRADO' } }), 422);
+  expectStatus('pago anterior a la emisión', await call('PUT', `/cobros/${cob2.body.id}`, { token: A, json: { estado: 'COBRADO', fechaCobro: '2026-01-20' } }), 422);
+  const cobrado = await call('PUT', `/cobros/${cob2.body.id}`, { token: A, json: { estado: 'COBRADO', fechaCobro: '2026-03-01', penalidad: 1000 } });
+  check('PUT cobro -> COBRADO con penalidad', cobrado.status === 200 && cobrado.body.estado === 'COBRADO' && cobrado.body.neto === 34200 && cobrado.body.diasPorCobrar === null, cobrado.body);
+  const resCob = await call('GET', `/proyectos/${P}/cobros`, { token: A });
+  const rc = resCob.body?.resumen;
+  check(
+    'resumen de cobros del proyecto',
+    resCob.status === 200 && rc.programado === 70000 && rc.facturado === 40000 && rc.cobrado === 40000 && rc.porCobrar === 0 && rc.netoRecibido === 34200 && rc.detracciones === 4800 && rc.penalidades === 1000 && rc.sinProgramar === 30000 && rc.porcentajeCobrado === 40,
+    rc,
+  );
+  const atras = await call('PUT', `/cobros/${cob2.body.id}`, { token: A, json: { estado: 'FACTURADO' } });
+  check('volver a FACTURADO borra la fecha de pago', atras.status === 200 && atras.body.fechaCobro === null, atras.body);
+  const pendCob = await call('GET', `/cobros?estado=PENDIENTES&proyectoId=${P}`, { token: A });
+  check('GET /cobros pendientes (toda la empresa) con proyecto', pendCob.status === 200 && pendCob.body.cobros.length === 2 && pendCob.body.cobros[0].proyecto?.id === P && typeof pendCob.body.resumen.porCobrar === 'number', pendCob.body);
+  expectStatus('USUARIO GET /cobros', await call('GET', '/cobros', { token: U }), 403);
+
+  const carta = await call('POST', `/proyectos/${P}/cartas-fianza`, { token: A, json: { numero: 'CF-001', entidadFinanciera: 'Banco de Crédito', monto: 10000, fechaEmision: '2026-01-10', fechaVencimiento: '2026-07-10' } });
+  check('POST carta fianza (fiel cumplimiento por defecto)', carta.status === 201 && carta.body.tipo === 'FIEL_CUMPLIMIENTO' && carta.body.estado === 'VIGENTE' && typeof carta.body.diasParaVencer === 'number', carta.body);
+  expectStatus('vencimiento antes de la emisión', await call('POST', `/proyectos/${P}/cartas-fianza`, { token: A, json: { numero: 'X', entidadFinanciera: 'Banco', monto: 1, fechaEmision: '2026-05-01', fechaVencimiento: '2026-04-01' } }), 422);
+  expectStatus('no se asigna RENOVADA a mano', await call('PUT', `/cartas-fianza/${carta.body.id}`, { token: A, json: { estado: 'RENOVADA' } }), 422);
+  const renov = await call('POST', `/cartas-fianza/${carta.body.id}/renovar`, { token: A, json: { numero: 'CF-001-R1', fechaEmision: '2026-07-01', fechaVencimiento: '2027-01-10' } });
+  check('renovar crea la carta nueva enlazada (hereda banco y monto)', renov.status === 201 && renov.body.renovadaDe?.id === carta.body.id && renov.body.monto === 10000 && renov.body.entidadFinanciera === 'Banco de Crédito', renov.body);
+  expectStatus('no se renueva dos veces', await call('POST', `/cartas-fianza/${carta.body.id}/renovar`, { token: A, json: { numero: 'CF-001-R2', fechaEmision: '2026-07-01', fechaVencimiento: '2027-01-10' } }), 409);
+  const cartasP = await call('GET', `/proyectos/${P}/cartas-fianza`, { token: A });
+  check('la anterior queda RENOVADA', cartasP.body?.find((c: any) => c.id === carta.body.id)?.estado === 'RENOVADA' && cartasP.body?.find((c: any) => c.id === carta.body.id)?.renovadaPor?.id === renov.body.id, cartasP.body);
+  expectStatus('eliminar la renovación', await call('DELETE', `/cartas-fianza/${renov.body.id}`, { token: A }), 204);
+  const vuelve = await call('GET', `/cartas-fianza?proyectoId=${P}`, { token: A });
+  check('al borrar la renovación, la anterior vuelve a VIGENTE', vuelve.body?.length === 1 && vuelve.body[0].estado === 'VIGENTE' && vuelve.body[0].proyecto?.id === P, vuelve.body);
+  const devuelta = await call('PUT', `/cartas-fianza/${carta.body.id}`, { token: A, json: { estado: 'DEVUELTA' } });
+  check('marcar carta como devuelta', devuelta.status === 200 && devuelta.body.estado === 'DEVUELTA' && devuelta.body.diasParaVencer === null, devuelta.body);
+  expectStatus('USUARIO GET cartas fianza', await call('GET', `/proyectos/${P}/cartas-fianza`, { token: U }), 403);
+  expectStatus('DELETE /cobros/:id', await call('DELETE', `/cobros/${cob1.body.id}`, { token: A }), 204);
+
   seccion('Gastos de la empresa e importación desde Excel');
   const gEmp = await call('POST', '/gastos/empresa', { token: A, json: { categoria: 'ALQUILER', descripcion: 'Alquiler de oficina setiembre', monto: 1500, fecha: '2026-09-01' } });
   expectStatus('POST /gastos/empresa', gEmp, 201);
@@ -469,6 +512,7 @@ async function main() {
   check('dashboard: plano aprobado, 14 entregables, 1 presupuesto', dash.body.planos?.total === 1 && dash.body.planos?.porEstado?.APROBADO === 1 && dash.body.entregables?.total === 14 && dash.body.presupuestos?.length === 1, { planos: dash.body.planos, entregables: dash.body.entregables });
   const general = await call('GET', '/dashboard/general?meses=6', { token: A });
   expectStatus('GET /dashboard/general', general, 200);
+  check('dashboard general incluye cobranzas', typeof general.body?.cobranzas?.cobrado === 'number' && typeof general.body?.cobranzas?.fianzasPorVencer === 'number', general.body?.cobranzas);
   check('dashboard general: serie de 6 meses e incluye el proyecto', general.body.finanzas?.porMes?.length === 6 && general.body.resumenProyectos?.some((p: any) => p.id === P));
   check('dashboard general: planos por revisar y entregables vencidos', Array.isArray(general.body.planosPorRevisar) && Array.isArray(general.body.entregablesVencidos));
   expectStatus('USUARIO GET /dashboard/general', await call('GET', '/dashboard/general', { token: U }), 403);

@@ -156,6 +156,74 @@ model Usuario {
   notificaciones       Notificacion[]
 }
 
+// ---------- Cobros al cliente y garantías ----------
+
+// Programado (pactado) -> Facturado (comprobante emitido) -> Cobrado (pago recibido). Anulado no suma.
+enum EstadoCobro {
+  PROGRAMADO
+  FACTURADO
+  COBRADO
+  ANULADO
+}
+
+// Cada pago pactado con el cliente: por entregable, etapa, avance o adelanto
+model Cobro {
+  id              Int         @id @default(autoincrement())
+  proyectoId      Int
+  proyecto        Proyecto    @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  concepto        String // ej. "Primer entregable – 30 %"
+  monto           Decimal     @db.Decimal(12, 2) // importe del comprobante, IGV incluido
+  detraccion      Decimal     @default(0) @db.Decimal(12, 2) // va a la cuenta del Banco de la Nación
+  penalidad       Decimal     @default(0) @db.Decimal(12, 2) // descontada por la entidad (mora u otras)
+  fechaProgramada DateTime?   @db.Date // cuándo se espera facturar
+  comprobante     String? // serie y número, ej. E001-123
+  fechaEmision    DateTime?   @db.Date
+  fechaCobro      DateTime?   @db.Date
+  estado          EstadoCobro @default(PROGRAMADO)
+  observacion     String?
+  creadoEn        DateTime    @default(now())
+  actualizadoEn   DateTime    @updatedAt
+
+  @@index([proyectoId])
+  @@index([estado, fechaProgramada])
+}
+
+enum TipoGarantia {
+  FIEL_CUMPLIMIENTO
+  ADELANTO
+  OTRA
+}
+
+enum EstadoGarantia {
+  VIGENTE
+  RENOVADA // reemplazada por otra carta (renovadaPor)
+  DEVUELTA // la entidad la devolvió al terminar
+  EJECUTADA // la entidad la cobró
+}
+
+model CartaFianza {
+  id                Int            @id @default(autoincrement())
+  proyectoId        Int
+  proyecto          Proyecto       @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  tipo              TipoGarantia   @default(FIEL_CUMPLIMIENTO)
+  numero            String
+  entidadFinanciera String // banco, caja o aseguradora
+  monto             Decimal        @db.Decimal(12, 2)
+  fechaEmision      DateTime       @db.Date
+  fechaVencimiento  DateTime       @db.Date
+  estado            EstadoGarantia @default(VIGENTE)
+  observacion       String?
+  // La carta anterior, si esta es una renovación
+  renovadaDeId      Int?           @unique
+  renovadaDe        CartaFianza?   @relation("Renovacion", fields: [renovadaDeId], references: [id], onDelete: SetNull)
+  renovadaPor       CartaFianza?   @relation("Renovacion")
+  creadoEn          DateTime       @default(now())
+  actualizadoEn     DateTime       @updatedAt
+
+  @@index([proyectoId])
+  @@index([estado, fechaVencimiento])
+}
+
 // Aviso dentro de la intranet (campana). Se borran solos a los 90 días.
 model Notificacion {
   id        Int       @id @default(autoincrement())
@@ -231,6 +299,8 @@ model Proyecto {
   entregables        Entregable[]
   etapas             Etapa[]
   documentos         Documento[]
+  cobros             Cobro[]
+  cartasFianza       CartaFianza[]
 }
 
 // Usuarios (rol USUARIO) asignados a una obra: define qué proyectos pueden ver

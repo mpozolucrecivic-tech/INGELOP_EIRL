@@ -1,4 +1,4 @@
-import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, EstadoMensaje, TipoServicio, TipoEtapa, EstadoEtapa, CategoriaDocumento } from '@/types/api';
+import type { CategoriaGasto, Rol, Especialidad, EstadoActividad, EstadoProyecto, EstadoRevision, RubroObra, TipoCliente, TipoEvidencia, TipoMensaje, EstadoMensaje, TipoServicio, TipoEtapa, EstadoEtapa, CategoriaDocumento, EstadoCobro, TipoGarantia, EstadoGarantia } from '@/types/api';
 
 const soles = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
 const solesCorto = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', notation: 'compact', maximumFractionDigits: 1 });
@@ -243,3 +243,23 @@ export const CATEGORIA_DOCUMENTO: Record<CategoriaDocumento, string> = {
 };
 /** Formatos que acepta la API (se verifica también el contenido real del archivo) */
 export const FORMATOS_DOCUMENTO = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.dwg,.dxf,.zip';
+
+export const ESTADO_COBRO: Record<EstadoCobro, { label: string; color: 'slate' | 'blue' | 'green' | 'red' }> = {
+  PROGRAMADO: { label: 'Programado', color: 'slate' },
+  FACTURADO: { label: 'Facturado', color: 'blue' },
+  COBRADO: { label: 'Cobrado', color: 'green' },
+  ANULADO: { label: 'Anulado', color: 'red' },
+};
+
+export const TIPO_GARANTIA: Record<TipoGarantia, string> = {
+  FIEL_CUMPLIMIENTO: 'Fiel cumplimiento',
+  ADELANTO: 'Adelanto',
+  OTRA: 'Otra',
+};
+
+export const ESTADO_GARANTIA: Record<EstadoGarantia, { label: string; color: 'green' | 'slate' | 'blue' | 'red' }> = {
+  VIGENTE: { label: 'Vigente', color: 'green' },
+  RENOVADA: { label: 'Renovada', color: 'slate' },
+  DEVUELTA: { label: 'Devuelta', color: 'blue' },
+  EJECUTADA: { label: 'Ejecutada', color: 'red' },
+};

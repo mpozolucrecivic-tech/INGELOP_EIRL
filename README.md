@@ -242,6 +242,8 @@ La campana de la barra superior muestra avisos para cada persona (se revisa cada
 | Presupuesto o etapa aprobados u observados | Responsable del proyecto y usuarios con acceso |
 | Te dieron acceso a un proyecto | Esa persona |
 | Entregable que vence en 3 días o ya venció (sin aprobar, proyecto no finalizado) | Su responsable, o la jefatura si no tiene |
+| Carta fianza vigente que vence en 15 días o ya venció | Jefatura |
+| Factura emitida hace más de 30 días sin cobrar, o cobro programado cuya fecha pasó sin facturar | Jefatura |
 
 Nadie recibe aviso de su propia acción. Los avisos se crean en segundo plano: si fallan, la acción original no se ve afectada. Los recordatorios de entregables y la limpieza de avisos con más de 90 días corren como máximo una vez por hora, al consultar la campana; no hace falta una tarea programada. Al eliminar un proyecto se borran sus avisos. Marcar como leída no se registra en la auditoría.
 
@@ -277,6 +279,7 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | **Documentos** | Todos los documentos de todos los proyectos, con filtros (proyecto, etapa, categoría, persona, fechas); descargar y eliminar | — |
 | **Mis documentos** | — | Historial de lo que subió |
 | **Clientes** | Municipalidades, gobiernos regionales, empresas privadas y personas (RUC/DNI, contacto) | — |
+| **Cobranzas** | Cobros pendientes de todos los proyectos (facturados sin cobrar, programados), lo cobrado en el año (neto y detracciones) y cartas fianza vigentes por vencimiento | — |
 | **Gastos de la empresa** | Gastos que no son de una obra (alquiler, servicios, sueldos, licencias, impuestos, útiles); **importar desde Excel** con columna *Obra* opcional | — |
 | **Personal y tarifas** | Profesionales con su costo por hora (no necesitan cuenta) | — |
 | **Accesos a la intranet** | Cuentas para iniciar sesión, con el último acceso (fecha e IP) | — |
@@ -294,13 +297,14 @@ En pantalla los roles se llaman **Jefatura** (`ADMIN`) y **Arquitecto o ingenier
 | Proyecto → **Entregables** | Checklist del expediente, plantilla, fechas límite | Solo lectura |
 | Proyecto → **Tareas** | Tareas por periodo de trabajo (en la API: *sprints*), arrastrando tarjetas | Solo lectura |
 | Proyecto → **Equipo y horas** | Asignar profesionales, registrar horas por tarea, horas trabajadas y costo | — |
+| Proyecto → **Cobros y garantías** | Pagos pactados con el cliente (programado → facturado → cobrado) con detracción, penalidad y neto recibido frente al contrato; cartas fianza con renovación | — |
 | Proyecto → **Gastos** | Gastos del servicio frente al monto del contrato (margen); **importar desde Excel** y deshacer importaciones | — |
 | Proyecto → **Fotos y observaciones** | Galería de actas, informes, fotos y observaciones (evidencias) | Subir y ver |
 | Proyecto → **Ajustes** | Editar el proyecto, dar/quitar acceso, eliminar | — |
 
 ## Documentación interactiva (Swagger)
 
-Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 143 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
+Con la API en marcha: **<http://localhost:4000/api/docs>**. Lista los 154 endpoints agrupados por módulo, con quién puede usarlos (rol, acceso al proyecto, límites) y los campos que acepta cada uno. Se genera leyendo las rutas reales de Express y los mismos esquemas Zod que validan las peticiones, así que no se desactualiza.
 
 Para probar rutas protegidas: ejecuta `POST /api/v1/auth/login`, copia el `token`, pulsa **Authorize** y pégalo. En producción está apagada salvo que se defina `SWAGGER_HABILITADO=true` (expone todas las rutas de la API).
 
@@ -414,6 +418,15 @@ Todo exige `Authorization: Bearer <token>`, salvo `POST /auth/login`, la recuper
 | PUT / DELETE | `/portafolio/:id` | A | Editar / ocultar (baja lógica) |
 | POST / DELETE | `/portafolio/:id/foto` | A | Subir foto (JPG, PNG o WEBP) / quitarla |
 | GET | `/portafolio/:id/foto` | público | Foto (solo si el proyecto está visible) |
+| **Cobros y cartas fianza** (solo jefatura) ||||
+| GET | `/proyectos/:id/cobros` | A | `{ resumen, cobros }`: contrato, programado, facturado, cobrado, por cobrar, por facturar, sin programar, neto recibido, detracciones y penalidades |
+| POST | `/proyectos/:id/cobros` | A | `concepto, monto` (con IGV), `detraccion?, penalidad?, fechaProgramada?, comprobante?, fechaEmision?, fechaCobro?, estado?, observacion?`. Facturado o cobrado exige comprobante y emisión; cobrado exige fecha de pago |
+| PUT / DELETE | `/cobros/:id` | A | Editar (al volver de cobrado se borra la fecha de pago) / eliminar |
+| GET | `/cobros` | A | Toda la empresa (`?estado=` `PENDIENTES` = programados y facturados, `?proyectoId=`) con resumen: por cobrar, facturas de más de 30 días, cobrado en el año |
+| GET / POST | `/proyectos/:id/cartas-fianza` | A | Cartas del proyecto (con `diasParaVencer`) / registrar (`numero, entidadFinanciera, monto, fechaEmision, fechaVencimiento, tipo?`) |
+| GET | `/cartas-fianza` | A | Todas (`?estado=&proyectoId=`), ordenadas por vencimiento |
+| PUT / DELETE | `/cartas-fianza/:id` | A | Editar o marcar devuelta/ejecutada / eliminar (si era una renovación, la anterior vuelve a vigente) |
+| POST | `/cartas-fianza/:id/renovar` | A | La vigente pasa a RENOVADA y se crea la nueva enlazada (`numero, fechaEmision, fechaVencimiento, monto?, entidadFinanciera?`) |
 | **Notificaciones** (cada usuario, las suyas) ||||
 | GET | `/notificaciones` | A/U | `{ noLeidas, notificaciones }` (`?soloNoLeidas=true&limite=30`, máx. 100) |
 | GET | `/notificaciones/contador` | A/U | `{ noLeidas }` |
