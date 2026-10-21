@@ -1,4 +1,4 @@
-import { EstadoRevision } from '@prisma/client';
+import { EstadoRevision } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import type { ActualizarEntregableInput, CrearEntregableInput } from './entregables.schema';

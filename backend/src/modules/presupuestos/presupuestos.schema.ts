@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EstadoRevision } from '@prisma/client';
+import { EstadoRevision } from '../../generated/prisma/client';
 
 const porcentaje = z.coerce.number().min(0, 'No puede ser negativo').max(100, 'Máximo 100%');
 

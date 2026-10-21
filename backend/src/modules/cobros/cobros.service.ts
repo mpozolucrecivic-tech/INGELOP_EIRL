@@ -1,4 +1,4 @@
-import { EstadoCobro, EstadoGarantia, Prisma, type Cobro } from '@prisma/client';
+import { EstadoCobro, EstadoGarantia, Prisma, type Cobro } from '../../generated/prisma/client';
 import { ZodError } from 'zod';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';

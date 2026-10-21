@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CategoriaGasto } from '@prisma/client';
+import { CategoriaGasto } from '../../generated/prisma/client';
 import { decimal, rangoFechasQuery } from '../../utils/schemas';
 
 /** Categorías de los gastos de un proyecto y de los gastos de la empresa (OTROS sirve para ambos) */

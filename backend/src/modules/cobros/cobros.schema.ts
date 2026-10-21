@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EstadoCobro, EstadoGarantia, TipoGarantia } from '@prisma/client';
+import { EstadoCobro, EstadoGarantia, TipoGarantia } from '../../generated/prisma/client';
 import { decimal } from '../../utils/schemas';
 
 const tope = <T extends z.ZodType<number>>(s: T) => s.refine((n) => n < 1e10, { message: 'Monto demasiado grande' });

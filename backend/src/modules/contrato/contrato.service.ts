@@ -1,4 +1,4 @@
-import { EstadoAmpliacion, EstadoObservacion, Prisma, Rol, TipoCorrespondencia } from '@prisma/client';
+import { EstadoAmpliacion, EstadoObservacion, Prisma, Rol, TipoCorrespondencia } from '../../generated/prisma/client';
 import { ZodError } from 'zod';
 import { prisma } from '../../config/prisma';
 import { storage, toStorageKey } from '../../config/storage';

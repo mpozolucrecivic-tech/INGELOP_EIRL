@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { EstadoEtapa, Prisma, Rol } from '@prisma/client';
+import { EstadoEtapa, Prisma, Rol } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { storage, toStorageKey } from '../../config/storage';
 import { AppError } from '../../utils/AppError';

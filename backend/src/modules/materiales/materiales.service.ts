@@ -1,4 +1,4 @@
-import { Prisma, TipoMovimiento } from '@prisma/client';
+import { Prisma, TipoMovimiento } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { round2, toNumber } from '../../utils/helpers';

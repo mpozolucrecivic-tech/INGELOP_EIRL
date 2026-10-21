@@ -1,4 +1,4 @@
-import { Prisma, Rol } from '@prisma/client';
+import { Prisma, Rol } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { storage } from '../../config/storage';
 import { AppError } from '../../utils/AppError';

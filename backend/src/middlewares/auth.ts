@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { Rol } from '@prisma/client';
+import { Rol } from '../generated/prisma/client';
 import { env } from '../config/env';
 import type { UsuarioAutenticado } from '../types/express';
 import { prisma } from '../config/prisma';

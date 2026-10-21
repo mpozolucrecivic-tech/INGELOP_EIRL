@@ -1,4 +1,4 @@
-import { Prisma, type MensajeContacto } from '@prisma/client';
+import { Prisma, type MensajeContacto } from '../../generated/prisma/client';
 import { ZodError } from 'zod';
 import { env } from '../../config/env';
 import { enviarEnSegundoPlano, escaparHtml } from '../../config/mailer';

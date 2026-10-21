@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '../generated/prisma/client';
 
 /**
  * Los 6 servicios de INGELOP, con los mismos textos, iconos y slugs que la web (web/includes/config.php).

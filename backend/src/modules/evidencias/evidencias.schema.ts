@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TipoEvidencia } from '@prisma/client';
+import { TipoEvidencia } from '../../generated/prisma/client';
 import { emptyToUndefined } from '../../utils/schemas';
 
 /** Campos de texto del multipart/form-data (el archivo va en el campo "archivo") */

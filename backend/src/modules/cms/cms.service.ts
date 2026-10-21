@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { open } from 'node:fs/promises';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { env } from '../../config/env';
 import { AppError } from '../../utils/AppError';

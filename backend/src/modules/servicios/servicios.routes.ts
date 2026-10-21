@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Rol } from '@prisma/client';
+import { Rol } from '../../generated/prisma/client';
 import { requireRole } from '../../middlewares/auth';
 import { uploadFotoServicio } from '../../middlewares/upload';
 import { validate } from '../../middlewares/validate';

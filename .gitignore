@@ -20,3 +20,6 @@ backups/
 
 # Configuración del script de respaldo (contiene credenciales)
 deploy/respaldo.env
+
+# Cliente de Prisma generado (npx prisma generate)
+backend/src/generated/

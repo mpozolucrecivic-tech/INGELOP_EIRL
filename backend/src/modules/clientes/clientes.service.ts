@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import type { ActualizarClienteInput, CrearClienteInput, ListarClientesQuery } from './clientes.schema';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TipoCliente } from '@prisma/client';
+import { TipoCliente } from '../../generated/prisma/client';
 import { emptyToUndefined } from '../../utils/schemas';
 
 const opcional = (schema: z.ZodString) => z.preprocess(emptyToUndefined, schema.optional());

@@ -1,4 +1,4 @@
-import type { ProyectoWeb } from '@prisma/client';
+import type { ProyectoWeb } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { storage, toStorageKey } from '../../config/storage';
 import { AppError } from '../../utils/AppError';

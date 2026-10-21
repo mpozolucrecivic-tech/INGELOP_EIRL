@@ -1,4 +1,4 @@
-import { EstadoRevision, Prisma, Rol } from '@prisma/client';
+import { EstadoRevision, Prisma, Rol } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { assertProjectAccess } from '../../utils/access';

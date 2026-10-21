@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EstadoRevision } from '@prisma/client';
+import { EstadoRevision } from '../../generated/prisma/client';
 
 const base = z.object({
   nombre: z.string().trim().min(3, 'Nombre muy corto').max(200),

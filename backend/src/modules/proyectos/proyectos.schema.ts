@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EstadoProyecto, RubroObra, TipoServicio } from '@prisma/client';
+import { EstadoProyecto, RubroObra, TipoServicio } from '../../generated/prisma/client';
 import { decimal } from '../../utils/schemas';
 
 const proyectoBase = z.object({

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Especialidad, EstadoRevision } from '@prisma/client';
+import { Especialidad, EstadoRevision } from '../../generated/prisma/client';
 import { emptyToUndefined } from '../../utils/schemas';
 
 /** Campos de texto del multipart/form-data (el archivo va en el campo "archivo") */

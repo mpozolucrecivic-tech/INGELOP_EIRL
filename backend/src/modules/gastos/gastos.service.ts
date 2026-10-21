@@ -1,4 +1,4 @@
-import { CategoriaGasto, Prisma } from '@prisma/client';
+import { CategoriaGasto, Prisma } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { claveMes, filtroFechas, porcentaje, round2, toNumber } from '../../utils/helpers';

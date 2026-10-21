@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { TipoEvidencia } from '@prisma/client';
+import { TipoEvidencia } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { storage, toStorageKey } from '../../config/storage';
 import { AppError } from '../../utils/AppError';

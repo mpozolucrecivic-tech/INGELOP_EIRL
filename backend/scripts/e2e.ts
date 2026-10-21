@@ -777,7 +777,7 @@ async function main() {
   const formCarta = (campos: Record<string, string>, archivo?: [Buffer, string]) => {
     const f = new FormData();
     for (const [k, v] of Object.entries(campos)) f.append(k, v);
-    if (archivo) f.append('archivo', new Blob([archivo[0]], { type: 'application/pdf' }), archivo[1]);
+    if (archivo) f.append('archivo', new Blob([new Uint8Array(archivo[0])], { type: 'application/pdf' }), archivo[1]);
     return f;
   };
   const oficio = await call('POST', `/proyectos/${P}/correspondencia`, { token: A, form: formCarta({ tipo: 'RECIBIDA', numero: 'Oficio N.° 123-2026-MD', fecha: '2026-10-01', asunto: 'Observaciones al expediente', entidad: 'Municipalidad Distrital' }, [pdf, 'oficio.pdf']) });

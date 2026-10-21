@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EstadoActividad } from '@prisma/client';
+import { EstadoActividad } from '../../generated/prisma/client';
 
 const avance = z.coerce.number().int('El avance debe ser entero').min(0).max(100);
 

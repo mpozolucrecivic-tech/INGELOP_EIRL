@@ -1,4 +1,4 @@
-import { EstadoCobro, EstadoGarantia, EstadoObservacion, EstadoProyecto, EstadoRevision, Rol } from '@prisma/client';
+import { EstadoCobro, EstadoGarantia, EstadoObservacion, EstadoProyecto, EstadoRevision, Rol } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import type { ListarNotificacionesQuery } from './notificaciones.schema';

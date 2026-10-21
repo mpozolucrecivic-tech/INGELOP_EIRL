@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import type { Request } from 'express';
-import { Prisma, type Auditoria } from '@prisma/client';
+import { Prisma, type Auditoria } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { env } from '../../config/env';
 import type { FiltrosAuditoria } from './auditoria.schema';

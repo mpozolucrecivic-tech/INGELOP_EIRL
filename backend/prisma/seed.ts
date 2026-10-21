@@ -16,17 +16,17 @@ import {
   EstadoActividad,
   EstadoProyecto,
   EstadoRevision,
-  PrismaClient,
   Rol,
   RubroObra,
   TipoCliente,
   TipoEvidencia,
   TipoServicio,
-} from '@prisma/client';
+} from '../src/generated/prisma/client';
 import { cargarServiciosIniciales } from '../src/data/serviciosIniciales';
 import { cargarClaves as cargarDatosSitio } from '../src/modules/sitio/sitio.service';
+import { crearClientePrisma } from '../src/config/prismaCliente';
 
-const prisma = new PrismaClient();
+const prisma = crearClientePrisma();
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@ingelop.com';
 // Las contraseñas de los usuarios de demostración se leen de .env: nunca se escriben en el código

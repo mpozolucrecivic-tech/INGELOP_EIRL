@@ -1,4 +1,4 @@
-import type { Servicio } from '@prisma/client';
+import type { Servicio } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { storage, toStorageKey } from '../../config/storage';
 import { AppError } from '../../utils/AppError';

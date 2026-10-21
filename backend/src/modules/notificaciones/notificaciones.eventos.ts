@@ -1,4 +1,4 @@
-import { EstadoEtapa, EstadoRevision, type TipoEtapa } from '@prisma/client';
+import { EstadoEtapa, EstadoRevision, type TipoEtapa } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { revisionLetra } from '../planos/planos.service';
 import { enSegundoPlano, equipoProyecto, jefaturas, notificar } from './notificaciones.service';

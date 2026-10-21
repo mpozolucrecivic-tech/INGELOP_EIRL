@@ -7,7 +7,8 @@
  *     node dist/scripts/crearAdmin.js admin@tudominio.pe "Nombre Apellido"
  */
 import bcrypt from 'bcryptjs';
-import { PrismaClient, Rol } from '@prisma/client';
+import { Rol } from '../generated/prisma/client';
+import { crearClientePrisma } from '../config/prismaCliente';
 
 async function main() {
   const [email, nombre = 'Administrador'] = process.argv.slice(2);
@@ -22,7 +23,7 @@ async function main() {
     process.exit(1);
   }
 
-  const prisma = new PrismaClient();
+  const prisma = crearClientePrisma();
   try {
     const passwordHash = await bcrypt.hash(password, 10);
     const usuario = await prisma.usuario.upsert({

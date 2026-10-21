@@ -14,7 +14,7 @@ Sistema web de **INGELOP Consultores y Ejecutores E.I.R.L.** (RUC 20610231676, C
 
 El sistema incluye un **CMS editorial** para páginas, marca y menú: editor por bloques, borradores separados de la publicación, vista previa temporal, historial con restauración, biblioteca de imágenes y permiso de editor. Activación y uso en [`docs/CMS.md`](docs/CMS.md). Las páginas originales siguen disponibles hasta publicar su versión editorial.
 
-- **Backend:** Node.js · Express 5 · TypeScript · Prisma 6 · PostgreSQL 16 (Docker) · Zod · JWT + bcrypt · Multer
+- **Backend:** Node.js 20.19+ · Express 5 · TypeScript · Prisma 7 (driver `pg`) · PostgreSQL 16 (Docker) · Zod · JWT + bcrypt · Multer
 - **Frontend:** React 19 · Vite · TypeScript · Tailwind CSS 4 · TanStack Query · React Router 7 · React Hook Form + Zod · Recharts
 
 ## Estructura
@@ -78,6 +78,8 @@ npx prisma migrate deploy           # crea las tablas
 npm run db:seed                     # admin + datos de prueba
 cd ..
 ```
+
+> **Prisma 7.** El cliente se genera en `backend/src/generated/prisma` (no se sube a Git) y se importa desde ahí, no desde `@prisma/client`. Se genera solo al usar `npm run dev`, `build`, `typecheck`, `db:seed` y `test:cms`; a mano: `npx prisma generate`. La conexión de la CLI (migraciones y seed) está en `backend/prisma.config.ts`, y la de la API en `src/config/prismaCliente.ts` (driver `pg`). Tras `prisma migrate dev` ya no se ejecuta el seed automáticamente.
 
 **Día a día:**
 
@@ -193,7 +195,7 @@ Web PHP (ingelop.wuaze.com) ──fetch──► API /api/v1 ◄──axios─�
 
 1. **Neon:** crea la base de datos y copia la cadena de conexión (con `?sslmode=require`) en `DATABASE_URL`.
 2. **Render (Web Service)**, carpeta raíz `backend/`:
-   - Build: `npm ci --include=dev && npx prisma generate && npm run build` (`--include=dev` porque TypeScript es dependencia de desarrollo)
+   - Build: `npm ci --include=dev && npm run build` (`--include=dev` porque TypeScript es dependencia de desarrollo; `build` genera antes el cliente de Prisma)
    - Start: `npx prisma migrate deploy && npm start`
    - Variables: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, `TRUST_PROXY=1`,
      `CORS_ORIGIN=https://ingelop.wuaze.com,https://<dominio-de-la-intranet>`,

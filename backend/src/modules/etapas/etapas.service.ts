@@ -1,4 +1,4 @@
-import { EstadoEtapa, TipoEtapa, type Etapa } from '@prisma/client';
+import { EstadoEtapa, TipoEtapa, type Etapa } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { assertProjectAccess } from '../../utils/access';

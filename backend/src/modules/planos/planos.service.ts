@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { EstadoRevision, Prisma } from '@prisma/client';
+import { EstadoRevision, Prisma } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { storage, toStorageKey } from '../../config/storage';
 import { AppError } from '../../utils/AppError';

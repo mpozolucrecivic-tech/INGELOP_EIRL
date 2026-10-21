@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { Rol } from '@prisma/client';
+import { Rol } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { guardarContrasena, usuarioPublicoSelect } from '../auth/auth.service';

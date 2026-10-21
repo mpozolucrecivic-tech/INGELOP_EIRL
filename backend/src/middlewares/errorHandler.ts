@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
 import { MulterError } from 'multer';
 import { ZodError } from 'zod';
 import { env } from '../config/env';

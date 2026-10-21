@@ -1,4 +1,4 @@
-import { Especialidad, EstadoCobro, EstadoGarantia, EstadoProyecto, EstadoRevision, RubroObra, TipoEvidencia, TipoServicio } from '@prisma/client';
+import { Especialidad, EstadoCobro, EstadoGarantia, EstadoProyecto, EstadoRevision, RubroObra, TipoEvidencia, TipoServicio } from '../../generated/prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../utils/AppError';
 import { claveMes, porcentaje, round2, toNumber } from '../../utils/helpers';

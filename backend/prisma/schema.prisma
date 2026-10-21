@@ -1,13 +1,18 @@
 // Esquema de datos de la intranet INGELOP_EIRL
 // Docs: https://pris.ly/d/prisma-schema
 
+// Prisma 7: cliente generado dentro de src/ (no en node_modules), en CommonJS como el resto de la API.
+// Se importa desde src/generated/prisma/client. La conexión va por el adaptador pg (src/config/prisma.ts).
 generator client {
-  provider = "prisma-client-js"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "cjs"
+  importFileExtension = ""
 }
 
+// La URL de la base de datos está en prisma.config.ts (DATABASE_URL)
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Rol {

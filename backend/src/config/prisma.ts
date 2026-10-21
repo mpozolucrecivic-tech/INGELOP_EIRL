@@ -1,4 +1,6 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
+import { env } from './env';
+import { crearClientePrisma } from './prismaCliente';
 
 // Los campos Decimal se serializan como number en las respuestas JSON
 // (por defecto Prisma los envía como string). La precisión (12,2) cabe sin pérdida en un double.
@@ -8,4 +10,4 @@ import { Prisma, PrismaClient } from '@prisma/client';
 
 // Los errores de Prisma no se loguean aquí: los esperados (P2002, P2025...) se traducen a 409/404
 // en errorHandler, y los inesperados los registra el propio errorHandler.
-export const prisma = new PrismaClient({ log: ['warn'] });
+export const prisma = crearClientePrisma(env.DATABASE_URL);

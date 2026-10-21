@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CategoriaDocumento, TipoEtapa } from '@prisma/client';
+import { CategoriaDocumento, TipoEtapa } from '../../generated/prisma/client';
 import { emptyToUndefined } from '../../utils/schemas';
 
 const categoria = z.nativeEnum(CategoriaDocumento, { errorMap: () => ({ message: 'Elige una categoría válida' }) });

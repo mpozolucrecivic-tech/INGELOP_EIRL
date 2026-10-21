@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { Rol } from '@prisma/client';
+import { Rol } from '../../generated/prisma/client';
 import { requireEditorWeb, requireRole } from '../../middlewares/auth';
 import { validate } from '../../middlewares/validate';
 import { uploadFotoCms } from '../../middlewares/upload';

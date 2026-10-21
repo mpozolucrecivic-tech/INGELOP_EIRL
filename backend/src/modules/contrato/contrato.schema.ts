@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EstadoObservacion, TipoCorrespondencia } from '@prisma/client';
+import { EstadoObservacion, TipoCorrespondencia } from '../../generated/prisma/client';
 import { emptyToUndefined } from '../../utils/schemas';
 
 const fecha = z.coerce

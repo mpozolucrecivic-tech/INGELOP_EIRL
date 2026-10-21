@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TipoEtapa } from '@prisma/client';
+import { TipoEtapa } from '../../generated/prisma/client';
 import { emptyToUndefined } from '../../utils/schemas';
 
 const fecha = z.preprocess(emptyToUndefined, z.coerce.date({ invalid_type_error: 'Fecha no válida' }).nullable().optional());

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TipoMovimiento } from '@prisma/client';
+import { TipoMovimiento } from '../../generated/prisma/client';
 import { decimal } from '../../utils/schemas';
 
 export const crearMaterialSchema = z.object({

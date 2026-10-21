@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../generated/prisma/client';
 import { ZodError } from 'zod';
 import { env } from '../../config/env';
 import { correoHabilitado, enviarEnSegundoPlano, escaparHtml } from '../../config/mailer';

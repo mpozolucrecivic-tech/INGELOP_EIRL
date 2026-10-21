@@ -5,26 +5,29 @@
   "description": "API REST de la intranet de INGELOP Consultores y Ejecutores E.I.R.L.",
   "main": "dist/server.js",
   "scripts": {
+    "predev": "prisma generate",
     "dev": "tsx watch src/server.ts",
+    "prebuild": "prisma generate",
     "build": "tsc",
     "start": "node dist/server.js",
+    "pretypecheck": "prisma generate",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate": "prisma migrate dev && prisma generate",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "predb:seed": "prisma generate",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force",
+    "db:reset": "prisma migrate reset --force && prisma db seed",
     "test:e2e": "tsx scripts/e2e.ts",
+    "pretest:cms": "prisma generate",
     "test:cms": "tsx --test scripts/cms.test.ts"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
     "@aws-sdk/client-s3": "^3.1149.0",
-    "@prisma/client": "^6.19.3",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.3",
@@ -33,7 +36,8 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
     "nodemailer": "10.0.14",
-    "prisma": "^6.19.3",
+    "pg": "8.23.0",
+    "prisma": "7.10.1",
     "swagger-ui-express": "^5.0.1",
     "zod": "^3.25.76"
   },
@@ -44,6 +48,7 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^26.6.2",
     "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
     "@types/swagger-ui-express": "^4.1.8",
     "tsx": "^4.23.15",
     "typescript": "~5.9"

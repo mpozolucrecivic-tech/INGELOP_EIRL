@@ -4,11 +4,11 @@
  *
  * Uso:  node dist/scripts/cargarServicios.js        (en local: npx tsx src/scripts/cargarServicios.ts)
  */
-import { PrismaClient } from '@prisma/client';
 import { cargarServiciosIniciales } from '../data/serviciosIniciales';
+import { crearClientePrisma } from '../config/prismaCliente';
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = crearClientePrisma();
   try {
     const creados = await cargarServiciosIniciales(prisma);
     console.log(`✅ Servicios iniciales: ${creados} creados (los existentes no se modificaron).`);
