@@ -39,6 +39,9 @@ $jsonLd = [
     ],
     'areaServed' => ['Lambayeque', 'Norte del Perú'],
 ];
+
+// Si estamos en inicio, activamos la cabecera transparente flotante sobre el hero
+$claseCabecera = 'cabecera' . ($pagina === 'inicio' ? ' cabecera--transparente' : '');
 ?>
 <!doctype html>
 <html lang="es-PE">
@@ -51,18 +54,19 @@ $jsonLd = [
     <meta property="og:title" content="<?= e($titulo) ?>">
     <meta property="og:description" content="<?= e($descripcion) ?>">
     <meta property="og:locale" content="es_PE">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#0a0f14">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/estilos.css?v=1">
+    <!-- Se agrega ?v=<?= time() ?> para evitar que el navegador guarde en caché el CSS viejo -->
+    <link rel="stylesheet" href="assets/css/estilos.css?v=<?= time() ?>">
     <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 </head>
 <body class="pagina-<?= e($pagina) ?>">
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
-<header class="cabecera" id="cabecera">
+<header class="cabecera cabecera--transparente" id="cabecera">
     <div class="contenedor cabecera__fila">
         <a class="marca" href="index.php" aria-label="<?= e(EMPRESA['razon_social']) ?> – inicio">
             <img src="assets/img/logo.svg" alt="" width="40" height="40">
@@ -80,9 +84,14 @@ $jsonLd = [
             </ul>
         </nav>
 
-        <button class="menu__abrir" id="menu-boton" aria-controls="menu" aria-expanded="false" aria-label="Abrir menú">
-            <?= icono('menu') ?>
-        </button>
+        <div class="cabecera__acciones" style="display: flex; align-items: center; gap: 0.75rem;">
+            <a href="contacto.php" class="boton boton--verde boton--cabecera" style="padding: 0.5rem 1.15rem; font-size: 0.9rem;">
+                Escríbenos
+            </a>
+            <button class="menu__abrir" id="menu-boton" aria-controls="menu" aria-expanded="false" aria-label="Abrir menú">
+                <?= icono('menu') ?>
+            </button>
+        </div>
     </div>
 </header>
 
