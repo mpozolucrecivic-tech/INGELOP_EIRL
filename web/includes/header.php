@@ -4,6 +4,7 @@
  *   $pagina      = 'inicio' | 'nosotros' | 'servicios' | 'proyectos' | 'contacto'
  *   $titulo      = título del documento (opcional)
  *   $descripcion = meta description (opcional)
+ *   $portada     = true si la página empieza con una portada con foto (la cabecera va transparente encima)
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/iconos.php';
@@ -32,6 +33,8 @@ if ($cmsMarca !== null) {
             $menu[$slug] = [$item['etiqueta'], cms_url($slug)];
     }
 }
+// Con una página publicada desde el editor no hay portada con foto: la cabecera va blanca
+$cabeceraTransparente = !empty($portada) && $cmsPagina === null;
 $cmsLogo = !empty($cmsMarca['logoId']) ? cms_medio_url((int) $cmsMarca['logoId']) : 'assets/img/logo.svg?v=2';
 $cmsSitioUrl = (string) (contenido_web()['sitioUrl'] ?? '');
 $cmsCanonical = $cmsSitioUrl !== '' ? rtrim($cmsSitioUrl, '/') . '/' . cms_url($pagina) : '';
@@ -77,14 +80,15 @@ $jsonLd = array_filter($jsonLd, fn ($v) => $v !== null);
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/estilos.css?v=2">
+    <link rel="stylesheet" href="assets/css/estilos.css?v=3">
     <link rel="stylesheet" href="assets/css/conexion-api.css?v=1">
+    <script>document.documentElement.classList.add('js')</script>
     <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
 </head>
 <body class="pagina-<?= e($pagina) ?>"<?= API_URL !== '' ? ' data-api="' . e(API_URL) . '"' : '' ?>>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
-<header class="cabecera" id="cabecera">
+<header class="cabecera<?= $cabeceraTransparente ? ' cabecera--transparente' : '' ?>" id="cabecera">
     <div class="contenedor cabecera__fila">
         <a class="marca" href="index.php" aria-label="<?= e(EMPRESA['razon_social']) ?> – inicio">
             <img src="<?= e($cmsLogo) ?>" alt="" width="40" height="40">
@@ -102,9 +106,12 @@ $jsonLd = array_filter($jsonLd, fn ($v) => $v !== null);
             </ul>
         </nav>
 
-        <button class="menu__abrir" id="menu-boton" aria-controls="menu" aria-expanded="false" aria-label="Abrir menú">
-            <?= icono('menu') ?>
-        </button>
+        <div class="cabecera__acciones">
+            <?php if ($pagina !== 'contacto'): ?><a class="boton boton--primario boton--pequeno cabecera__accion" href="contacto.php">Escríbenos</a><?php endif; ?>
+            <button class="menu__abrir" id="menu-boton" aria-controls="menu" aria-expanded="false" aria-label="Abrir menú">
+                <?= icono('menu') ?>
+            </button>
+        </div>
     </div>
 </header>
 

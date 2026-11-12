@@ -103,6 +103,14 @@
                 <span><strong>Horario de atención</strong><?= e(EMPRESA['horario']) ?></span>
             </div>
             <?php endif; ?>
+            <div class="siguientes">
+                <h2 class="siguientes__titulo">¿Qué pasa después de escribirnos?</h2>
+                <ol>
+                    <li><span>1</span><div><strong>Revisamos tu consulta</strong>El equipo técnico evalúa el alcance y los términos de referencia.</div></li>
+                    <li><span>2</span><div><strong>Te contactamos</strong>Coordinamos los detalles y, si hace falta, una visita a campo.</div></li>
+                    <li><span>3</span><div><strong>Recibes la propuesta</strong>Técnica y económica, con plazos y entregables.</div></li>
+                </ol>
+            </div>
         </aside>
     </div>
 </section>

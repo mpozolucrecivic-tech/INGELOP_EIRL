@@ -99,6 +99,7 @@ function enviarCorreo(array $d, array $servicios, array $tipos): void
 }
 
 $pagina = 'contacto';
+$portada = true;
 $titulo = 'Contacto';
 $descripcion = 'Solicita una cotización de expedientes técnicos, diseño o supervisión de obras. Oficina en Chiclayo.';
 $error = fn (string $campo) => isset($errores[$campo]) ? '<p class="campo__error">' . e($errores[$campo]) . '</p>' : '';
@@ -107,11 +108,14 @@ require __DIR__ . '/includes/header.php';
 
 ?>
 
-<section class="encabezado">
+<section class="portada">
+    <div class="portada__foto" style="background-image: url('assets/img/fotos/contacto.webp')" aria-hidden="true"></div>
     <div class="contenedor">
-        <p class="etiqueta">Contacto</p>
-        <h1>Conversemos sobre tu proyecto</h1>
-        <p class="encabezado__lead">Déjanos tus datos y el detalle de lo que necesitas. Te respondemos con una propuesta técnica y económica.</p>
+        <div class="portada__contenido" data-revelar>
+            <p class="etiqueta">Contacto</p>
+            <h1>Conversemos sobre <span class="resaltado">tu proyecto</span></h1>
+            <p class="portada__lead">Déjanos tus datos y el detalle de lo que necesitas. Te respondemos con una propuesta técnica y económica.</p>
+        </div>
     </div>
 </section>
 

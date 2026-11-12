@@ -11,7 +11,7 @@
                 </span>
             </a>
             <p class="pie__texto"><?= e(EMPRESA['descripcion']) ?></p>
-            <p class="pie__ruc">RUC <?= e(EMPRESA['ruc']) ?></p>
+            <p class="pie__ruc"><?= icono('escudo') ?> RUC <?= e(EMPRESA['ruc']) ?></p>
         </div>
 
         <div>
@@ -51,7 +51,7 @@
 </a>
 <?php endif; ?>
 
-<script src="assets/js/main.js?v=1" defer></script>
+<script src="assets/js/main.js?v=2" defer></script>
 <?php if (API_URL !== '' && $pagina === 'contacto'): ?>
 <!-- Ícono que usa assets/js/contacto.js en el aviso de "Mensaje enviado" -->
 <template id="iconos-api"><span data-icono="check"><?= icono('check') ?></span></template>

@@ -1,5 +1,6 @@
 <?php
 $pagina = 'proyectos';
+$portada = true;
 $titulo = 'Proyectos';
 $descripcion = 'Proyectos de edificaciones, saneamiento, vías, obras electromecánicas e irrigaciones desarrollados por INGELOP en Lambayeque.';
 require __DIR__ . '/includes/header.php';
@@ -17,18 +18,25 @@ $tipos = [
 ];
 ?>
 
-<section class="encabezado">
+<section class="portada">
+    <div class="portada__foto" style="background-image: url('assets/img/fotos/proyectos.webp')" aria-hidden="true"></div>
     <div class="contenedor">
-        <p class="etiqueta">Proyectos</p>
-        <h1>Infraestructura para el desarrollo de la región</h1>
-        <p class="encabezado__lead">Desarrollamos proyectos en las cinco especialidades de consultoría de obras en las que estamos habilitados.</p>
+        <div class="portada__contenido" data-revelar>
+            <p class="etiqueta">Proyectos</p>
+            <h1>Infraestructura para el <span class="resaltado">desarrollo de la región</span></h1>
+            <p class="portada__lead">Desarrollamos proyectos en las cinco especialidades de consultoría de obras en las que estamos habilitados.</p>
+        </div>
     </div>
 </section>
 
 <section class="seccion">
     <div class="contenedor">
         <?php if ($proyectos): ?>
-            <div class="tarjetas tarjetas--3">
+            <div class="seccion__cabecera" data-revelar>
+                <p class="etiqueta">Proyectos realizados</p>
+                <h2>Obras que respaldan nuestra <span class="resaltado">experiencia</span></h2>
+            </div>
+            <div class="tarjetas tarjetas--3" data-revelar-grupo>
                 <?php foreach ($proyectos as $p): ?>
                     <article class="proyecto">
                         <?php if (!empty($p['imagen'])): ?>
@@ -47,7 +55,11 @@ $tipos = [
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <div class="tarjetas tarjetas--3">
+            <div class="seccion__cabecera" data-revelar>
+                <p class="etiqueta">Tipos de proyecto</p>
+                <h2>Lo que diseñamos y <span class="resaltado">supervisamos</span></h2>
+            </div>
+            <div class="tarjetas tarjetas--3" data-revelar-grupo>
                 <?php foreach ($tipos as $t): ?>
                     <article class="tarjeta">
                         <span class="tarjeta__icono"><?= icono($t['icono']) ?></span>

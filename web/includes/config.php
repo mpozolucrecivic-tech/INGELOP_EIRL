@@ -171,3 +171,20 @@ function servicios_publicados(array $fijos): array
         'foto' => !empty($s['fotoUrl']) ? API_URL . $s['fotoUrl'] : '',
     ], $web['servicios']);
 }
+
+/** Foto del servicio: la subida desde la intranet o, si no hay, la de assets/img/fotos/servicio-<slug>.webp */
+function foto_servicio(array $s): string
+{
+    if (!empty($s['foto'])) return $s['foto'];
+    $local = 'assets/img/fotos/servicio-' . $s['slug'] . '.webp';
+    return is_file(__DIR__ . '/../' . $local) ? $local : '';
+}
+
+/** Eslogan con las dos últimas palabras resaltadas en verde */
+function eslogan_resaltado(): string
+{
+    $palabras = preg_split('/\s+/', trim(EMPRESA['eslogan']));
+    if (count($palabras) < 4) return e(EMPRESA['eslogan']);
+    $final = array_splice($palabras, -2);
+    return e(implode(' ', $palabras)) . ' <span class="resaltado">' . e(implode(' ', $final)) . '</span>';
+}
