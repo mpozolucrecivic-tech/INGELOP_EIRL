@@ -39,10 +39,9 @@ enum TipoMovimiento {
   SALIDA
 }
 
-// Las cinco primeras son de proyecto; las demás, de la empresa (OTROS sirve para ambos)
+// Las cuatro primeras son de proyecto; las demás, de la empresa (OTROS sirve para ambos)
 enum CategoriaGasto {
   MATERIALES
-  MANO_DE_OBRA
   TRANSPORTE
   EQUIPOS
   OTROS

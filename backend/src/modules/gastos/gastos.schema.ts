@@ -3,7 +3,7 @@ import { CategoriaGasto } from '../../generated/prisma/client';
 import { decimal, rangoFechasQuery } from '../../utils/schemas';
 
 /** Categorías de los gastos de un proyecto y de los gastos de la empresa (OTROS sirve para ambos) */
-export const CATEGORIAS_PROYECTO: CategoriaGasto[] = ['MATERIALES', 'MANO_DE_OBRA', 'TRANSPORTE', 'EQUIPOS', 'OTROS'];
+export const CATEGORIAS_PROYECTO: CategoriaGasto[] = ['MATERIALES', 'TRANSPORTE', 'EQUIPOS', 'OTROS'];
 export const CATEGORIAS_EMPRESA: CategoriaGasto[] = ['ALQUILER', 'SERVICIOS_BASICOS', 'SUELDOS', 'SOFTWARE', 'IMPUESTOS', 'UTILES_OFICINA', 'OTROS'];
 
 export const categoriaValida = (categoria: CategoriaGasto, proyectoId: number | null) =>

@@ -484,11 +484,8 @@ async function main() {
     data: [
       { proyectoId: expediente.id, categoria: CategoriaGasto.OTROS, descripcion: 'Estudio de mecánica de suelos (laboratorio externo)', monto: 6800, fecha: d('2026-07-20') },
       { proyectoId: expediente.id, categoria: CategoriaGasto.TRANSPORTE, descripcion: 'Visitas de campo y levantamiento topográfico', monto: 1250, fecha: d('2026-07-10') },
-      { proyectoId: expediente.id, categoria: CategoriaGasto.MANO_DE_OBRA, descripcion: 'Honorarios del equipo técnico – julio', monto: 18500, fecha: d('2026-07-31') },
-      { proyectoId: expediente.id, categoria: CategoriaGasto.MANO_DE_OBRA, descripcion: 'Honorarios del equipo técnico – agosto', monto: 19800, fecha: d('2026-08-31') },
       { proyectoId: expediente.id, categoria: CategoriaGasto.EQUIPOS, descripcion: 'Licencias AutoCAD / Revit (prorrateo)', monto: 2400, fecha: d('2026-08-05') },
       { proyectoId: expediente.id, categoria: CategoriaGasto.MATERIALES, descripcion: 'Impresión y ploteo de planos A1', monto: 980.5, fecha: d('2026-09-12') },
-      { proyectoId: vivienda.id, categoria: CategoriaGasto.MANO_DE_OBRA, descripcion: 'Honorarios del equipo – agosto', monto: 6200, fecha: d('2026-08-31') },
       { proyectoId: vivienda.id, categoria: CategoriaGasto.OTROS, descripcion: 'Trámite de parámetros urbanísticos', monto: 450, fecha: d('2026-08-20') },
       { proyectoId: supervision.id, categoria: CategoriaGasto.OTROS, descripcion: 'Garantía de fiel cumplimiento', monto: 1900, fecha: d('2026-09-15') },
     ],

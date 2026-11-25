@@ -301,7 +301,6 @@ const REGLAS_EMPRESA: Regla[] = [
   [/util|papel|oficina|limpieza|tinta|toner|impresi|escritorio|archivador|cafe/, 'UTILES_OFICINA'],
 ];
 const REGLAS_PROYECTO: Regla[] = [
-  [/honorario|planilla|sueldo|mano de obra|personal|rxh|recibo por honorarios|especialista|consultor|jornal/, 'MANO_DE_OBRA'],
   [/transporte|pasaje|movilidad|flete|viatico|combustible|gasolina|petroleo|peaje|hospedaje|hotel|alimentaci|taxi|\bbus\b|traslado/, 'TRANSPORTE'],
   [/equipo|software|licencia|estacion total|gps|dron|laptop|computadora|alquiler de/, 'EQUIPOS'],
   [/impresi|ploteo|plotter|copia|util|papel|tinta|toner|anillado|empaste|material/, 'MATERIALES'],

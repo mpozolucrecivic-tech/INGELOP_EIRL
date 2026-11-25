@@ -50,7 +50,6 @@ export const ORDEN_ESTADOS: EstadoActividad[] = ['BACKLOG', 'POR_HACER', 'EN_PRO
 // Categorías de gastos propios de la consultora (los valores internos se conservan)
 export const CATEGORIA_GASTO: Record<CategoriaGasto, string> = {
   MATERIALES: 'Impresiones y útiles',
-  MANO_DE_OBRA: 'Honorarios y planilla',
   TRANSPORTE: 'Transporte y viáticos',
   EQUIPOS: 'Equipos y software',
   OTROS: 'Estudios, trámites y otros',
@@ -67,7 +66,7 @@ export const CATEGORIA_GASTO_EMPRESA: Record<CategoriaGasto, string> = { ...CATE
 export const etiquetasCategoria = (empresa: boolean) => (empresa ? CATEGORIA_GASTO_EMPRESA : CATEGORIA_GASTO);
 
 /** Las de un proyecto y las de la empresa (Otros sirve para ambos); igual que en la API */
-export const CATEGORIAS_PROYECTO: CategoriaGasto[] = ['MATERIALES', 'MANO_DE_OBRA', 'TRANSPORTE', 'EQUIPOS', 'OTROS'];
+export const CATEGORIAS_PROYECTO: CategoriaGasto[] = ['MATERIALES', 'TRANSPORTE', 'EQUIPOS', 'OTROS'];
 export const CATEGORIAS_EMPRESA: CategoriaGasto[] = ['ALQUILER', 'SERVICIOS_BASICOS', 'SUELDOS', 'SOFTWARE', 'IMPUESTOS', 'UTILES_OFICINA', 'OTROS'];
 
 export const TIPO_SERVICIO: Record<TipoServicio, string> = {
@@ -178,7 +177,6 @@ export const TIPO_EVIDENCIA: Record<TipoEvidencia, string> = {
 /** Paleta para gráficos (colores distinguibles, orden fijo por categoría) */
 export const COLORES_CATEGORIA: Record<CategoriaGasto, string> = {
   MATERIALES: '#d97706',
-  MANO_DE_OBRA: '#2563eb',
   TRANSPORTE: '#0d9488',
   EQUIPOS: '#7c3aed',
   OTROS: '#64748b',

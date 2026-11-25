@@ -246,7 +246,7 @@ async function main() {
   const resumen = await call('GET', `/proyectos/${P}/gastos/resumen`, { token: U });
   expectStatus('GET /proyectos/:id/gastos/resumen', resumen, 200);
   check('resumen: total 13000, saldo 87000, 13%', resumen.body.totalGastado === 13000 && resumen.body.saldo === 87000 && resumen.body.porcentajeEjecutado === 13, resumen.body);
-  check('resumen: 5 categorías y 2 meses', resumen.body.porCategoria?.length === 5 && resumen.body.porMes?.length === 2);
+  check('resumen: 4 categorías y 2 meses', resumen.body.porCategoria?.length === 4 && resumen.body.porMes?.length === 2);
   expectStatus('PUT /gastos/:id', await call('PUT', `/gastos/${gasto.body.id}`, { token: A, json: { descripcion: 'Compra de cemento Sol' } }), 200);
 
   seccion('Cobros y cartas fianza');
@@ -345,7 +345,7 @@ async function main() {
   const septiembre = generalEmp.body.finanzas?.porMes?.find((m: any) => m.mes === '2026-09');
   check(
     'dashboard general separa obras y empresa',
-    generalEmp.body.finanzas?.gastoEmpresa >= 1730.4 && generalEmp.body.finanzas?.porCategoriaEmpresa?.length === 7 && generalEmp.body.finanzas?.porCategoria?.length === 5 && septiembre?.empresa >= 1730.4 && septiembre?.obras > 0,
+    generalEmp.body.finanzas?.gastoEmpresa >= 1730.4 && generalEmp.body.finanzas?.porCategoriaEmpresa?.length === 7 && generalEmp.body.finanzas?.porCategoria?.length === 4 && septiembre?.empresa >= 1730.4 && septiembre?.obras > 0,
     generalEmp.body.finanzas,
   );
   const deshacer = await call('DELETE', `/gastos/importaciones/${impP.body.id}`, { token: A });

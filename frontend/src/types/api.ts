@@ -6,7 +6,6 @@ export type EstadoActividad = 'BACKLOG' | 'POR_HACER' | 'EN_PROCESO' | 'EN_REVIS
 export type TipoMovimiento = 'ENTRADA' | 'SALIDA';
 export type CategoriaGasto =
   | 'MATERIALES'
-  | 'MANO_DE_OBRA'
   | 'TRANSPORTE'
   | 'EQUIPOS'
   | 'OTROS'

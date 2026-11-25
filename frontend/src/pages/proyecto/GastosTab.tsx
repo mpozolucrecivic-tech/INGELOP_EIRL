@@ -33,7 +33,7 @@ export default function GastosTab({ proyectoId }: { proyectoId: number }) {
 
   return (
     <div className="space-y-6">
-      <TextoAyuda>Lo que el proyecto le cuesta a la empresa (planilla, viáticos, estudios, trámites…) frente al monto cobrado al cliente.</TextoAyuda>
+      <TextoAyuda>Lo que el proyecto le cuesta a la empresa (viáticos, estudios, trámites, impresiones…) frente al monto cobrado al cliente. El pago al personal se ve en Equipo y horas.</TextoAyuda>
       {resumen && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard label="Monto del contrato" value={formatSoles(resumen.montoContrato)} hint="Honorarios pactados con el cliente" />
@@ -97,7 +97,7 @@ export default function GastosTab({ proyectoId }: { proyectoId: number }) {
             <ErrorState error={error} onRetry={refetch} />
           </div>
         ) : !gastos?.length ? (
-          <EmptyState icon={<Receipt className="size-6" />} title="Sin gastos" description="Registra honorarios, estudios, viáticos, impresiones y demás gastos del servicio." />
+          <EmptyState icon={<Receipt className="size-6" />} title="Sin gastos" description="Registra estudios, viáticos, impresiones y demás gastos del servicio. Los honorarios del personal van en Equipo y horas." />
         ) : (
           <Table>
             <thead>
