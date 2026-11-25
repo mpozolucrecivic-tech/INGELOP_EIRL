@@ -16,7 +16,7 @@ Esta guía publica **la web informativa y la intranet** en un solo servidor, con
 - **Un VPS** con **Ubuntu 24.04**, al menos **2 GB de RAM** y 40–50 GB de disco (DigitalOcean, Hetzner, Contabo, Hostinger VPS, etc.). Anota su **IP pública**.
 - **Un dominio** comprado (punto.pe, Namecheap, GoDaddy, etc.) con acceso a su panel de **DNS**.
 - **Un correo** para los avisos de los certificados HTTPS.
-- Opcional: datos **SMTP** de un correo para que el formulario de contacto envíe emails. Pueden ser los del correo corporativo o una cuenta de Gmail con "contraseña de aplicación".
+- Opcional: una **cuenta de Gmail** creada para el sistema, con verificación en 2 pasos y una "contraseña de aplicación". Con ella se envían la recuperación de contraseña y los avisos del formulario de contacto. No hace falta correo corporativo.
 
 ## 2. Apuntar el dominio al servidor (DNS)
 
@@ -111,7 +111,7 @@ En producción **no** se cargan datos de demostración. Crea tu usuario administ
 ```bash
 docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env exec \
   -e ADMIN_PASSWORD='<clave-segura>' api \
-  node dist/scripts/crearAdmin.js gerencia@ingelop.pe "Nombre Apellido"
+  node dist/scripts/crearAdmin.js correo.de.gerencia@gmail.com "Nombre Apellido"
 ```
 
 Entra a la intranet con ese correo y contraseña. Desde ahí:

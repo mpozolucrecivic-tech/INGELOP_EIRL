@@ -45,7 +45,7 @@ export default function RecuperarContrasenaPage() {
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           {error && <Aviso tono="error">{error}</Aviso>}
-          <Input label="Correo de tu cuenta" type="email" autoComplete="email" placeholder="nombre@ingelop.com" error={errors.email?.message} {...register('email')} />
+          <Input label="Correo de tu cuenta" type="email" autoComplete="email" placeholder="tucorreo@gmail.com" error={errors.email?.message} {...register('email')} />
           <Button type="submit" loading={solicitar.isPending} className="w-full">
             Enviar enlace
           </Button>

@@ -92,7 +92,7 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            <Input label="Correo" type="email" autoComplete="email" placeholder="nombre@ingelop.com" error={errors.email?.message} {...register('email')} />
+            <Input label="Correo" type="email" autoComplete="email" placeholder="tucorreo@gmail.com" error={errors.email?.message} {...register('email')} />
             <div>
               <Input label="Contraseña" type="password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
               <Link to="/recuperar-contrasena" className="mt-1.5 inline-block text-xs font-medium text-brand-700 hover:underline">

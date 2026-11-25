@@ -124,7 +124,18 @@ export default function UsuariosPage() {
                           )}
                         </>
                       ) : (
-                        <Button size="sm" variant="secondary" onClick={() => reactivar.mutate({ id: u.id, activo: true })}>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() =>
+                            confirm({
+                              title: 'Reactivar usuario',
+                              message: `${u.nombre} podrá volver a iniciar sesión. Sus proyectos no se recuperan solos: vuelve a darle acceso desde la Configuración de cada proyecto.`,
+                              confirmText: 'Reactivar',
+                              onConfirm: () => reactivar.mutateAsync({ id: u.id, activo: true }),
+                            })
+                          }
+                        >
                           Reactivar
                         </Button>
                       )}

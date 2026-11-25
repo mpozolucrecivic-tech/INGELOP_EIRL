@@ -44,7 +44,7 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(587),
   SMTP_USER: z.preprocess(vacioAUndefined, z.string().min(1).optional()),
   SMTP_PASSWORD: z.preprocess(vacioAUndefined, z.string().min(1).optional()),
-  SMTP_FROM: z.preprocess(vacioAUndefined, z.string().min(3).optional()), // ej. "INGELOP <no-responder@ingelop.com>"; sin ella, SMTP_USER
+  SMTP_FROM: z.preprocess(vacioAUndefined, z.string().min(3).optional()), // ej. "INGELOP Intranet <cuenta@gmail.com>"; sin ella, SMTP_USER
   // Bandeja que recibe los avisos de mensajes nuevos de la web
   CONTACTO_EMAIL: z.preprocess(vacioAUndefined, z.string().email('CONTACTO_EMAIL debe ser un correo válido').optional()),
   // Dirección de la intranet, para los enlaces de los correos (sin "/" final)

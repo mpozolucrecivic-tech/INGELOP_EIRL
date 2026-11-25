@@ -11,7 +11,7 @@ import type { ClaveSitio, DatoSitio } from '@/types/api';
 const CAMPOS: { clave: ClaveSitio; label: string; placeholder: string; hint?: string; grupo: 'Contacto' | 'Redes sociales' }[] = [
   { clave: 'telefono', label: 'Teléfono', placeholder: '979 660 255', grupo: 'Contacto' },
   { clave: 'whatsapp', label: 'WhatsApp', placeholder: '51979660255', hint: '51 + el celular, sin espacios ni "+". Si está oculto, la web no muestra botones de WhatsApp.', grupo: 'Contacto' },
-  { clave: 'email', label: 'Correo', placeholder: 'contacto@ingelop.pe', grupo: 'Contacto' },
+  { clave: 'email', label: 'Correo', placeholder: 'tucorreo@gmail.com', grupo: 'Contacto' },
   { clave: 'direccion', label: 'Dirección', placeholder: 'Calle, número y urbanización', grupo: 'Contacto' },
   { clave: 'distrito', label: 'Distrito', placeholder: 'La Victoria', hint: 'Se muestra junto a la dirección.', grupo: 'Contacto' },
   { clave: 'horario', label: 'Horario de atención', placeholder: 'Lunes a viernes de 8:00 a. m. a 6:00 p. m.', grupo: 'Contacto' },

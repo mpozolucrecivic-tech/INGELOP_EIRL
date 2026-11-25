@@ -146,7 +146,7 @@ espaldo.ps1` | Copia de seguridad de la base de datos y los archivos (ver `docs/
 | `STORAGE_DRIVER` | `local` | `local` (disco, `UPLOAD_DIR`) o `s3` (Cloudflare R2). Con `s3` son obligatorias `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (`S3_REGION=auto`) |
 | `SWAGGER_HABILITADO` | `false` | Publica `/api/docs` en producción. En desarrollo la documentación siempre está disponible |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | `smtp.gmail.com` / `587` | Correo saliente (opcional). Sin `SMTP_HOST` no se envía ningún correo. `SMTP_FROM` es el remitente; sin ella se usa `SMTP_USER` |
-| `CONTACTO_EMAIL` | `contacto@ingelop.pe` | Bandeja que recibe el aviso de cada mensaje nuevo de la web |
+| `CONTACTO_EMAIL` | `cuenta@gmail.com` | Bandeja que recibe el aviso de cada mensaje nuevo de la web |
 | `INTRANET_URL` | `http://localhost:5173` | Dirección de la intranet para los enlaces de los correos. La recuperación de contraseña por correo necesita esta variable y `SMTP_HOST` |
 
 ---
